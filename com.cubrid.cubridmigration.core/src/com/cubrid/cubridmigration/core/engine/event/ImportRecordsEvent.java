@@ -93,8 +93,22 @@ public class ImportRecordsEvent extends
 		}
 		StringBuffer sb = new StringBuffer();
 		sb.append("Imported ").append(recordCount).append(" records from [").append(
-				sourceTable.getName()).append("] to table [").append(
-				sourceTable.getTarget()).append("]");
+				sourceTable.getName());
+		
+		boolean isPartitionTable = sourceTable.getTargetPartitionTable() != null ? true : false;
+		
+		if (isPartitionTable) {
+			sb.append("_").append(sourceTable.getTargetPartitionTable());
+		}
+		
+		sb.append("] to table [").append(sourceTable.getTarget());
+		
+		if (isPartitionTable) {
+			sb.append("__p__").append(sourceTable.getTargetPartitionTable());
+		}
+		
+		sb.append("]");
+		
 		if (success) {
 			return sb.append(" successfully.").toString();
 		} else {

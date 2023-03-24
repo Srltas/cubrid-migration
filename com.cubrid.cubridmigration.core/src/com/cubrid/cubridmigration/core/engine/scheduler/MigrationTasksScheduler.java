@@ -328,11 +328,38 @@ public class MigrationTasksScheduler {
 		}
 		if (config.sourceIsOnline()) {
 			//schedule exporting tasks
-			for (SourceTableConfig table : entryTables) {
+			for (SourceEntryTableConfig table : entryTables) {
 				if (!table.isMigrateData()) {
 					continue;
 				}
-				executeTask2(taskFactory.createExportTableRecordsTask(table));
+				if (table.isCreatePartition()) {
+					int size = table.getPartitionInfo().getPartitions().size();
+					for (int i = 0; i < size; i++) {
+						SourceEntryTableConfig setc = new SourceEntryTableConfig();
+						setc.setOwner(table.getOwner());
+						setc.setName(table.getName());
+						setc.setComment(table.getComment());
+						setc.setTarget(table.getTarget());
+						setc.setTargetPartitionTable(table.getPartitionInfo().getPartitions().get(i).getPartitionName());
+						setc.setCreateNewTable(table.isCreateNewTable());
+						setc.setMigrateData(table.isMigrateData());
+						setc.setReplace(table.isReplace());
+						setc.setSqlBefore(table.getSqlBefore());
+						setc.setSqlAfter(table.getSqlAfter());
+						setc.addAllColumnList(table.getColumnConfigList());
+						setc.setCreatePK(table.isCreatePK());
+						setc.setCreatePartition(table.isCreatePartition());
+						setc.setEnableExpOpt(table.isEnableExpOpt());
+						setc.setStartFromTargetMax(table.isStartFromTargetMax());
+						setc.setFKs(table.getFKConfigList());
+						setc.setIndexes(table.getIndexConfigList());
+						setc.setCondition(table.getCondition());
+						
+						executeTask2(taskFactory.createExportTableRecordsTask(setc));
+					}
+				} else {
+					executeTask2(taskFactory.createExportTableRecordsTask(table));
+				}
 			}
 			for (SourceTableConfig table : sqlTables) {
 				if (!table.isMigrateData()) {

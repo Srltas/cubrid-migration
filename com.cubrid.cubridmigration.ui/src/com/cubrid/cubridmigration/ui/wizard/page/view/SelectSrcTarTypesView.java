@@ -48,6 +48,7 @@ import org.osgi.service.prefs.BackingStoreException;
 
 import com.cubrid.common.ui.swt.Resources;
 import com.cubrid.cubridmigration.core.common.log.LogUtil;
+import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.ui.MigrationUIPlugin;
 import com.cubrid.cubridmigration.ui.message.Messages;
@@ -306,27 +307,20 @@ public class SelectSrcTarTypesView {
 	 * @param tarType type of target
 	 */
 	public void showCfg(int srcType, int tarType) {
-		boolean flag = false;
 		for (Button btn : srcButtons) {
-			btn.setSelection(false);
-			if (((Integer) btn.getData()).intValue() == srcType) {
+			btn.setEnabled(false);
+			if (((Integer) btn.getData()).intValue() == DatabaseType.ORACLE.getID()) {
+				btn.setEnabled(true);
 				btn.setSelection(true);
-				flag = true;
 			}
 		}
-		if (!flag) {
-			btnOnlineCUBRIDSrc.setSelection(true);
-		}
-		flag = false;
+			
 		for (Button btn : tarButtons) {
-			btn.setSelection(false);
-			if (((Integer) btn.getData()).intValue() == tarType) {
-				btn.setSelection(true);
-				flag = true;
+			btn.setEnabled(false);
+			if (((Integer) btn.getData()).intValue() == 0) {
+				btn.setEnabled(true);
+				btn.setSelection(true);	
 			}
-		}
-		if (!flag) {
-			btnOnlineTar.setSelection(true);
 		}
 	}
 }

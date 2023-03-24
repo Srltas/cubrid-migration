@@ -196,6 +196,10 @@ public abstract class DBExportHelper implements
 			}
 			buf.append(" ").append(condition);
 		}
+		if (setc.getTargetPartitionTable() != null) {
+			buf.append(" PARTITION(");
+			buf.append(getQuotedObjName(setc.getTargetPartitionTable()) + ")");
+		}
 		return buf.toString();
 	}
 

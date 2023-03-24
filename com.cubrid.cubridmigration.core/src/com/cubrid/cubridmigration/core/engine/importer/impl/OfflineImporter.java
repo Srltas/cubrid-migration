@@ -483,7 +483,12 @@ public abstract class OfflineImporter extends
 	 * @return String header
 	 */
 	protected String getDataFileHeader(SourceTableConfig table) {
-		StringBuffer sb = new StringBuffer("%class [").append(table.getTarget()).append("] (");
+		StringBuffer sb = null;
+		if (table.getTargetPartitionTable() != null) {
+			sb = new StringBuffer("%class [").append(table.getTarget()).append("__p__").append(table.getTargetPartitionTable()).append("] (");
+		} else {
+			sb = new StringBuffer("%class [").append(table.getTarget()).append("] (");
+		}
 		String spliter = "";
 		for (SourceColumnConfig col : table.getColumnConfigList()) {
 			sb.append(spliter).append("[").append(col.getTarget()).append("]");

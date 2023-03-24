@@ -73,7 +73,7 @@ public class AboutDialog extends
 			productName = Messages.productName;
 		}
 		String[] strs = Version.buildVersionId.split("\\.");
-		String message = Messages.bind(Messages.aboutMessage, new String[] {productName,
+		String message = Messages.bind(Messages.aboutMessage, new String[] {productName + " (Oracle to Cubrid dump only)",
 				Version.releaseYear, strs[strs.length - 1], Messages.msgCubridHomePageUrl,
 				Messages.msgCubridProjectSiteUrl, Messages.msgCUBRIDToolsSiteURL});
 		this.setItem(scan(message));

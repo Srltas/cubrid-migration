@@ -67,9 +67,15 @@ public class ExportRecordsEvent extends
 			return "No record of table [" + sourceTable.getName()
 					+ "] to be exported.";
 		}
-		return new StringBuffer().append("Exported ").append(recordCount).append(
-				" records from table [").append(sourceTable.getName()).append(
-				"] successfully.").toString();
+		
+		StringBuffer sb = new StringBuffer();
+		sb.append("Exported ").append(recordCount).append(" records from table [").append(sourceTable.getName());
+		if (sourceTable.getTargetPartitionTable() != null) {
+			sb.append("_").append(sourceTable.getTargetPartitionTable());
+		}
+		sb.append("] successfully.");
+		
+		return sb.toString();
 	}
 
 	/**

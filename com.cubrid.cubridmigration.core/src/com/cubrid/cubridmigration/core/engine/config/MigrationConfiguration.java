@@ -694,8 +694,9 @@ public class MigrationConfiguration {
 					setc.setName(srcTable.getName());
 					setc.setComment(srcTable.getComment());
 					setc.setTarget(getTargetName(allTablesCountMap, srcTable.getOwner(), srcTable.getName()));
+					setc.setPartitionInfo(srcTable.getPartitionInfo());
 					setc.setCreateNewTable(false);
-					setc.setCreatePartition(false);
+					setc.setCreatePartition(srcTable.getPartitionInfo() != null ? true : false);
 					setc.setCreatePK(false);
 					setc.setMigrateData(false);
 					setc.setReplace(false);
@@ -3029,7 +3030,6 @@ public class MigrationConfiguration {
 		for (SourceEntryTableConfig setc : expTables) {
 			setc.setCreateNewTable(value);
 			setc.setMigrateData(value);
-			setc.setCreatePartition(value);
 			setc.setCreatePK(value);
 			setc.setReplace(value);
 

@@ -56,8 +56,15 @@ public class StartExpTableEvent extends
 	 * @return String
 	 */
 	public String toString() {
-		return "Begin to export records of table[" + sourceTable.getName()
-				+ "].";
+		StringBuffer sb = new StringBuffer();
+		sb.append("Begin to export records of table[")
+			.append(sourceTable.getName());
+		if (sourceTable.getTargetPartitionTable() != null) {
+			sb.append("_").append(sourceTable.getTargetPartitionTable());
+		}
+		sb.append("].");
+		
+		return sb.toString();
 	}
 
 	/**

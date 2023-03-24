@@ -48,6 +48,7 @@ public class SourceTableConfig {
 	private String owner;
 	private String comment;
 	private String target;
+	private String targetPartitionTable;
 	private boolean createNewTable = true;
 	private boolean migrateData = true;
 	private boolean replace = true;
@@ -171,6 +172,15 @@ public class SourceTableConfig {
 	public String getTarget() {
 		return target;
 	}
+	
+	/**
+	 * Target partition table name to import
+	 * 
+	 * @return the targetPartitionTable
+	 */
+	public String getTargetPartitionTable() {
+		return targetPartitionTable;
+	}
 
 	/**
 	 * Has column to be exported
@@ -286,5 +296,12 @@ public class SourceTableConfig {
 	 */
 	public void setTarget(String target) {
 		this.target = target;
+	}
+	
+	/**
+	 * @param target the target partition table to set
+	 */
+	public void setTargetPartitionTable(String targetPartitionTable) {
+		this.targetPartitionTable = targetPartitionTable;
 	}
 }

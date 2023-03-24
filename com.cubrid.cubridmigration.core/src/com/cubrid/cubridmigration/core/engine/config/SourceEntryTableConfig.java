@@ -34,6 +34,8 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import com.cubrid.cubridmigration.core.dbobject.PartitionInfo;
+
 /**
  * SourceTableConfig
  * 
@@ -50,6 +52,7 @@ public class SourceEntryTableConfig extends
 
 	private final List<SourceFKConfig> fks = new ArrayList<SourceFKConfig>();
 	private final List<SourceIndexConfig> indexes = new ArrayList<SourceIndexConfig>();
+	private PartitionInfo partitionInfo;
 	private String condition = "";
 
 	/**
@@ -186,6 +189,14 @@ public class SourceEntryTableConfig extends
 
 	public List<SourceIndexConfig> getIndexConfigList() {
 		return new ArrayList<SourceIndexConfig>(indexes);
+	}
+	
+	public PartitionInfo getPartitionInfo() {
+		return partitionInfo;
+	}
+	
+	public void setPartitionInfo(PartitionInfo partitionInfo) {
+		this.partitionInfo = partitionInfo;
 	}
 
 	public String getCondition() {
