@@ -1662,7 +1662,7 @@ public class MigrationConfiguration {
 	public SourceEntryTableConfig getExpEntryTableCfg(String schema, String tableName) {
 		SourceEntryTableConfig result = null;
 		for (SourceEntryTableConfig setc : expTables) {
-			if (setc.getName().equals(tableName)) {
+			if (setc.getName().equalsIgnoreCase(tableName)) {
 				if (schema == null) {
 					return setc;
 				}

@@ -477,7 +477,7 @@ public abstract class DBTransformHelper {
 		}
 		//Partitions
 		if (sourceTable.getPartitionInfo() != null) {
-			PartitionInfo targetPartitionInfo = new PartitionInfo();
+			PartitionInfo targetPartitionInfo = sourceTable.getPartitionInfo();
 			tarTable.setPartitionInfo(targetPartitionInfo);
 			targetPartitionInfo.setDDL(getToCUBRIDPartitionDDL(sourceTable));
 		}

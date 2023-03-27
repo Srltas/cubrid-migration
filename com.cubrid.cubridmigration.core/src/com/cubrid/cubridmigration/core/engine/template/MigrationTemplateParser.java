@@ -378,6 +378,7 @@ public final class MigrationTemplateParser {
 		//tables
 		Element tables = createElement(document, target, TemplateTags.TAG_TABLES);
 		List<Table> targetTables = config.getTargetTableSchema();
+		//List<SourceEntryTableConfig> targetTables = config.getExpEntryTableCfg();
 		for (Table targetTable : targetTables) {
 			Element table = createElement(document, tables, TemplateTags.TAG_TABLE);
 			table.setAttribute(TemplateTags.ATTR_NAME, targetTable.getName());

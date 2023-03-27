@@ -32,6 +32,8 @@ package com.cubrid.cubridmigration.core.engine.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.cubrid.cubridmigration.core.dbobject.PartitionInfo;
+
 /**
  * SourceTableConfig
  * 
@@ -55,6 +57,8 @@ public class SourceTableConfig {
 	private String sqlBefore;
 	private String sqlAfter;
 	private final List<SourceColumnConfig> columns = new ArrayList<SourceColumnConfig>();
+	
+	private PartitionInfo partitionInfo;
 
 	/**
 	 * addAllColumnList
@@ -180,6 +184,14 @@ public class SourceTableConfig {
 	 */
 	public String getTargetPartitionTable() {
 		return targetPartitionTable;
+	}
+	
+	public PartitionInfo getPartitionInfo() {
+		return partitionInfo;
+	}
+	
+	public void setPartitionInfo(PartitionInfo partitionInfo) {
+		this.partitionInfo = partitionInfo;
 	}
 
 	/**

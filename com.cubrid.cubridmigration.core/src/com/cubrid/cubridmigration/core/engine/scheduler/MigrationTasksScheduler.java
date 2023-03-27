@@ -332,7 +332,7 @@ public class MigrationTasksScheduler {
 				if (!table.isMigrateData()) {
 					continue;
 				}
-				if (table.isCreatePartition()) {
+				if (table.getPartitionInfo() != null) {
 					int size = table.getPartitionInfo().getPartitions().size();
 					for (int i = 0; i < size; i++) {
 						SourceEntryTableConfig setc = new SourceEntryTableConfig();

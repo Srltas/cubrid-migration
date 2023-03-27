@@ -155,7 +155,7 @@ public final class MigrationTemplateHandler extends
 			srcSQLCatalog = Catalog.loadXML(schemaCache.toString());
 			schemaCache = null;
 		} else if (TemplateTags.TAG_TABLE.equals(qName)) {
-			srcTableCfg = null;
+//			srcTableCfg = null;
 			targetTable = null;
 		} else if (TemplateTags.TAG_SQLTABLE.equals(qName)) {
 			srcTableCfg = null;
@@ -595,6 +595,9 @@ public final class MigrationTemplateHandler extends
 			SourceEntryTableConfig setc = ((SourceEntryTableConfig) srcTableCfg);
 			setc.setCreatePartition(getBoolean(attributes.getValue(TemplateTags.ATTR_PARTITION),
 					false));
+			
+			setc.setPartitionInfo(setc.isCreatePartition() ? new PartitionInfo() : null);
+			
 			setc.setCreatePK(getBoolean(attributes.getValue(TemplateTags.ATTR_PK), true));
 			setc.setCondition(attributes.getValue(TemplateTags.ATTR_CONDITION));
 			setc.setEnableExpOpt(getBoolean(attributes.getValue(TemplateTags.ATTR_EXP_OPT_COL),
@@ -739,6 +742,8 @@ public final class MigrationTemplateHandler extends
 			parseTargetPartition(attr);
 		} else if (TemplateTags.TAG_RANGE.equals(qName)) {
 			parseTargetRangePartition(attr);
+			SourceEntryTableConfig setc = config.getExpEntryTableCfg(targetTable.getOwner(), targetTable.getName());
+			setc.getPartitionInfo().setPartitions(targetTable.getPartitionInfo().getPartitions());
 		} else if (TemplateTags.TAG_HASH.equals(qName)) {
 			parseTargetHashPartition(attr);
 		} else if (TemplateTags.TAG_LIST.equals(qName)) {
