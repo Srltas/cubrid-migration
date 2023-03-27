@@ -155,7 +155,7 @@ public final class MigrationTemplateHandler extends
 			srcSQLCatalog = Catalog.loadXML(schemaCache.toString());
 			schemaCache = null;
 		} else if (TemplateTags.TAG_TABLE.equals(qName)) {
-//			srcTableCfg = null;
+			srcTableCfg = null;
 			targetTable = null;
 		} else if (TemplateTags.TAG_SQLTABLE.equals(qName)) {
 			srcTableCfg = null;
@@ -171,7 +171,14 @@ public final class MigrationTemplateHandler extends
 			targetView.setDDL(sqlStatement.toString().trim());
 			sqlStatement = null;
 		} else if (TemplateTags.TAG_PARTITION_DDL.equals(qName)) {
-			targetTable.getPartitionInfo().setDDL(sqlStatement.toString());
+			if (targetTable != null) {
+				targetTable.getPartitionInfo().setDDL(sqlStatement.toString());				
+			}
+			
+			if (srcTableCfg != null) {
+				srcTableCfg.getPartitionInfo().setDDL(sqlStatement.toString());
+			}
+			
 			sqlStatement = null;
 		} else if (TemplateTags.TAG_CSV.equals(qName)) {
 			config.addCSVFile(srcCSV);
@@ -614,7 +621,28 @@ public final class MigrationTemplateHandler extends
 			scc.setNeedTrim(getBoolean(attributes.getValue(TemplateTags.ATTR_TRIM), false));
 			scc.setReplaceExpression(attributes.getValue(TemplateTags.ATTR_REPLACE_EXPRESSION));
 			scc.setUserDataHandler(attributes.getValue(TemplateTags.ATTR_USER_DATA_HANDLER));
-		} else if (TemplateTags.TAG_FK.equals(qName)) {
+		} else if (TemplateTags.TAG_PARTITIONS.equals(qName)) {
+			PartitionInfo partition = new PartitionInfo();
+			try {
+				srcTableCfg.setPartitionInfo(partition);
+				partition.setPartitionExp(attributes.getValue(TemplateTags.ATTR_EXPRESSION));
+				partition.setPartitionMethod(attributes.getValue(TemplateTags.ATTR_TYPE));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else if (TemplateTags.TAG_RANGE.equals(qName)) {
+			try {
+				PartitionTable pt = new PartitionTable();
+				pt.setPartitionName(attributes.getValue(TemplateTags.ATTR_NAME));
+				pt.setPartitionDesc(attributes.getValue(TemplateTags.ATTR_VALUE));
+				srcTableCfg.getPartitionInfo().addPartition(pt);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else if (TemplateTags.TAG_PARTITION_DDL.equals(qName)) {
+			sqlStatement = new StringBuffer();
+		}
+		else if (TemplateTags.TAG_FK.equals(qName)) {
 			((SourceEntryTableConfig) srcTableCfg).addFKConfig(
 					attributes.getValue(TemplateTags.ATTR_NAME),
 					attributes.getValue(TemplateTags.ATTR_TARGET), true);
@@ -742,8 +770,8 @@ public final class MigrationTemplateHandler extends
 			parseTargetPartition(attr);
 		} else if (TemplateTags.TAG_RANGE.equals(qName)) {
 			parseTargetRangePartition(attr);
-			SourceEntryTableConfig setc = config.getExpEntryTableCfg(targetTable.getOwner(), targetTable.getName());
-			setc.getPartitionInfo().setPartitions(targetTable.getPartitionInfo().getPartitions());
+//			SourceEntryTableConfig setc = config.getExpEntryTableCfg(targetTable.getOwner(), targetTable.getName());
+//			setc.getPartitionInfo().setPartitions(targetTable.getPartitionInfo().getPartitions());
 		} else if (TemplateTags.TAG_HASH.equals(qName)) {
 			parseTargetHashPartition(attr);
 		} else if (TemplateTags.TAG_LIST.equals(qName)) {
