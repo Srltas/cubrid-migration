@@ -47,6 +47,7 @@ import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.PK;
+import com.cubrid.cubridmigration.core.dbobject.PartitionTable;
 import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.dbtype.IDependOnDatabaseType;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
@@ -221,7 +222,7 @@ public abstract class DBExportHelper implements
 	 * @param setc SourceEntryTableConfig
 	 * @return String
 	 */
-	public String getSelectCountSQL(final SourceEntryTableConfig setc) {
+	public String getSelectCountSQL(final SourceEntryTableConfig setc, boolean isPartitionTable, String partitionTableName) {
 		StringBuffer buf = new StringBuffer(256);
 		buf.append("SELECT COUNT(1) ");
 		buf.append(" FROM ");
@@ -240,6 +241,12 @@ public abstract class DBExportHelper implements
 				condition = condition.substring(0, condition.length() - 1);
 			}
 			buf.append(" ").append(condition);
+		}
+		
+		if (isPartitionTable) {
+			buf.append(" PARTITION(");
+			buf.append(getQuotedObjName(partitionTableName));
+			buf.append(")");
 		}
 		return buf.toString();
 	}
@@ -296,8 +303,17 @@ public abstract class DBExportHelper implements
 					if (tbl != null && StringUtils.isNotEmpty(tbl.getOwner())) {
 						setc.setOwner(tbl.getOwner());
 					}
-					String sql = getSelectCountSQL(setc);
+					String sql = getSelectCountSQL(setc, false, null);
 					setTableRowCount(config, stmt, setc.getOwner(), setc.getName(), sql);
+					
+					if (setc.getPartitionInfo() != null) {
+						List<PartitionTable> partitionTables = setc.getPartitionInfo().getPartitions();
+						for (PartitionTable partitionTable : partitionTables) {
+							String partitionTableName = partitionTable.getName();
+							String partitionSql = getSelectCountSQL(setc, true, partitionTableName);
+							setPartitionTableRowCount(stmt, partitionTable, partitionSql);
+						}
+					}
 				}
 				SQLHelper sqlHelper = config.getSourceDBType().getSQLHelper(null);
 				for (SourceSQLTableConfig sstc : config.getExpSQLCfg()) {
@@ -414,6 +430,26 @@ public abstract class DBExportHelper implements
 			return false;
 		}
 
+		return true;
+	}
+	
+	private boolean setPartitionTableRowCount(Statement stat, PartitionTable partitionTable, String sql) {
+		try {
+			ResultSet rs = stat.executeQuery(sql);
+			try {
+				if (rs.next()) {
+					partitionTable.setPartitionTableRowCount(rs.getLong(1));
+				} else {
+					partitionTable.setPartitionTableRowCount(0);
+				}
+			} finally {
+				rs.close();
+			}
+		} catch (SQLException e) {
+			LOG.error("SQL error", e);
+			return false;
+		}
+		
 		return true;
 	}
 

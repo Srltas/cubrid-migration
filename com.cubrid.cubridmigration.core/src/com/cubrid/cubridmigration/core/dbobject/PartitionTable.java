@@ -44,6 +44,18 @@ public class PartitionTable extends
 	private int partitionIdx;
 	private String partitionName;
 	private String partitionDesc; //maxValue
+	private long partitionTableRowCount;
+
+	
+	public long getPartitionTableRowCount() {
+		return partitionTableRowCount;
+	}
+
+	
+	public void setPartitionTableRowCount(long partitionTableRowCount) {
+		this.partitionTableRowCount = partitionTableRowCount;
+	}
+
 
 	/**
 	 * Retrieves the name
@@ -53,6 +65,7 @@ public class PartitionTable extends
 	public String getName() {
 		return partitionName;
 	}
+
 
 	public String getPartitionName() {
 		return partitionName;

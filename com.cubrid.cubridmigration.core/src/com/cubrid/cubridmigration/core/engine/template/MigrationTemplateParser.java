@@ -471,24 +471,24 @@ public final class MigrationTemplateParser {
 				}
 			}
 			//Partition
-//			PartitionInfo pi = targetTable.getPartitionInfo();
-//			if (pi == null) {
-//				continue;
-//			}
-//			Element partitions = createElement(document, table, TemplateTags.TAG_PARTITIONS);
-//			partitions.setAttribute(TemplateTags.ATTR_TYPE, pi.getPartitionMethod());
-//			partitions.setAttribute(TemplateTags.ATTR_EXPRESSION, pi.getPartitionExp());
-//			for (PartitionTable pt : pi.getPartitions()) {
-//				Element pNode = createElement(document, partitions,
-//						pi.getPartitionMethod().toLowerCase());
-//				pNode.setAttribute(TemplateTags.ATTR_NAME, pt.getPartitionName());
-//				if (TemplateTags.VALUE_HASH.equals(pi.getPartitionMethod())) {
-//					continue;
-//				}
-//				pNode.setAttribute(TemplateTags.ATTR_VALUE, pt.getPartitionDesc());
-//			}
-//			Element pDDLNode = createElement(document, partitions, TemplateTags.TAG_PARTITION_DDL);
-//			pDDLNode.setTextContent(pi.getDDL());
+			PartitionInfo pi = targetTable.getPartitionInfo();
+			if (pi == null) {
+				continue;
+			}
+			Element partitions = createElement(document, table, TemplateTags.TAG_PARTITIONS);
+			partitions.setAttribute(TemplateTags.ATTR_TYPE, pi.getPartitionMethod());
+			partitions.setAttribute(TemplateTags.ATTR_EXPRESSION, pi.getPartitionExp());
+			for (PartitionTable pt : pi.getPartitions()) {
+				Element pNode = createElement(document, partitions,
+						pi.getPartitionMethod().toLowerCase());
+				pNode.setAttribute(TemplateTags.ATTR_NAME, pt.getPartitionName());
+				if (TemplateTags.VALUE_HASH.equals(pi.getPartitionMethod())) {
+					continue;
+				}
+				pNode.setAttribute(TemplateTags.ATTR_VALUE, pt.getPartitionDesc());
+			}
+			Element pDDLNode = createElement(document, partitions, TemplateTags.TAG_PARTITION_DDL);
+			pDDLNode.setTextContent(pi.getDDL());
 		}
 	}
 

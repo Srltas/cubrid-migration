@@ -49,9 +49,28 @@ public class Table extends
 	private final List<FK> fks = new ArrayList<FK>();
 	private final List<Index> indexes = new ArrayList<Index>();
 	private PartitionInfo partitionInfo = null;
+	private String partitionTableName;
+	private int partitionTableCount;
 	private long tableRowCount;
 	private String createSql;
 	private boolean isReuseOID = false;
+	
+	
+	public int getPartitionTableCount() {
+		return partitionTableCount;
+	}
+
+	public void setPartitionTableCount(int partitionTableCount) {
+		this.partitionTableCount = partitionTableCount;
+	}
+
+	public void setPartitionTableName(String partitionTableName) {
+		this.partitionTableName = partitionTableName;
+	}
+	
+	public String getPartitionTableName() {
+		return partitionTableName;
+	}
 
 	public boolean isReuseOID() {
 		return isReuseOID;

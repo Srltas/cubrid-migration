@@ -42,6 +42,7 @@ import com.cubrid.cubridmigration.core.common.Closer;
 import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.PK;
+import com.cubrid.cubridmigration.core.dbobject.PartitionTable;
 import com.cubrid.cubridmigration.core.dbobject.Record;
 import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
@@ -50,6 +51,7 @@ import com.cubrid.cubridmigration.core.engine.MigrationStatusManager;
 import com.cubrid.cubridmigration.core.engine.RecordExportedListener;
 import com.cubrid.cubridmigration.core.engine.ThreadUtils;
 import com.cubrid.cubridmigration.core.engine.config.SourceColumnConfig;
+import com.cubrid.cubridmigration.core.engine.config.SourceEntryTableConfig;
 import com.cubrid.cubridmigration.core.engine.config.SourceTableConfig;
 import com.cubrid.cubridmigration.core.engine.event.MigrationErrorEvent;
 import com.cubrid.cubridmigration.core.engine.exception.NormalMigrationException;
@@ -198,6 +200,7 @@ public class JDBCExporter extends
 			List<SourceColumnConfig> expColConfs = stc.getColumnConfigList();
 			long totalExported = 0L;
 			long intPageCount = config.getPageFetchCount();
+			
 			String sql = expHelper.getSelectSQL(stc);
 			while (true) {
 				if (interrupted) {
@@ -205,8 +208,12 @@ public class JDBCExporter extends
 				}
 				long realPageCount = intPageCount;
 				if (!config.isImplicitEstimate()) {
-					realPageCount = Math.min(sTable.getTableRowCount() - totalExported,
-							intPageCount);
+					if (stc.getTargetPartitionTable() != null) {
+						realPageCount = Math.min(stc.getTargetPartitionTableRowCount() - totalExported, intPageCount);
+					} else {
+						realPageCount = Math.min(sTable.getTableRowCount() - totalExported, intPageCount);
+					}
+					
 				}
 				String pagesql = expHelper.getPagedSelectSQL(sql, realPageCount, totalExported, pk);
 				if (LOG.isDebugEnabled()) {
@@ -215,8 +222,9 @@ public class JDBCExporter extends
 				long recordCountOfQuery = handleSQL(conn, pagesql, stc, sTable, expColConfs,
 						records, newRecordProcessor);
 				totalExported = totalExported + recordCountOfQuery;
+				
 				//Stop fetching condition: no result;less then fetching count;great then total count
-				if (isLatestPage(sTable, totalExported, recordCountOfQuery)) {
+				if (isLatestPage(stc, sTable, totalExported, recordCountOfQuery)) {
 					break;
 				}
 			}
@@ -387,7 +395,7 @@ public class JDBCExporter extends
 	 * @param recordCountOfCurrentPage
 	 * @return
 	 */
-	protected boolean isLatestPage(Table sTable, long exportedRecords, long recordCountOfCurrentPage) {
+	protected boolean isLatestPage(SourceTableConfig stc, Table sTable, long exportedRecords, long recordCountOfCurrentPage) {
 		int sourceDBTypeID = config.getSourceDBType().getID();
 		if (config.isImplicitEstimate()
 		        && (sourceDBTypeID == DatabaseType.ORACLE.getID()
@@ -395,8 +403,10 @@ public class JDBCExporter extends
 			return true;
 		}
 		
+		long tableRowCount = stc.getTargetPartitionTable() != null ? stc.getTargetPartitionTableRowCount() : sTable.getTableRowCount();
+		
 		return recordCountOfCurrentPage == 0
 				|| recordCountOfCurrentPage < config.getPageFetchCount()
-				|| (!config.isImplicitEstimate() && exportedRecords >= sTable.getTableRowCount());
+				|| (!config.isImplicitEstimate() && exportedRecords >= tableRowCount);
 	}
 }

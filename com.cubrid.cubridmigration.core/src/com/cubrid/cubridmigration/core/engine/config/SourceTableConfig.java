@@ -51,6 +51,7 @@ public class SourceTableConfig {
 	private String comment;
 	private String target;
 	private String targetPartitionTable;
+	private long targetPartitionTableRowCount;
 	private boolean createNewTable = true;
 	private boolean migrateData = true;
 	private boolean replace = true;
@@ -59,6 +60,14 @@ public class SourceTableConfig {
 	private final List<SourceColumnConfig> columns = new ArrayList<SourceColumnConfig>();
 	
 	private PartitionInfo partitionInfo;
+
+	public long getTargetPartitionTableRowCount() {
+		return targetPartitionTableRowCount;
+	}
+
+	public void setTargetPartitionTableRowCount(long targetPartitionTableRowCount) {
+		this.targetPartitionTableRowCount = targetPartitionTableRowCount;
+	}
 
 	/**
 	 * addAllColumnList

@@ -132,12 +132,14 @@ public class LoadFileImporter extends
 		synchronized (lockObj) {
 			MigrationDirAndFilesManager mdfm = mrManager.getDirAndFilesMgr();
 			CurrentDataFileInfo es = tableFiles.get(stc.getName());
+//			String partitionTableName = stc.getTargetPartitionTable() != null ? "_" + stc.getTargetPartitionTable() : "";
 			if (es == null) {
 				final StringBuffer sb = new StringBuffer(
 						mrManager.getDirAndFilesMgr().getMergeFilesDir()).append(
 						config.getFullTargetFilePrefix()).append(stc.getTarget());
 				es = new CurrentDataFileInfo(sb.toString(), config.getDataFileExt());
 				PathUtils.deleteFile(new File(es.fileFullName));
+//				String tableFilesKey = stc.getName()+ "_" + partitionTableName;
 				tableFiles.put(stc.getName(), es);
 			}
 			//If the target file is full. 

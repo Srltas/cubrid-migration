@@ -369,7 +369,7 @@ public final class CUBRIDIOUtils {
 	 * @param targetFile is the file to be written.
 	 * @throws IOException when IO errors
 	 */
-	public static void mergeFile(String sourceFile, String targetFile) throws IOException {
+	public static synchronized void mergeFile(String sourceFile, String targetFile) throws IOException {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]sourceFile=" + sourceFile + ", targetFile=" + targetFile);
 		}
