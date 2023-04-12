@@ -145,7 +145,11 @@ public class OracleExportHelper extends
 	 * @param pk table's primary key
 	 * @return SQL
 	 */
-	public String getPagedSelectSQL(String sql, long rows, long exportedRecords, PK pk) {
+	public String getPagedSelectSQL(String sql, long startRowNum, long rowCount, PK pk) {
+		StringBuilder buf = new StringBuilder(sql);
+		buf.append(" OFFSET ").append(startRowNum).append(" ROWS FETCH NEXT ").append(rowCount).append(" ROW ONLY");
+		
+		return buf.toString();
 		//		StringBuilder buf = new StringBuilder(sql);
 		//		String cleanSql = sql.toUpperCase().trim();
 		//		if (cleanSql.indexOf("WHERE") != -1) {
@@ -158,7 +162,7 @@ public class OracleExportHelper extends
 		//
 		//		return buf.toString();
 		//TODO: Oracle page selection SQL
-		return sql;
+		// return sql;
 	}
 
 	/**

@@ -63,6 +63,8 @@ public class MigrationTasksScheduler {
 
 	protected MigrationTaskFactory taskFactory;
 	protected MigrationContext context;
+	
+	private final long TABLE_MULTI_THREAD_ROW_COUNT = 1000000L;
 
 	public MigrationTasksScheduler() {
 
@@ -339,32 +341,35 @@ public class MigrationTasksScheduler {
 					for (int i = 0; i < size; i++) {
 						PartitionTable partitionTable = table.getPartitionInfo().getPartitions().get(i);
 						
-						SourceEntryTableConfig setc = new SourceEntryTableConfig();
-						setc.setOwner(table.getOwner());
-						setc.setName(table.getName());
-						setc.setComment(table.getComment());
-						setc.setTarget(table.getTarget());
-						setc.setPartitionInfo(table.getPartitionInfo());
+						SourceEntryTableConfig setc = createNewSetc(table);
 						setc.setTargetPartitionTable(partitionTable.getPartitionName());
 						setc.setTargetPartitionTableRowCount(partitionTable.getPartitionTableRowCount());
-						setc.setCreateNewTable(table.isCreateNewTable());
-						setc.setMigrateData(table.isMigrateData());
-						setc.setReplace(table.isReplace());
-						setc.setSqlBefore(table.getSqlBefore());
-						setc.setSqlAfter(table.getSqlAfter());
-						setc.addAllColumnList(table.getColumnConfigList());
-						setc.setCreatePK(table.isCreatePK());
-						setc.setCreatePartition(table.isCreatePartition());
-						setc.setEnableExpOpt(table.isEnableExpOpt());
-						setc.setStartFromTargetMax(table.isStartFromTargetMax());
-						setc.setFKs(table.getFKConfigList());
-						setc.setIndexes(table.getIndexConfigList());
-						setc.setCondition(table.getCondition());
 						
 						executeTask2(taskFactory.createExportTableRecordsTask(setc));
 					}
 				} else {
-					executeTask2(taskFactory.createExportTableRecordsTask(table));
+					long tableRowCount = config.getSrcTableSchema(table.getOwner(), table.getName()).getTableRowCount();
+					if (tableRowCount >= TABLE_MULTI_THREAD_ROW_COUNT) {			
+						long threadCount = tableRowCount / TABLE_MULTI_THREAD_ROW_COUNT;
+						if (tableRowCount % TABLE_MULTI_THREAD_ROW_COUNT > 0) {
+							threadCount++;
+						}
+						
+						long tempStartRowNum = 0L;
+						for (int i = 0; i < threadCount; i++) {
+							SourceEntryTableConfig setc = createNewSetc(table);
+							setc.setTargetTableRowCount(tableRowCount);
+							setc.setTargetTableRowRange(TABLE_MULTI_THREAD_ROW_COUNT);
+							setc.setTargetTableStartRowNum(tempStartRowNum);
+							setc.setBigTable(true);
+							
+							executeTask2(taskFactory.createExportTableRecordsTask(setc));
+							
+							tempStartRowNum += TABLE_MULTI_THREAD_ROW_COUNT;
+						}
+					} else {
+						executeTask2(taskFactory.createExportTableRecordsTask(table));
+					}
 				}
 			}
 			for (SourceTableConfig table : sqlTables) {
@@ -381,6 +386,31 @@ public class MigrationTasksScheduler {
 			}
 		}
 		await();
+	}
+	
+	private SourceEntryTableConfig createNewSetc(SourceEntryTableConfig table) {
+		SourceEntryTableConfig setc = new SourceEntryTableConfig();
+		
+		setc.setOwner(table.getOwner());
+		setc.setName(table.getName());
+		setc.setComment(table.getComment());
+		setc.setTarget(table.getTarget());
+		setc.setPartitionInfo(table.getPartitionInfo());
+		setc.setCreateNewTable(table.isCreateNewTable());
+		setc.setMigrateData(table.isMigrateData());
+		setc.setReplace(table.isReplace());
+		setc.setSqlBefore(table.getSqlBefore());
+		setc.setSqlAfter(table.getSqlAfter());
+		setc.addAllColumnList(table.getColumnConfigList());
+		setc.setCreatePK(table.isCreatePK());
+		setc.setCreatePartition(table.isCreatePartition());
+		setc.setEnableExpOpt(table.isEnableExpOpt());
+		setc.setStartFromTargetMax(table.isStartFromTargetMax());
+		setc.setFKs(table.getFKConfigList());
+		setc.setIndexes(table.getIndexConfigList());
+		setc.setCondition(table.getCondition());
+		
+		return setc;
 	}
 
 	/**

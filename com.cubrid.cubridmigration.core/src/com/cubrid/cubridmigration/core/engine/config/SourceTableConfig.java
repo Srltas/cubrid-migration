@@ -52,6 +52,10 @@ public class SourceTableConfig {
 	private String target;
 	private String targetPartitionTable;
 	private long targetPartitionTableRowCount;
+	private long targetTableRowCount;
+	private long targetTableStartRowNum;
+	private long targetTableRowRange;
+	private boolean isBigTable = false;
 	private boolean createNewTable = true;
 	private boolean migrateData = true;
 	private boolean replace = true;
@@ -60,6 +64,38 @@ public class SourceTableConfig {
 	private final List<SourceColumnConfig> columns = new ArrayList<SourceColumnConfig>();
 	
 	private PartitionInfo partitionInfo;
+	
+	public boolean isBigTable() {
+		return isBigTable;
+	}
+
+	public void setBigTable(boolean isBigTable) {
+		this.isBigTable = isBigTable;
+	}
+
+	public long getTargetTableStartRowNum() {
+		return targetTableStartRowNum;
+	}
+
+	public void setTargetTableStartRowNum(long targetTableStartRowNum) {
+		this.targetTableStartRowNum = targetTableStartRowNum;
+	}
+
+	public long getTargetTableRowRange() {
+		return targetTableRowRange;
+	}
+
+	public void setTargetTableRowRange(long targetTableRowRange) {
+		this.targetTableRowRange = targetTableRowRange;
+	}
+
+	public long getTargetTableRowCount() {
+		return targetTableRowCount;
+	}
+
+	public void setTargetTableRowCount(long targetTableRowCount) {
+		this.targetTableRowCount = targetTableRowCount;
+	}
 
 	public long getTargetPartitionTableRowCount() {
 		return targetPartitionTableRowCount;

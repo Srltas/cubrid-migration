@@ -31,7 +31,6 @@ package com.cubrid.cubridmigration.core.engine.task.exp;
 
 import java.util.List;
 
-import com.cubrid.cubridmigration.core.dbobject.PartitionTable;
 import com.cubrid.cubridmigration.core.dbobject.Record;
 import com.cubrid.cubridmigration.core.engine.MigrationContext;
 import com.cubrid.cubridmigration.core.engine.RecordExportedListener;

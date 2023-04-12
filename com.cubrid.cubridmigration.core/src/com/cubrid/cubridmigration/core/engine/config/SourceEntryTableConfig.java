@@ -34,8 +34,6 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 
-import com.cubrid.cubridmigration.core.dbobject.PartitionInfo;
-
 /**
  * SourceTableConfig
  * 

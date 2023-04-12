@@ -42,7 +42,6 @@ import com.cubrid.cubridmigration.core.common.Closer;
 import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.PK;
-import com.cubrid.cubridmigration.core.dbobject.PartitionTable;
 import com.cubrid.cubridmigration.core.dbobject.Record;
 import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
@@ -51,7 +50,6 @@ import com.cubrid.cubridmigration.core.engine.MigrationStatusManager;
 import com.cubrid.cubridmigration.core.engine.RecordExportedListener;
 import com.cubrid.cubridmigration.core.engine.ThreadUtils;
 import com.cubrid.cubridmigration.core.engine.config.SourceColumnConfig;
-import com.cubrid.cubridmigration.core.engine.config.SourceEntryTableConfig;
 import com.cubrid.cubridmigration.core.engine.config.SourceTableConfig;
 import com.cubrid.cubridmigration.core.engine.event.MigrationErrorEvent;
 import com.cubrid.cubridmigration.core.engine.exception.NormalMigrationException;
@@ -215,11 +213,14 @@ public class JDBCExporter extends
 					}
 					
 				}
-				String pagesql = expHelper.getPagedSelectSQL(sql, realPageCount, totalExported, pk);
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("[SQL]PAGINATED=" + pagesql);
+				if (stc.isBigTable()) {
+					sql = expHelper.getPagedSelectSQL(sql, stc.getTargetTableStartRowNum(), stc.getTargetTableRowRange(), pk);
 				}
-				long recordCountOfQuery = handleSQL(conn, pagesql, stc, sTable, expColConfs,
+				
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("[SQL]PAGINATED=" + sql);
+				}
+				long recordCountOfQuery = handleSQL(conn, sql, stc, sTable, expColConfs,
 						records, newRecordProcessor);
 				totalExported = totalExported + recordCountOfQuery;
 				
@@ -403,7 +404,7 @@ public class JDBCExporter extends
 			return true;
 		}
 		
-		long tableRowCount = stc.getTargetPartitionTable() != null ? stc.getTargetPartitionTableRowCount() : sTable.getTableRowCount();
+		long tableRowCount = stc.getTargetPartitionTable() != null ? stc.getTargetPartitionTableRowCount() : stc.isBigTable() ? stc.getTargetTableRowRange() : sTable.getTableRowCount();
 		
 		return recordCountOfCurrentPage == 0
 				|| recordCountOfCurrentPage < config.getPageFetchCount()
