@@ -64,7 +64,8 @@ public class MigrationTasksScheduler {
 	protected MigrationTaskFactory taskFactory;
 	protected MigrationContext context;
 	
-	private final long TABLE_MULTI_THREAD_ROW_COUNT = 1000000L;
+	private final long TABLE_MULTI_THREAD_ROW_COUNT = 50_000_000L;
+	private final long TABLE_MULTI_THREAD_SPLIT_COUNT = 10_000_000L;
 
 	public MigrationTasksScheduler() {
 
@@ -350,8 +351,8 @@ public class MigrationTasksScheduler {
 				} else {
 					long tableRowCount = config.getSrcTableSchema(table.getOwner(), table.getName()).getTableRowCount();
 					if (tableRowCount >= TABLE_MULTI_THREAD_ROW_COUNT) {			
-						long threadCount = tableRowCount / TABLE_MULTI_THREAD_ROW_COUNT;
-						if (tableRowCount % TABLE_MULTI_THREAD_ROW_COUNT > 0) {
+						long threadCount = tableRowCount / TABLE_MULTI_THREAD_SPLIT_COUNT;
+						if (tableRowCount % TABLE_MULTI_THREAD_SPLIT_COUNT > 0) {
 							threadCount++;
 						}
 						
@@ -359,13 +360,12 @@ public class MigrationTasksScheduler {
 						for (int i = 0; i < threadCount; i++) {
 							SourceEntryTableConfig setc = createNewSetc(table);
 							setc.setTargetTableRowCount(tableRowCount);
-							setc.setTargetTableRowRange(TABLE_MULTI_THREAD_ROW_COUNT);
+							setc.setTargetTableRowRange(TABLE_MULTI_THREAD_SPLIT_COUNT);
 							setc.setTargetTableStartRowNum(tempStartRowNum);
 							setc.setBigTable(true);
 							
 							executeTask2(taskFactory.createExportTableRecordsTask(setc));
-							
-							tempStartRowNum += TABLE_MULTI_THREAD_ROW_COUNT;
+							tempStartRowNum += TABLE_MULTI_THREAD_SPLIT_COUNT;
 						}
 					} else {
 						executeTask2(taskFactory.createExportTableRecordsTask(table));
