@@ -404,7 +404,19 @@ public class JDBCExporter extends
 			return true;
 		}
 		
-		long tableRowCount = stc.getTargetPartitionTable() != null ? stc.getTargetPartitionTableRowCount() : stc.isBigTable() ? stc.getTargetTableRowRange() : sTable.getTableRowCount();
+		long tableRowCount = 0L;
+		
+		if (stc.getTargetPartitionTable() != null) {
+			tableRowCount = stc.getTargetPartitionTableRowCount();
+		} else if (stc.isBigTable()) {
+			if (exportedRecords == stc.getTargetTableRestRowCount()) {
+				tableRowCount = stc.getTargetTableRestRowCount();
+			} else {
+				tableRowCount = stc.getTargetTableRowRange();
+			}
+		} else {
+			tableRowCount = sTable.getTableRowCount();
+		}
 		
 		return recordCountOfCurrentPage == 0
 				|| recordCountOfCurrentPage < config.getPageFetchCount()
