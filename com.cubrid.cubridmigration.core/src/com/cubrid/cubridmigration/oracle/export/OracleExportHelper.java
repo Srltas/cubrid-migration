@@ -149,6 +149,8 @@ public class OracleExportHelper extends
 		StringBuilder buf = new StringBuilder(sql);
 		buf.append(" OFFSET ").append(startRowNum).append(" ROWS FETCH NEXT ").append(rowCount).append(" ROW ONLY");
 		
+		System.out.println(buf.toString());
+		
 		return buf.toString();
 		//		StringBuilder buf = new StringBuilder(sql);
 		//		String cleanSql = sql.toUpperCase().trim();

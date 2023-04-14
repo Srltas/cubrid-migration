@@ -64,8 +64,8 @@ public class MigrationTasksScheduler {
 	protected MigrationTaskFactory taskFactory;
 	protected MigrationContext context;
 	
-	private final long TABLE_MULTI_THREAD_ROW_COUNT = 50000000L;
-	private final long TABLE_MULTI_THREAD_SPLIT_COUNT = 10000000L;
+	private final long TABLE_MULTI_THREAD_ROW_COUNT = 50000L;
+	private final long TABLE_MULTI_THREAD_SPLIT_COUNT = 10000L;
 
 	public MigrationTasksScheduler() {
 
@@ -362,6 +362,7 @@ public class MigrationTasksScheduler {
 							setc.setTargetTableRowCount(tableRowCount);
 							setc.setTargetTableRowRange(TABLE_MULTI_THREAD_SPLIT_COUNT);
 							setc.setTargetTableStartRowNum(tempStartRowNum);
+							setc.setTargetTableRestRowCount(tableRowCount % TABLE_MULTI_THREAD_SPLIT_COUNT); 
 							setc.setBigTable(true);
 							
 							executeTask2(taskFactory.createExportTableRecordsTask(setc));
