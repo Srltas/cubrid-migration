@@ -55,6 +55,7 @@ public class SourceTableConfig {
 	private long targetTableRowCount;
 	private long targetTableStartRowNum;
 	private long targetTableRowRange;
+	private long targetTableRestRowCount;
 	private boolean isBigTable = false;
 	private boolean createNewTable = true;
 	private boolean migrateData = true;
@@ -65,6 +66,14 @@ public class SourceTableConfig {
 	
 	private PartitionInfo partitionInfo;
 	
+	public long getTargetTableRestRowCount() {
+		return targetTableRestRowCount;
+	}
+
+	public void setTargetTableRestRowCount(long targetTableRestRowCount) {
+		this.targetTableRestRowCount = targetTableRestRowCount;
+	}
+
 	public boolean isBigTable() {
 		return isBigTable;
 	}

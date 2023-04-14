@@ -64,8 +64,8 @@ public class MigrationTasksScheduler {
 	protected MigrationTaskFactory taskFactory;
 	protected MigrationContext context;
 	
-	private final long TABLE_MULTI_THREAD_ROW_COUNT = 50000L;
-	private final long TABLE_MULTI_THREAD_SPLIT_COUNT = 10000L;
+	private final long TABLE_MULTI_THREAD_ROW_COUNT = 50000000L;
+	private final long TABLE_MULTI_THREAD_SPLIT_COUNT = 10000000L;
 
 	public MigrationTasksScheduler() {
 
