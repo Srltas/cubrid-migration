@@ -31,6 +31,8 @@ package com.cubrid.cubridmigration.core.engine.scheduler;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -64,8 +66,8 @@ public class MigrationTasksScheduler {
 	protected MigrationTaskFactory taskFactory;
 	protected MigrationContext context;
 	
-	private final long TABLE_MULTI_THREAD_ROW_COUNT = 50000000L;
-	private final long TABLE_MULTI_THREAD_SPLIT_COUNT = 10000000L;
+	private final long TABLE_MULTI_THREAD_ROW_COUNT = 100000000L;
+	private final long TABLE_MULTI_THREAD_SPLIT_COUNT = 50000000L;
 
 	public MigrationTasksScheduler() {
 
@@ -332,7 +334,17 @@ public class MigrationTasksScheduler {
 		}
 		if (config.sourceIsOnline()) {
 			//schedule exporting tasks
-			for (SourceEntryTableConfig table : entryTables) {
+			Collections.sort(entryTables, new Comparator<SourceEntryTableConfig>() {
+				@Override
+				public int compare(SourceEntryTableConfig s1, SourceEntryTableConfig s2) {
+					Long s1RowCount = s1.getTargetTableRowCount();
+					Long s2RowCount = s2.getTargetTableRowCount();
+					
+					return s1RowCount.compareTo(s2RowCount);
+				}
+			});
+			
+			for (SourceEntryTableConfig table : entryTables) {				
 				if (!table.isMigrateData()) {
 					continue;
 				}
@@ -349,7 +361,7 @@ public class MigrationTasksScheduler {
 						executeTask2(taskFactory.createExportTableRecordsTask(setc));
 					}
 				} else {
-					long tableRowCount = config.getSrcTableSchema(table.getOwner(), table.getName()).getTableRowCount();
+					long tableRowCount = table.getTargetTableRowCount();
 					if (tableRowCount >= TABLE_MULTI_THREAD_ROW_COUNT) {			
 						long threadCount = tableRowCount / TABLE_MULTI_THREAD_SPLIT_COUNT;
 						if (tableRowCount % TABLE_MULTI_THREAD_SPLIT_COUNT > 0) {
@@ -359,7 +371,6 @@ public class MigrationTasksScheduler {
 						long tempStartRowNum = 0L;
 						for (int i = 0; i < threadCount; i++) {
 							SourceEntryTableConfig setc = createNewSetc(table);
-							setc.setTargetTableRowCount(tableRowCount);
 							setc.setTargetTableRowRange(TABLE_MULTI_THREAD_SPLIT_COUNT);
 							setc.setTargetTableStartRowNum(tempStartRowNum);
 							setc.setTargetTableRestRowCount(tableRowCount % TABLE_MULTI_THREAD_SPLIT_COUNT); 
@@ -410,6 +421,7 @@ public class MigrationTasksScheduler {
 		setc.setFKs(table.getFKConfigList());
 		setc.setIndexes(table.getIndexConfigList());
 		setc.setCondition(table.getCondition());
+		setc.setTargetTableRowCount(table.getTargetTableRowCount());
 		
 		return setc;
 	}

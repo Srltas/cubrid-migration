@@ -701,6 +701,7 @@ public class MigrationConfiguration {
 					setc.setMigrateData(false);
 					setc.setReplace(false);
 					setc.setEnableExpOpt(srcTable.getPk() != null);
+					setc.setTargetTableRowCount(srcTable.getTableRowCount());
 				}
 				tempExpEntryTables.add(setc);
 
