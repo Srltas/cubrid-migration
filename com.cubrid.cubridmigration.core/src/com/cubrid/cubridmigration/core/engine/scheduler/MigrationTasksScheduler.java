@@ -31,8 +31,6 @@ package com.cubrid.cubridmigration.core.engine.scheduler;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -334,15 +332,15 @@ public class MigrationTasksScheduler {
 		}
 		if (config.sourceIsOnline()) {
 			//schedule exporting tasks
-			Collections.sort(entryTables, new Comparator<SourceEntryTableConfig>() {
-				@Override
-				public int compare(SourceEntryTableConfig s1, SourceEntryTableConfig s2) {
-					Long s1RowCount = s1.getTargetTableRowCount();
-					Long s2RowCount = s2.getTargetTableRowCount();
-					
-					return s1RowCount.compareTo(s2RowCount);
-				}
-			});
+//			Collections.sort(entryTables, new Comparator<SourceEntryTableConfig>() {
+//				@Override
+//				public int compare(SourceEntryTableConfig s1, SourceEntryTableConfig s2) {
+//					Long s1RowCount = s1.getTargetTableRowCount();
+//					Long s2RowCount = s2.getTargetTableRowCount();
+//					
+//					return s1RowCount.compareTo(s2RowCount);
+//				}
+//			});
 			
 			for (SourceEntryTableConfig table : entryTables) {				
 				if (!table.isMigrateData()) {
@@ -361,7 +359,7 @@ public class MigrationTasksScheduler {
 						executeTask2(taskFactory.createExportTableRecordsTask(setc));
 					}
 				} else {
-					long tableRowCount = table.getTargetTableRowCount();
+					long tableRowCount = config.getSrcTableSchema(table.getOwner(), table.getName()).getTableRowCount();
 					if (tableRowCount >= TABLE_MULTI_THREAD_ROW_COUNT) {			
 						long threadCount = tableRowCount / TABLE_MULTI_THREAD_SPLIT_COUNT;
 						if (tableRowCount % TABLE_MULTI_THREAD_SPLIT_COUNT > 0) {
