@@ -35,8 +35,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import com.cubrid.common.ui.navigator.DefaultCUBRIDNode;
 import com.cubrid.common.ui.navigator.ICUBRIDNode;
+import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.FK;
@@ -81,6 +84,7 @@ import com.cubrid.cubridmigration.ui.common.navigator.node.TriggersNode;
 import com.cubrid.cubridmigration.ui.common.navigator.node.ViewNode;
 import com.cubrid.cubridmigration.ui.common.navigator.node.ViewsNode;
 import com.cubrid.cubridmigration.ui.message.Messages;
+import com.cubrid.cubridmigration.ui.wizard.page.view.GeneralObjMappingView;
 
 /**
  * 
@@ -89,6 +93,7 @@ import com.cubrid.cubridmigration.ui.message.Messages;
  * @author pangqiren
  */
 public final class CubridNodeManager {
+	private static final Logger LOG = LogUtil.getLogger(GeneralObjMappingView.class);
 
 	private static final String PATH_PARTITIONS = "/partitions";
 	private static final String PATH_INDEXES = "/indexes";
@@ -104,7 +109,7 @@ public final class CubridNodeManager {
 
 	private static volatile CubridNodeManager instance = null;
 	private final static Object LOCKOBJ = new Object();
-	
+
 	private DatabaseNode databaseNode = null;
 
 	/**
@@ -123,9 +128,9 @@ public final class CubridNodeManager {
 	};
 
 	private CubridNodeManager() {
-		//do nothing.
+		// do nothing.
 	}
-	
+
 	/**
 	 * add grant nodes
 	 * 
@@ -133,8 +138,10 @@ public final class CubridNodeManager {
 	 * @param schema Schema
 	 */
 	private void addGrantNodes(DefaultCUBRIDNode parentNode, Schema schema) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [addGrantNodes] method");
 		String parentID = parentNode.getId();
-		
+
 		List<Grant> grantList = schema.getGrantList();
 		String grantsID = parentID + PATH_GRANTS;
 		String grantsLabels = Messages.labelTreeObjGrant + "(" + grantList.size() + ")";
@@ -143,11 +150,11 @@ public final class CubridNodeManager {
 		if (grantList.isEmpty()) {
 			grantsNode.setContainer(false);
 		}
-		
+
 		Map<String, List<String>> grantorMap = new HashMap<String, List<String>>();
 		for (Grant grant : grantList) {
 			String grantor = grant.getGrantorName();
-			
+
 			if (!grantorMap.containsKey(grantor)) {
 				List<String> grantAuthList = new ArrayList<String>();
 				grantAuthList.add(grant.getAuthType());
@@ -155,13 +162,13 @@ public final class CubridNodeManager {
 			} else {
 				List<String> grantAuthList = grantorMap.get(grantor);
 				String grantAuth = grant.getAuthType();
-				
+
 				if (!grantAuthList.contains(grantAuth)) {
 					grantAuthList.add(grantAuth);
 				}
 			}
 		}
-		
+
 		Set<String> grantGrantorKey = grantorMap.keySet();
 		for (String grantorKey : grantGrantorKey) {
 			String grantGrantorID = grantsID + "/" + grantorKey;
@@ -169,7 +176,7 @@ public final class CubridNodeManager {
 			GrantGrantorNode grantGrantorNode = new GrantGrantorNode(grantGrantorID, grantGrantorLabel);
 			grantGrantorNode.setGrantor(grantorKey);
 			grantsNode.addChild(grantGrantorNode);
-			
+
 			List<String> grantAuthList = grantorMap.get(grantorKey);
 			for (String grantAuth : grantAuthList) {
 				String grantAuthID = grantGrantorID + "/" + grantAuth;
@@ -179,6 +186,9 @@ public final class CubridNodeManager {
 				grantGrantorNode.addChild(grantAuthNode);
 			}
 		}
+		LOG.info("End the [addGrantNodes] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[addGrantNodes] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -188,6 +198,8 @@ public final class CubridNodeManager {
 	 * @param schema Schema
 	 */
 	private void addSerialNodes(DefaultCUBRIDNode parentNode, Schema schema) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [addSerialNodes] method");
 		String parentID = parentNode.getId();
 
 		List<Sequence> sequenceList = schema.getSequenceList();
@@ -206,8 +218,11 @@ public final class CubridNodeManager {
 			sequenceNode.setSequence(sequence);
 			sequencesNode.addChild(sequenceNode);
 		}
+		LOG.info("End the [addSerialNodes] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[addSerialNodes] execution time: " + (endTime - startTime) + "ms");
 	}
-	
+
 	/**
 	 * add synonym nodes
 	 * 
@@ -215,8 +230,10 @@ public final class CubridNodeManager {
 	 * @param schema
 	 */
 	private void addSynonymNodes(DefaultCUBRIDNode parentNode, Schema schema) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [addSynonymNodes] method");
 		String parentID = parentNode.getId();
-		
+
 		List<Synonym> synonymList = schema.getSynonymList();
 		String synonymsID = parentID + PATH_SYNONYMS;
 		String synonymsLabels = Messages.labelTreeObjSynonym + "(" + synonymList.size() + ")";
@@ -233,6 +250,9 @@ public final class CubridNodeManager {
 			synonymNode.setSynonym(synonym);
 			synonymsNode.addChild(synonymNode);
 		}
+		LOG.info("End the [addSynonymNodes] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[addSynonymNodes] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -242,6 +262,8 @@ public final class CubridNodeManager {
 	 * @param schema Schema
 	 */
 	private void addSPFuncNodes(DefaultCUBRIDNode parentNode, Schema schema) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [addSPFuncNodes] method");
 
 		String parentID = parentNode.getId();
 
@@ -281,6 +303,9 @@ public final class CubridNodeManager {
 			functionNode.setFunction(function);
 			functionsNode.addChild(functionNode);
 		}
+		LOG.info("End the [addSPFuncNodes] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[addSPFuncNodes] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -290,6 +315,8 @@ public final class CubridNodeManager {
 	 * @param schema Schema
 	 */
 	private void addTableNodes(DefaultCUBRIDNode parentNode, Schema schema) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [addTableNodes] method");
 		String parentID = parentNode.getId();
 
 		List<Table> tables = schema.getTables();
@@ -385,6 +412,9 @@ public final class CubridNodeManager {
 				partitionsNode.setContainer(false);
 			}
 		}
+		LOG.info("End the [addTableNodes] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[addTableNodes] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -394,6 +424,8 @@ public final class CubridNodeManager {
 	 * @param schema Schema
 	 */
 	private void addTriggerNodes(DefaultCUBRIDNode parentNode, Schema schema) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [addTriggerNodes] method");
 		String parentID = parentNode.getId();
 
 		List<Trigger> triggers = schema.getTriggers();
@@ -410,6 +442,9 @@ public final class CubridNodeManager {
 			triggerNode.setTrigger(trigger);
 			triggersNode.addChild(triggerNode);
 		}
+		LOG.info("End the [addTriggerNodes] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[addTriggerNodes] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -419,6 +454,8 @@ public final class CubridNodeManager {
 	 * @param schema Schema
 	 */
 	private void addViewNodes(DefaultCUBRIDNode parentNode, Schema schema) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [addViewNodes] method");
 		String parentID = parentNode.getId();
 
 		List<View> views = schema.getViews();
@@ -437,6 +474,9 @@ public final class CubridNodeManager {
 			viewNode.setView(view);
 			viewsNode.addChild(viewNode);
 		}
+		LOG.info("End the [addViewNodes] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[addViewNodes] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -447,13 +487,15 @@ public final class CubridNodeManager {
 	 * @return DatabaseNode
 	 */
 	public DatabaseNode createDbNode(Catalog catalog, String hostNodeID) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [createDbNode] method");
 		String dbName = catalog.getName();
 		String dbNodeID;
 		if (catalog.getConnectionParameters() == null) {
 			dbNodeID = getDatabaseNodeID(hostNodeID, dbName, "xml");
 		} else {
-			dbNodeID = getDatabaseNodeID(hostNodeID, dbName,
-					catalog.getConnectionParameters().getConUser());
+			dbNodeID = getDatabaseNodeID(hostNodeID, dbName, 
+      catalog.getConnectionParameters().getConUser());
 		}
 		databaseNode = new DatabaseNode(dbNodeID, dbName);
 
@@ -483,19 +525,23 @@ public final class CubridNodeManager {
 			addTriggerNodes(parentNode, schema);
 
 			addSerialNodes(parentNode, schema);
-			
+
 			addSynonymNodes(parentNode, schema);
-			
+
 			addGrantNodes(parentNode, schema);
 		}
-
+		LOG.info("End the [createDbNode] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[createDbNode] execution time: " + (endTime - startTime) + "ms");
 		return databaseNode;
 	}
-	
+
 	/**
 	 * change the number of grant nodes
 	 */
 	public void changeGrantsNodeLabel() {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [changeGrantsNodeLabel] method");
 		for (ICUBRIDNode schemaNodes : databaseNode.getChildren()) {
 			for (ICUBRIDNode objectNodes : schemaNodes.getChildren()) {
 				if (objectNodes instanceof GrantsNode) {
@@ -504,6 +550,9 @@ public final class CubridNodeManager {
 				}
 			}
 		}
+		LOG.info("End the [changeGrantsNodeLabel] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[changeGrantsNodeLabel] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**

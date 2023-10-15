@@ -84,6 +84,8 @@ public final class GroupNodeManager implements
 	 * @param group new group node.
 	 */
 	public void addGroupNode(AbstractGroupNode group) {
+		long startTime = System.currentTimeMillis();
+		LOGGER.info("Start the [addGroupNode] method");
 		if (!groupNodeList.contains(group)) {
 			groupNodeList.add(group);
 		}
@@ -103,6 +105,9 @@ public final class GroupNodeManager implements
 				dftNode.addChild(db);
 			}
 		}
+		LOGGER.info("End the [addGroupNode] method");
+	    long endTime = System.currentTimeMillis();
+	    LOGGER.info("[addGroupNode] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -238,6 +243,8 @@ public final class GroupNodeManager implements
 	 * 
 	 */
 	private void loadGroupNode() {
+		long startTime = System.currentTimeMillis();
+		LOGGER.info("Start the [loadGroupNode] method");
 		IXMLMemento memento = null;
 		try {
 			memento = XMLMemento.loadMemento(configFile);
@@ -245,6 +252,9 @@ public final class GroupNodeManager implements
 			LOGGER.error("Load group error", e);
 		}
 		loadGroupNode(memento);
+		LOGGER.info("End the [loadGroupNode] method");
+		long endTime = System.currentTimeMillis();
+		LOGGER.info("[loadGroupNode] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -253,6 +263,8 @@ public final class GroupNodeManager implements
 	 * @param memento IXMLMemento
 	 */
 	private void loadGroupNode(IXMLMemento memento) {
+		long startTime = System.currentTimeMillis();
+		LOGGER.info("Start the [loadGroupNode(IXMLMemento)] method");
 		List<AbstractGroupNode> tempList = new ArrayList<AbstractGroupNode>();
 		AbstractGroupNode defaultGroup = getDefaultGroup();
 		//Reset parents
@@ -304,6 +316,9 @@ public final class GroupNodeManager implements
 		groupNodeList.clear();
 		groupNodeList.addAll(tempList);
 		saveAllGroupNode();
+		LOGGER.info("End the [loadGroupNode(IXMLMemento)] method");
+	    long endTime = System.currentTimeMillis();
+	    LOGGER.info("[loadGroupNode(IXMLMemento)] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -311,6 +326,8 @@ public final class GroupNodeManager implements
 	 * 
 	 */
 	private void refreshItemNodes() {
+		long startTime = System.currentTimeMillis();
+		LOGGER.info("Start the [refreshItemNodes] method");
 		List<Object> list = itemModelProvider.getItems();
 		List<ICUBRIDNode> tempList = new ArrayList<ICUBRIDNode>();
 		for (Object obj : list) {
@@ -324,6 +341,9 @@ public final class GroupNodeManager implements
 		}
 		itemNodes.clear();
 		itemNodes.addAll(tempList);
+		LOGGER.info("End the [refreshItemNodes] method");
+	    long endTime = System.currentTimeMillis();
+	    LOGGER.info("[refreshItemNodes] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -332,8 +352,13 @@ public final class GroupNodeManager implements
 	 * @return CubridGroupNode List
 	 */
 	public void reloadGroups() {
+		long startTime = System.currentTimeMillis();
+		LOGGER.info("Start the [reloadGroups] method");
 		refreshItemNodes();
 		loadGroupNode();
+		LOGGER.info("End the [reloadGroups] method");
+	    long endTime = System.currentTimeMillis();
+	    LOGGER.info("[reloadGroups] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -342,6 +367,8 @@ public final class GroupNodeManager implements
 	 * @param groupId group id or group name
 	 */
 	public void removeGroup(String groupId) {
+		long startTime = System.currentTimeMillis();
+		LOGGER.info("Start the [removeGroup(String)] method");
 		AbstractGroupNode tobeRemoved = null;
 		for (AbstractGroupNode group : groupNodeList) {
 			if (group.getId().equals(groupId)) {
@@ -359,6 +386,9 @@ public final class GroupNodeManager implements
 			defaultGroup.addChild(chi);
 		}
 		saveAllGroupNode();
+		LOGGER.info("End the [removeGroup(String)] method");
+	    long endTime = System.currentTimeMillis();
+	    LOGGER.info("[removeGroup(String)] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -367,6 +397,8 @@ public final class GroupNodeManager implements
 	 * @param orderedName the ordered group names.
 	 */
 	public void reorderGroup(String[] orderedName) {
+		long startTime = System.currentTimeMillis();
+		LOGGER.info("Start the [reorderGroup] method");
 		List<AbstractGroupNode> tempNode = new ArrayList<AbstractGroupNode>();
 		for (String name : orderedName) {
 			AbstractGroupNode cgn = getGroupByName(name);
@@ -378,6 +410,9 @@ public final class GroupNodeManager implements
 		groupNodeList.clear();
 		groupNodeList.addAll(tempNode);
 		saveAllGroupNode();
+		LOGGER.info("End the [reorderGroup] method");
+	    long endTime = System.currentTimeMillis();
+	    LOGGER.info("[reorderGroup] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -385,6 +420,8 @@ public final class GroupNodeManager implements
 	 * 
 	 */
 	public void saveAllGroupNode() {
+		long startTime = System.currentTimeMillis();
+		LOGGER.info("Start the [saveAllGroupNode] method");
 		try {
 			XMLMemento memento = XMLMemento.createWriteRoot("groups");
 			for (AbstractGroupNode group : groupNodeList) {
@@ -400,6 +437,9 @@ public final class GroupNodeManager implements
 		} catch (Exception e) {
 			LOGGER.error("Save group error.", e);
 		}
+		LOGGER.info("End the [saveAllGroupNode] method");
+	    long endTime = System.currentTimeMillis();
+	    LOGGER.info("[saveAllGroupNode] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -432,6 +472,8 @@ public final class GroupNodeManager implements
 	 */
 	public void changeItemPosition(ICUBRIDNode targetNode,
 			List<ICUBRIDNode> selected, boolean isBefore) {
+		long startTime = System.currentTimeMillis();
+		LOGGER.info("Start the [changeItemPosition] method");
 		if (CollectionUtils.isEmpty(selected)) {
 			return;
 		}
@@ -467,5 +509,8 @@ public final class GroupNodeManager implements
 		realTargetGrp.removeAllChild();
 		realTargetGrp.addChild(children);
 		saveAllGroupNode();
+		LOGGER.info("End the [changeItemPosition] method");
+	    long endTime = System.currentTimeMillis();
+	    LOGGER.info("[changeItemPosition] execution time: " + (endTime - startTime) + "ms");
 	}
 }

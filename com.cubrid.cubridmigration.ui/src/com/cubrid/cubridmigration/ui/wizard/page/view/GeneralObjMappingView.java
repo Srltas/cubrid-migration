@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.log4j.Logger;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TableViewer;
@@ -58,6 +59,7 @@ import com.cubrid.common.ui.swt.table.TableViewerBuilder;
 import com.cubrid.common.ui.swt.table.celleditor.CheckboxCellEditorFactory;
 import com.cubrid.common.ui.swt.table.celleditor.TextCellEditorFactory;
 import com.cubrid.common.ui.swt.table.listener.CheckBoxColumnSelectionListener;
+import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.dbobject.Sequence;
 import com.cubrid.cubridmigration.core.dbobject.Synonym;
 import com.cubrid.cubridmigration.core.dbobject.View;
@@ -95,6 +97,8 @@ import com.cubrid.cubridmigration.ui.wizard.utils.VerifyResultMessages;
  */
 public class GeneralObjMappingView extends
 		AbstractMappingView {
+	private static final Logger LOG = LogUtil.getLogger(GeneralObjMappingView.class);
+	
 	private static final int SOURCE_NAME_INDEX = 0;
 	private static final int TARGET_SCHEMA_NAME_INDEX = SOURCE_NAME_INDEX + 1;
 	private static final int TARGET_NAME_INDEX = TARGET_SCHEMA_NAME_INDEX + 1;
@@ -122,6 +126,8 @@ public class GeneralObjMappingView extends
 	 * @param parent Composite
 	 */
 	protected void createControl(Composite parent) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [createControl] method");
 		tabSchemaDetailFolder = new CTabFolder(parent, SWT.BORDER);
 		final GridData gdTabFolder = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gdTabFolder.exclude = false;
@@ -136,6 +142,9 @@ public class GeneralObjMappingView extends
 		createDetailOfSynonym(tabSchemaDetailFolder);
 		createDetailOfGrant(tabSchemaDetailFolder);
 		createSQLManager(tabSchemaDetailFolder);
+		LOG.info("End the [createControl] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[createControl] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -144,10 +153,15 @@ public class GeneralObjMappingView extends
 	 * @param parent CTabFolder
 	 */
 	private void createSQLManager(CTabFolder parent) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [createSQLManager] method");
 		Composite container = CompositeUtils.createTabItem(parent,
 				Messages.objectMapPageTabFolderSqls, "icon/db/SQL.png");
 		sqlMgrView = new SQLTableManageView(container);
 		sqlMgrView.show();
+		LOG.info("End the [createSQLManager] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[createSQLManager] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -156,6 +170,8 @@ public class GeneralObjMappingView extends
 	 * @param parent CTabFolder
 	 */
 	private void createDetailOfSerials(CTabFolder parent) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [createDetailOfSerials] method");
 		Composite container = CompositeUtils.createTabItem(parent,
 				Messages.objectMapPageTabFolderSequences, "icon/db/serial.png");
 
@@ -167,6 +183,9 @@ public class GeneralObjMappingView extends
 
 		initSourceConfigTableViewer(tvSerials);
 		tvSerials.setData(CONTENT_TYPE, CT_SERIAL);
+		LOG.info("End the [createDetailOfSerials] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[createDetailOfSerials] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -175,6 +194,8 @@ public class GeneralObjMappingView extends
 	 * @param parent CTabFolder
 	 */
 	private void createDetailOfTables(CTabFolder parent) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [createDetailOfTables] method");
 		Composite container = CompositeUtils.createTabItem(parent,
 				Messages.objectMapPageTabFolderTables, "icon/db/tables.png");
 		final Text txtFilter = new Text(container, SWT.BORDER);
@@ -298,6 +319,9 @@ public class GeneralObjMappingView extends
 				new CheckBoxColumnSelectionListener(new int[] {CREATE_COLUMN_INDEX}, true, false),
 				new CheckBoxColumnSelectionListener(new int[] {CREATE_COLUMN_INDEX}, true, false)};
 		CompositeUtils.setTableColumnSelectionListener(tvTables, selectionListeners);
+		LOG.info("End the [createDetailOfTables] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[createDetailOfTables] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -306,6 +330,8 @@ public class GeneralObjMappingView extends
 	 * @param parent CTabFolder
 	 */
 	private void createDetailOfViews(CTabFolder parent) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [createDetailOfViews] method");
 		Composite container = CompositeUtils.createTabItem(parent,
 				Messages.objectMapPageTabFolderViews, "icon/db/views.png");
 
@@ -317,6 +343,9 @@ public class GeneralObjMappingView extends
 
 		initSourceConfigTableViewer(tvViews);
 		tvViews.setData(CONTENT_TYPE, CT_VIEW);
+		LOG.info("End the [createDetailOfViews] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[createDetailOfViews] execution time: " + (endTime - startTime) + "ms");
 	}
 	
 	/**
@@ -325,6 +354,8 @@ public class GeneralObjMappingView extends
 	 * @param parent
 	 */
 	private void createDetailOfSynonym(CTabFolder parent) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [createDetailOfSynonym] method");
 		Composite container = CompositeUtils.createTabItem(parent,
 				Messages.objectMapPageTabFolderSynonyms, "icon/db/synonym_group.png");
 		
@@ -336,9 +367,14 @@ public class GeneralObjMappingView extends
 		
 		initSourceConfigTableViewer(tvSynonyms);
 		tvSynonyms.setData(CONTENT_TYPE, CT_SYNONYM);
+		LOG.info("End the [createDetailOfSynonym] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[createDetailOfSynonym] execution time: " + (endTime - startTime) + "ms");
 	}
 	
 	private void createDetailOfGrant(CTabFolder parent) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [createDetailOfGrant] method");
 		Composite container = CompositeUtils.createTabItem(parent,
 				Messages.objectMapPageTabFolderGrants, "icon/db/grant_group.png");
 		
@@ -409,6 +445,9 @@ public class GeneralObjMappingView extends
 				}
 		};
 		CompositeUtils.setTableColumnSelectionListener(tvGrants, selectionListencers);
+		LOG.info("End the [createDetailOfGrant] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[createDetailOfGrant] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -424,6 +463,8 @@ public class GeneralObjMappingView extends
 	 * @return VerifyResultMessages
 	 */
 	public VerifyResultMessages save() {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [save] method");
 		CompositeUtils.applyTableViewerEditing(tvTables);
 		CompositeUtils.applyTableViewerEditing(tvSerials);
 		CompositeUtils.applyTableViewerEditing(tvViews);
@@ -431,6 +472,9 @@ public class GeneralObjMappingView extends
 		CompositeUtils.applyTableViewerEditing(tvGrants);
 		VerifyResultMessages result = validate();
 		if (result.hasError()) {
+			LOG.info("End the [save] method");
+		    long endTime = System.currentTimeMillis();
+		    LOG.info("[save] execution time: " + (endTime - startTime) + "ms");
 			return result;
 		}
 		//Save UI to configuration object
@@ -492,6 +536,9 @@ public class GeneralObjMappingView extends
 			SourceConfig setc = (SourceConfig) obj[obj.length - 1];
 			setc.setCreate((Boolean) obj[4]);
 		}
+		LOG.info("End the [save] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[save] execution time: " + (endTime - startTime) + "ms");
 		return super.save();
 	}
 
@@ -508,6 +555,8 @@ public class GeneralObjMappingView extends
 	 * @param obj should be a MigrationConfiguration object
 	 */
 	public void showData(Object obj) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [showData] method");
 		super.showData(obj);
 		SchemaNode schema = null;
 		String grantor = null;
@@ -638,6 +687,9 @@ public class GeneralObjMappingView extends
 		CompositeUtils.initTableViewerCheckColumnImage(tvSerials);
 		CompositeUtils.initTableViewerCheckColumnImage(tvSynonyms);
 		CompositeUtils.initTableViewerCheckColumnImage(tvGrants);
+		LOG.info("End the [showData] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[showData] execution time: " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -646,7 +698,8 @@ public class GeneralObjMappingView extends
 	 * @return VerifyResultMessages
 	 */
 	private VerifyResultMessages validate() {
-
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [validate] method");
 		Map<String, Boolean> names = new TreeMap<String, Boolean>();
 		for (int i = 0; i < tvTables.getTable().getItemCount(); i++) {
 			TableItem ti = tvTables.getTable().getItem(i);
@@ -720,7 +773,9 @@ public class GeneralObjMappingView extends
 			}
 			names.put(name.toLowerCase(Locale.US), true);
 		}
-		
+		LOG.info("End the [validate] method");
+	    long endTime = System.currentTimeMillis();
+	    LOG.info("[validate] execution time: " + (endTime - startTime) + "ms");
 		return sqlMgrView.save();
 	}
 
