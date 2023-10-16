@@ -94,7 +94,7 @@ public class CleanDBTask extends
 							+ " DROP CONSTRAINT " + getBracketsObjName(sfkc.getTarget()));
 					query.append(";");
 					
-					LOG.info("drop foreign key : " + query.toString());
+//					LOG.info("drop foreign key : " + query.toString());
 					
 					divideQueryBySchema(fkDropQueryBySchemaMap, setc.getTargetOwner(), query.toString());
 					execDDL(query.toString());
@@ -111,7 +111,7 @@ public class CleanDBTask extends
 							+ " DROP CONSTRAINT " + getBracketsObjName(idx.getTarget()));
 					query.append(";");
 					
-					LOG.info("drop index : " + query.toString());
+//					LOG.info("drop index : " + query.toString());
 					
 					divideQueryBySchema(dropQueryBySchemaMap, setc.getTargetOwner(), query.toString());
 					execDDL(query.toString());
@@ -127,7 +127,7 @@ public class CleanDBTask extends
 				query.append(getBracketsObjName(setc.getTarget()));
 				query.append(";");
 				
-				LOG.info("drop table query : " + query.toString());
+//				LOG.info("drop table query : " + query.toString());
 				
 				divideQueryBySchema(dropQueryBySchemaMap, setc.getTargetOwner(), query.toString());
 				divideQueryBySchema(tbTruncateQueryBySchemaMap, setc.getTargetOwner(), 
@@ -144,7 +144,7 @@ public class CleanDBTask extends
 				query.append(getBracketsObjName(sstc.getTarget()));
 				query.append(";");
 				
-				LOG.info("drop table query : " + query.toString());
+//				LOG.info("drop table query : " + query.toString());
 				
 				divideQueryBySchema(dropQueryBySchemaMap, sstc.getTargetOwner(), query.toString());
 				divideQueryBySchema(tbTruncateQueryBySchemaMap, sstc.getTargetOwner(), 
@@ -161,7 +161,7 @@ public class CleanDBTask extends
 				query.append(getBracketsObjName(scc.getTarget()));
 				query.append(";");
 				
-				LOG.info("drop table query : " + query.toString());
+//				LOG.info("drop table query : " + query.toString());
 				
 				divideQueryBySchema(dropQueryBySchemaMap, scc.getTargetOwner(), query.toString());
 				divideQueryBySchema(tbTruncateQueryBySchemaMap, scc.getTargetOwner(), 
@@ -178,7 +178,7 @@ public class CleanDBTask extends
 				query.append(getBracketsObjName(sc.getTarget()));
 				query.append(";");
 				
-				LOG.info("drop view query : " + query.toString());
+//				LOG.info("drop view query : " + query.toString());
 				
 				divideQueryBySchema(dropQueryBySchemaMap, sc.getTargetOwner(), query.toString());
 				execDDL(query.toString());
@@ -193,7 +193,7 @@ public class CleanDBTask extends
 				query.append(getBracketsObjName(sc.getTarget()));
 				query.append(";");
 				
-				LOG.info("drop serial query : " + query.toString());
+//				LOG.info("drop serial query : " + query.toString());
 				
 				divideQueryBySchema(dropQueryBySchemaMap, sc.getTargetOwner(), query.toString());
 				execDDL(query.toString());
@@ -209,7 +209,7 @@ public class CleanDBTask extends
 				query.append(getBracketsObjName(sc.getTarget()));
 				query.append(";");
 
-				LOG.info("drop syonym query : " + query.toString());
+//				LOG.info("drop syonym query : " + query.toString());
 
 				divideQueryBySchema(dropQueryBySchemaMap, sc.getTargetOwner(), query.toString());
 				execDDL(query.toString());
