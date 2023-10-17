@@ -525,9 +525,11 @@ public class SelectSourcePage extends
 		 * @return true if successfully
 		 */
 		public boolean save() {
+			long startTime = System.currentTimeMillis();
+			LOG.info("Start the [save - source]");
 			if (this.conMgrView.getSelectedDCI() == null) {
 				MessageDialog.openError(getShell(), Messages.msgError,
-						Messages.sourceDBPageErrNoSelectedItem);
+						Messages.sourceDBPageErrNoSelectedItem);				
 				return false;
 			}
 			final MigrationWizard wzd = getMigrationWizard();
@@ -583,6 +585,9 @@ public class SelectSourcePage extends
 					cfg.renameExpSchema(es, newSchema);
 				}
 			}
+			LOG.info("End the [save - source]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [save - source] " + (endTime - startTime) + "ms");
 			return true;
 		}
 		
@@ -592,6 +597,8 @@ public class SelectSourcePage extends
 		 * @param catalog Catalog
 		 */
 		private void removeEmptySchema(Catalog catalog) {
+			long startTime = System.currentTimeMillis();
+			LOG.info("Start the [removeEmptySchema]");
 			List<Schema> schemaList = catalog.getSchemas();
 			List<Schema> removeSchema = new ArrayList<Schema>();
 			
@@ -610,6 +617,9 @@ public class SelectSourcePage extends
 			}
 			
 			catalog.removeSchema(removeSchema);
+			LOG.info("End the [removeEmptySchema]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [removeEmptySchema] " + (endTime - startTime) + "ms");
 		}
 
 		/**
@@ -637,6 +647,8 @@ public class SelectSourcePage extends
 	 */
 
 	protected void afterShowCurrentPage(PageChangedEvent event) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [afterShowCurrentPage]");
 		try {
 			final MigrationWizard wzd = getMigrationWizard();
 			if (wzd.getMigrationConfig().sourceIsOnline()) {
@@ -654,6 +666,9 @@ public class SelectSourcePage extends
 			LOG.error("", ex);
 			MessageDialog.openError(getShell(), Messages.msgError, ex.getMessage());
 		}
+		LOG.info("End the [afterShowCurrentPage]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [afterShowCurrentPage] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -690,6 +705,8 @@ public class SelectSourcePage extends
 	 */
 	protected void handlePageLeaving(PageChangingEvent event) {
 		// If page is not complete, it should be go to previous page.
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [handlePageLeaving]");
 		if (!isPageComplete()) {
 			return;
 		}
@@ -697,6 +714,9 @@ public class SelectSourcePage extends
 			return;
 		}
 		event.doit = updateMigrationConfig();
+		LOG.info("End the [handlePageLeaving]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [handlePageLeaving] " + (endTime - startTime) + "ms");
 	}
 
 	/**

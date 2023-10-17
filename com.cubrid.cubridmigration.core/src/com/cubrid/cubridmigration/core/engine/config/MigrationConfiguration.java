@@ -1713,6 +1713,8 @@ public class MigrationConfiguration {
 	 * 
 	 */
 	public void cleanNoUsedConfigForStart() {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [cleanNoUsedConfigForStart]");
 		if (sourceIsOnline() || sourceIsXMLDump()) {
 			final Iterator<SourceEntryTableConfig> it = expTables.iterator();
 			while (it.hasNext()) {
@@ -1796,6 +1798,9 @@ public class MigrationConfiguration {
 				}
 			}
 		}
+		LOG.info("End the [cleanNoUsedConfigForStart]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [cleanNoUsedConfigForStart] " + (endTime - startTime) + "ms");
 	}
 
 	/**

@@ -141,6 +141,8 @@ public class JDBCConnectionMgrView {
 	 * add database connection info
 	 */
 	private void addDBConInfo() {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [addDBConInfo]");
 		ConnParameters cp = DBConnectionDialog.getCatalog(getActiveShell(), getDBTypeArray(), null);
 		if (cp == null) {
 			return;
@@ -157,6 +159,9 @@ public class JDBCConnectionMgrView {
 		CMTConParamManager.getInstance().addConnection(cp, false);
 		dbID = cp.getConName();
 		dbTableViewer.refresh();
+		LOG.info("End the [addDBConInfo]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [addDBConInfo] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -385,6 +390,8 @@ public class JDBCConnectionMgrView {
 	 * @return Catalog
 	 */
 	public Catalog getCatalog() {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getCatalog]");
 		if (StringUtils.isBlank(dbID)) {
 			return null;
 		}
@@ -413,6 +420,9 @@ public class JDBCConnectionMgrView {
 			if (catalog != null) {
 				catalog.setConnectionParameters(cp.clone());
 			}
+			LOG.info("End the [getCatalog]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getCatalog] " + (endTime - startTime) + "ms");
 			return catalog;
 		} catch (Exception ignored) {
 			LOG.error(LogUtil.getExceptionString(ignored));
@@ -584,6 +594,8 @@ public class JDBCConnectionMgrView {
 	 * @param cp connection parameters.
 	 */
 	private void updateConParamCatalog(ConnParameters cp) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [updateConParamCatalog]");
 		final CMTConParamManager cpm = CMTConParamManager.getInstance();
 		SchemaFetcherWithProgress fetcher = SchemaFetcherWithProgress.getInstance(cp);
 		Catalog catalog = fetcher.fetch();
@@ -624,5 +636,8 @@ public class JDBCConnectionMgrView {
 		}
 		//Update cached catalog with old catalog.
 		cpm.updateCatalog(dbID, oldCatalog);
+		LOG.info("End the [updateConParamCatalog]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [updateConParamCatalog] " + (endTime - startTime) + "ms");
 	}
 }

@@ -47,11 +47,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import com.cubrid.cubridmigration.core.common.Closer;
 import com.cubrid.cubridmigration.core.common.CommonUtils;
 import com.cubrid.cubridmigration.core.common.DBUtils;
 import com.cubrid.cubridmigration.core.common.TimeZoneUtils;
+import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.datatype.DataTypeInstance;
 import com.cubrid.cubridmigration.core.dbmetadata.AbstractJDBCSchemaFetcher;
@@ -99,6 +101,8 @@ public final class CUBRIDSchemaFetcher extends
 	
 	private final int COMMENT_SUPPORT_VERSION = 100;
 	private final int USERSCHEMA_VERSION = 112;
+	
+	private static final Logger LOG = LogUtil.getLogger(CUBRIDSchemaFetcher.class);
 
 	/**
 	 * Retrieves the lower case of type, and some type may be changed into stand
@@ -135,6 +139,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @throws SQLException e
 	 */
 	public Catalog buildCatalog(Connection conn, ConnParameters cp, IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCatalog]");
 		Catalog catalog = super.buildCatalog(conn, cp, filter);
 		catalog.setDatabaseType(DatabaseType.CUBRID);
 		catalog.setCreateSql(null);
@@ -163,6 +169,9 @@ public final class CUBRIDSchemaFetcher extends
 
 		catalog.setDBAGroup(getPrivilege(conn, catalog));
 		
+		LOG.info("End the [buildCatalog]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildCatalog] " + (endTime - startTime) + "ms");
 		return catalog;
 	}
 	
@@ -176,6 +185,8 @@ public final class CUBRIDSchemaFetcher extends
 	private void buildCUBRIDTableColumns(Connection conn, Map<String, Table> tables) throws SQLException {
 		// get set(object) type information from db_attr_setdomain_elm view
 		//Fetch collection type's sub-data type informations
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTableColumns]");
 		ResultSet rs = null;
 		Statement stmt = null;
 		try {
@@ -185,7 +196,7 @@ public final class CUBRIDSchemaFetcher extends
 					+ " WHERE c.class_name = a.class_name AND c.class_type='CLASS'"
 					+ " AND c.is_system_class='NO'"
 					+ " ORDER BY a.class_name";
-
+			LOG.info("[buildCUBRIDTableColumns - SQL] " + sql);
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 
@@ -211,6 +222,9 @@ public final class CUBRIDSchemaFetcher extends
 				cubridColumn.setScale(scale);
 				cubridColumn.setShownDataType(cubDTHelper.getShownDataType(cubridColumn));
 			}
+			LOG.info("End the [buildCUBRIDTableColumns]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTableColumns] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -229,6 +243,8 @@ public final class CUBRIDSchemaFetcher extends
 	private void buildCUBRIDTableFKs(Connection conn, Map<String, Table> tables, Schema schema,
 			Catalog catalog) throws SQLException {
 		// FK
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTableFKs]");
 		ResultSet rs = null; //NOPMD
 		Statement stmt = null;
 		try {
@@ -237,6 +253,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ " WHERE i.class_name=c.class_name AND c.is_system_class='NO'"
 					+ " AND c.class_type='CLASS' AND i.is_foreign_key='YES'"
 					+ " GROUP BY i.class_name";
+			
+			LOG.info("[buildCUBRIDTableFKs - SQL] " + sql);
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
@@ -253,6 +271,9 @@ public final class CUBRIDSchemaFetcher extends
 				}
 				buildTableFKs(conn, catalog, schema, table);
 			}
+			LOG.info("End the [buildCUBRIDTableFKs]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTableFKs] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -268,6 +289,8 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	private void buildCUBRIDTableIndexes(Connection conn, Map<String, Table> tables) throws SQLException {
 		// INDEX
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTableIndexes]");
 		ResultSet rs = null; //NOPMD
 		Statement stmt = null;
 		try {
@@ -289,6 +312,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ " AND a.index_name=b.index_name AND a.class_name=c.class_name"
 					+ " AND c.is_system_class='NO' AND a.is_primary_key='NO' AND a.is_foreign_key='NO'"
 					+ " ORDER BY a.class_name, b.index_name, b.key_order";
+			
+			LOG.info("[buildCUBRIDTableIndexes - SQL] " + sql);
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
@@ -342,6 +367,9 @@ public final class CUBRIDSchemaFetcher extends
 
 				setUniquColumnByIndex(table);
 			}
+			LOG.info("End the [buildCUBRIDTableIndexes]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTableIndexes] " + (endTime - startTime) + "ms");
 			//Set unique
 		} finally {
 			Closer.close(rs);
@@ -359,6 +387,8 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	private void buildCUBRIDTablePKs(Connection conn, Map<String, Table> tables) throws SQLException {
 		// PK
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTablePKs]");
 		ResultSet rs = null; //NOPMD
 		Statement stmt = null;
 		try {
@@ -369,6 +399,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ " AND a.class_name=c.class_name AND c.is_system_class='NO'"
 					+ " AND a.is_primary_key='YES' AND c.class_type='CLASS'"
 					+ " ORDER BY a.class_name, b.key_order";
+			
+			LOG.info("[buildCUBRIDTablePKs - SQL] " + sql);
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
@@ -409,7 +441,9 @@ public final class CUBRIDSchemaFetcher extends
 
 				setUniquColumnByPK(table);
 			}
-
+			LOG.info("End the [buildCUBRIDTablePKs]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTablePKs] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -431,6 +465,8 @@ public final class CUBRIDSchemaFetcher extends
 			IBuildSchemaFilter filter) throws SQLException {
 		Map<String, Table> tables = new HashMap<String, Table>();
 		// get table information
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTables]");
 		ResultSet rs = null;
 		Statement stmt = null;
 		try {
@@ -448,6 +484,7 @@ public final class CUBRIDSchemaFetcher extends
 					+ " AND c.is_system_class='NO' AND a.from_class_name IS NULL"
 					+ " ORDER BY a.class_name, c.class_type, a.def_order";
 			
+			LOG.info("[buildCUBRIDTables - SQL] " + sql);
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
@@ -531,6 +568,9 @@ public final class CUBRIDSchemaFetcher extends
 				}
 				table.addColumn(column);
 			}
+			LOG.info("End the [buildCUBRIDTables]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTables] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -546,6 +586,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @throws SQLException ex
 	 */
 	private void buildCUBRIDTableSerials(Connection conn, Map<String, Table> tables) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTableSerials]");
 		ResultSet rs = null; //NOPMD
 		Statement stmt = null;
 		// SERIAL
@@ -557,6 +599,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ " WHERE class_name IS NOT NULL" 
 					+ " ORDER BY class_name";
 
+			LOG.info("[buildCUBRIDTableSerials - SQL] " + sql);
+			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 
@@ -585,6 +629,9 @@ public final class CUBRIDSchemaFetcher extends
 				//To avoid PK conflict if the column is auto increment.
 				column.setAutoIncSeedVal(CommonUtils.str2Long(currentVal) + 1);
 			}
+			LOG.info("End the [buildCUBRIDTableSerials]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTableSerials] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -605,6 +652,8 @@ public final class CUBRIDSchemaFetcher extends
 			IBuildSchemaFilter filter) throws SQLException {
 		Map<String, Table> tables = new HashMap<String, Table>();
 		// get table information
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTablesWithUserSchema]");
 		ResultSet rs = null;
 		PreparedStatement stmt = null;
 		
@@ -619,6 +668,9 @@ public final class CUBRIDSchemaFetcher extends
 		try {
 			stmt = conn.prepareStatement(sql);
 			stmt.setString(1, schema.getName().toUpperCase());
+
+			LOG.info("[buildCUBRIDTablesWithUserSchema - SQL] " + sql + ", 1=" + schema.getName());
+
 			rs = stmt.executeQuery();
 			
 			while (rs.next()) {
@@ -686,6 +738,9 @@ public final class CUBRIDSchemaFetcher extends
 				}
 				table.addColumn(column);
 			}
+			LOG.info("End the [buildCUBRIDTablesWithUserSchema]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTablesWithUserSchema] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -703,6 +758,8 @@ public final class CUBRIDSchemaFetcher extends
 	private void buildCUBRIDTableIndexesWithUserSchema(Connection conn,
 			Map<String, Table> tables) throws SQLException {
 		// INDEX
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTableIndexesWithUserSchema]");
 		ResultSet rs = null; //NOPMD
 		Statement stmt = null;
 		try {
@@ -724,6 +781,9 @@ public final class CUBRIDSchemaFetcher extends
 					+ "AND a.index_name=b.index_name AND a.class_name=c.class_name "
 					+ "AND c.is_system_class='NO' AND is_primary_key='NO' AND is_foreign_key='NO' "
 					+ "ORDER BY a.class_name, b.index_name, b.key_order";
+			
+			LOG.info("[buildCUBRIDTableIndexesWithUserSchema - SQL] " + sql);
+			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 
@@ -770,6 +830,9 @@ public final class CUBRIDSchemaFetcher extends
 
 				setUniquColumnByIndex(table);
 			}
+			LOG.info("End the [buildCUBRIDTableIndexesWithUserSchema]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTableIndexesWithUserSchema] " + (endTime - startTime) + "ms");
 			//Set unique
 		} finally {
 			Closer.close(rs);
@@ -791,6 +854,8 @@ public final class CUBRIDSchemaFetcher extends
 	private void buildCUBRIDTableFKsWithUserSchema(Connection conn,
 			Map<String, Table> tables, Schema schema, Catalog catalog)throws SQLException {
 		// FK
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTableFKsWithUserSchema]");
 		ResultSet rs = null; //NOPMD
 		Statement stmt = null;
 		try {
@@ -800,6 +865,8 @@ public final class CUBRIDSchemaFetcher extends
 //					+ "GROUP BY i.index_name";
 			
 			String sql = "select class_name, owner_name from db_index where is_foreign_key = 'YES'";
+			
+			LOG.info("[buildCUBRIDTableFKsWithUserSchema - SQL] " + sql);
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
@@ -821,6 +888,9 @@ public final class CUBRIDSchemaFetcher extends
 				buildTableFKsWithUserSchema(conn, catalog, schema, table);
 				table.setName(tableName);
 			}
+			LOG.info("End the [buildCUBRIDTableFKsWithUserSchema]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTableFKsWithUserSchema] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -838,11 +908,13 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	protected void buildTableFKsWithUserSchema (final Connection conn, final Catalog catalog, final Schema schema,
 			final Table table) throws SQLException {
-
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTableFKsWithUserSchema]");
 		ResultSet rs = null; //NOPMD
 		try {
 			rs = conn.getMetaData().getImportedKeys(getCatalogName(catalog), getSchemaName(schema),
 					table.getName());
+			LOG.info("[buildTableFKsWithUserSchema - SQL] JDBC Meata Data");
 			String fkName = "";
 			FK foreignKey = null;
 
@@ -920,6 +992,9 @@ public final class CUBRIDSchemaFetcher extends
 		} finally {
 			Closer.close(rs);
 		}
+		LOG.info("End the [buildTableFKsWithUserSchema]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildTableFKsWithUserSchema] " + (endTime - startTime) + "ms");
 	}
 
 
@@ -933,6 +1008,8 @@ public final class CUBRIDSchemaFetcher extends
 	private void buildCUBRIDTablePKsWithUserSchema(Connection conn,
 			Map<String, Table> tables)throws SQLException {
 		// PK
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTablePKsWithUserSchema]");
 		ResultSet rs = null; //NOPMD
 		Statement stmt = null;
 		try {
@@ -942,6 +1019,9 @@ public final class CUBRIDSchemaFetcher extends
 					+ "AND a.class_name=c.class_name AND c.is_system_class='NO' "
 					+ "AND a.is_primary_key='YES' AND c.class_type='CLASS' "
 					+ "ORDER BY a.class_name, b.key_order";
+			
+			LOG.info("[buildCUBRIDTablePKsWithUserSchema - SQL] " + sql);
+			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 
@@ -982,7 +1062,9 @@ public final class CUBRIDSchemaFetcher extends
 
 				setUniquColumnByPK(table);
 			}
-
+			LOG.info("End the [buildCUBRIDTablePKsWithUserSchema]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTablePKsWithUserSchema] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -999,6 +1081,8 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	private void buildCUBRIDTableSerialsWithUserSchema(Connection conn,
 			Map<String, Table> tables) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTableSerialsWithUserSchema]");
 		ResultSet rs = null; //NOPMD
 		Statement stmt = null;
 		// SERIAL
@@ -1007,6 +1091,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ "max_val,min_val,cyclic,started,att_name " + "FROM db_serial "
 					+ "WHERE class_name IS NOT NULL " + "ORDER BY class_name";
 
+			LOG.info("[buildCUBRIDTableSerialsWithUserSchema - SQL] " + sql);
+			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 
@@ -1035,6 +1121,9 @@ public final class CUBRIDSchemaFetcher extends
 				//To avoid PK conflict if the column is auto increment.
 				column.setAutoIncSeedVal(CommonUtils.str2Long(currentVal) + 1);
 			}
+			LOG.info("End the [buildCUBRIDTableSerialsWithUserSchema]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTableSerialsWithUserSchema] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -1052,6 +1141,8 @@ public final class CUBRIDSchemaFetcher extends
 			Map<String, Table> tables) throws SQLException {
 		// get set(object) type information from db_attr_setdomain_elm view
 		//Fetch collection type's sub-data type informations
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDTableColumnsWithUserSchema]");
 		ResultSet rs = null;
 		Statement stmt = null;
 		try {
@@ -1062,6 +1153,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ " AND c.is_system_class='NO' " 
 					+ " ORDER BY a.class_name ";
 
+			LOG.info("[buildCUBRIDTableColumnsWithUserSchema - SQL] " + sql);
+			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 
@@ -1088,6 +1181,9 @@ public final class CUBRIDSchemaFetcher extends
 				cubridColumn.setScale(scale);
 				cubridColumn.setShownDataType(cubDTHelper.getShownDataType(cubridColumn));
 			} 
+			LOG.info("End the [buildCUBRIDTableColumnsWithUserSchema]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildCUBRIDTableColumnsWithUserSchema] " + (endTime - startTime) + "ms");
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -1229,6 +1325,8 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	protected void buildSequence(final Connection conn, final Catalog catalog, final Schema schema,
 			IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildSequence]");
 		PreparedStatement pstmt = null; //NOPMD
 		ResultSet rs = null; //NOPMD
 		List<Sequence> sequenceList = new ArrayList<Sequence>();
@@ -1245,13 +1343,14 @@ public final class CUBRIDSchemaFetcher extends
 					+ " FROM db_serial"
 					+ " WHERE class_name IS NULL"
 					+ getUserSchema;
-			
-			
+
 			pstmt = conn.prepareStatement(sql);
 			
 			if (dbVersion >= USERSCHEMA_VERSION) {
 				pstmt.setString(1, schema.getName());
 			}
+
+			LOG.info("[buildSequence - SQL] " + sql + ", 1=" + schema.getName());
 			
 			rs = pstmt.executeQuery();
 			while (rs.next()) {
@@ -1293,7 +1392,9 @@ public final class CUBRIDSchemaFetcher extends
 
 			}
 			schema.setSequenceList(sequenceList);
-
+			LOG.info("End the [buildSequence]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildSequence] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(pstmt);
@@ -1437,6 +1538,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @throws SQLException e
 	 */
 	private void buildTableOrViewColumns(Connection conn, TableOrView table) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTableOrViewColumns]");
 		ResultSet rs = null; //NOPMD
 		PreparedStatement preStmt = null;
 		String tableName = table.getName();
@@ -1451,9 +1554,10 @@ public final class CUBRIDSchemaFetcher extends
 					+ " FROM db_attribute a"
 					+ " WHERE a.class_name=?" 
 					+ " ORDER BY a.def_order";
-
+			
 			preStmt = conn.prepareStatement(sql);
 			preStmt.setString(1, tableName);
+      LOG.info("[buildTableOrViewColumns - SQL] " + sql + ", 1=" + tableName);
 			rs = preStmt.executeQuery();
 			while (rs.next()) {
 				String attrName = rs.getString("attr_name");
@@ -1522,9 +1626,11 @@ public final class CUBRIDSchemaFetcher extends
 					+ " a.data_type, a.prec, a.scale"
 					+ " FROM db_attr_setdomain_elm a"
 					+ " WHERE a.class_name=?";
-
+			
 			preStmt = conn.prepareStatement(sql);
 			preStmt.setString(1, tableName);
+
+      LOG.info("[buildTableOrViewColumns - SQL] " + sql + ", 1=" + tableName);
 			rs = preStmt.executeQuery();
 			while (rs.next()) {
 				String attrName = rs.getString("attr_name");
@@ -1559,6 +1665,8 @@ public final class CUBRIDSchemaFetcher extends
 			
 			preStmt = conn.prepareStatement(sql);
 			preStmt.setString(1, tableName);
+
+      LOG.info("[buildTableOrViewColumns - SQL] " + sql + ", 1=" + tableName);
 			rs = preStmt.executeQuery();
 
 			while (rs.next()) {
@@ -1582,7 +1690,9 @@ public final class CUBRIDSchemaFetcher extends
 			Closer.close(rs);
 			Closer.close(preStmt);
 		}
-
+		LOG.info("End the [buildTableOrViewColumns]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildTableOrViewColumns] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -1710,6 +1820,8 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	protected void buildViews(Connection conn, Catalog catalog, Schema schema,
 			IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildViews]");
 		Integer ver = Integer.parseInt("" + conn.getMetaData().getDatabaseMajorVersion() 
 				+ conn.getMetaData().getDatabaseMinorVersion());
 		
@@ -1730,7 +1842,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ sqlComment
 					+ " FROM db_vclass"
 					+ " WHERE vclass_name=?";
-			
+		
+      LOG.info("[buildViews - SQL] " + sql);
 			stmt = conn.prepareStatement(sql);
 			
 			for (View view : schema.getViews()) {
@@ -1755,6 +1868,9 @@ public final class CUBRIDSchemaFetcher extends
 		} finally {
 			Closer.close(stmt);
 		}
+		LOG.info("End the [buildViews]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildViews] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -1768,7 +1884,8 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	protected void buildCUBRIDViews(final Connection conn, final Catalog catalog, final Schema schema,
 			IBuildSchemaFilter filter) throws SQLException {
-
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCUBRIDViews]");
 		List<String> viewNameList = getCUBRIDAllViewNames(conn, catalog, schema);
 		for (String viewName : viewNameList) {
 			String viewOwnerName = null;
@@ -1795,6 +1912,9 @@ public final class CUBRIDSchemaFetcher extends
 			schema.addView(view);
 			buildViewColumns(conn, catalog, schema, view);
 		}
+		LOG.info("End the [buildCUBRIDViews]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildCUBRIDViews] " + (endTime - startTime) + "ms");
 	}
 	
 	protected void buildSynonym(Connection conn, Catalog catalog, Schema schema, 
@@ -1824,6 +1944,8 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	protected List<String> getCUBRIDAllViewNames(final Connection conn, final Catalog catalog, final Schema schema)
 			throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getCUBRIDAllViewNames]");
 		ResultSet rs = null; //NOPMD
 		PreparedStatement pstmt = null;
 		List<String> viewNameList = new ArrayList<String>();
@@ -1835,12 +1957,15 @@ public final class CUBRIDSchemaFetcher extends
 			pstmt = conn.prepareStatement(sql);
 			
 			pstmt.setString(1, schema.getName().toUpperCase());
-			
+			LOG.info("[getCUBRIDAllViewNames - SQL] " + sql + ", 1=" + schema.getName());
 			rs = pstmt.executeQuery();
 			
 			while (rs.next()) {
 				viewNameList.add(rs.getString("CLASS_NAME"));
 			}
+			LOG.info("End the [getCUBRIDAllViewNames]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getCUBRIDAllViewNames] " + (endTime - startTime) + "ms");
 			return viewNameList;
 		} finally {
 			Closer.close(rs);
@@ -1915,6 +2040,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @throws SQLException e
 	 */
 	private List<Function> getAllFunctions(Connection conn) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllFunctions]");
 		Map<String, String> map = this.getRountines(conn, "FUNCTION");
 		List<Function> funcs = new ArrayList<Function>();
 
@@ -1924,7 +2051,9 @@ public final class CUBRIDSchemaFetcher extends
 			func.setFuncDDL(entry.getValue());
 			funcs.add(func);
 		}
-
+		LOG.info("End the [getAllFunctions]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [getAllFunctions] " + (endTime - startTime) + "ms");
 		return funcs;
 	}
 
@@ -1936,6 +2065,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @throws SQLException e
 	 */
 	private List<Procedure> getAllProcedures(Connection conn) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllProcedures]");
 		Map<String, String> map = this.getRountines(conn, "PROCEDURE");
 		List<Procedure> procedures = new ArrayList<Procedure>();
 
@@ -1945,7 +2076,9 @@ public final class CUBRIDSchemaFetcher extends
 			procedure.setProcedureDDL(entry.getValue());
 			procedures.add(procedure);
 		}
-
+		LOG.info("End the [getAllProcedures]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [getAllProcedures] " + (endTime - startTime) + "ms");
 		return procedures;
 	}
 
@@ -1961,6 +2094,8 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	protected List<String> getAllTableNames(final Connection conn, final Catalog catalog,
 			final Schema schema) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllTableNames]");
 		PreparedStatement stmt = null;
 		ResultSet rs = null; //NOPMD
 
@@ -1970,6 +2105,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ " FROM db_class"
 					+ " WHERE is_system_class='NO' AND class_type='CLASS'"
 					+ " ORDER BY class_name";
+			
+			LOG.info("[getAllTableNames - SQL] " + sql);
 			
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
@@ -1993,7 +2130,9 @@ public final class CUBRIDSchemaFetcher extends
 			while (rs.next()) {
 				tableNames.remove(rs.getString("partition_class_name").toLowerCase(Locale.ENGLISH));
 			}
-
+			LOG.info("End the [getAllTableNames]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getAllTableNames] " + (endTime - startTime) + "ms");
 			return tableNames;
 		} finally {
 			Closer.close(rs);
@@ -2009,6 +2148,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @throws SQLException e
 	 */
 	private List<Trigger> getAllTriggers(Connection conn, Schema schema) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllTriggers]");
 		PreparedStatement stmt = null;
 		ResultSet rs = null; //NOPMD
 		
@@ -2028,6 +2169,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ " WHERE trig.name=t.trigger_name AND t.target_class_name=c.class_name(+)"
 					+ " AND c.is_system_class='NO'"
 					+ " ORDER BY name";
+			
+			LOG.info("[getAllTriggers - SQL] " + sql);
 			
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
@@ -2052,7 +2195,9 @@ public final class CUBRIDSchemaFetcher extends
 				
 				triggers.add(trigger);
 			}
-
+			LOG.info("End the [getAllTriggers]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getAllTriggers] " + (endTime - startTime) + "ms");
 			return triggers;
 		} finally {
 			Closer.close(rs);
@@ -2069,6 +2214,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @throws SQLException
 	 */
 	private List<Synonym> getAllSynonym(Connection conn, Schema schema) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllSynonym]");
 		PreparedStatement stmt = null;
 		ResultSet rs = null; //NOPMD
 		
@@ -2082,6 +2229,8 @@ public final class CUBRIDSchemaFetcher extends
 					 + " target_name, target_owner_name, comment" 
 					 + " FROM db_synonym"
 					 + " WHERE synonym_owner_name=?";
+			
+			LOG.info("[getAllSynonym - SQL] " + sql);
 			
 			stmt = conn.prepareStatement(sql);
 			stmt.setString(1, schema.getName());
@@ -2100,6 +2249,9 @@ public final class CUBRIDSchemaFetcher extends
 				synonyms.add(synonym);
 			}
 
+			LOG.info("End the [getAllSynonym]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getAllSynonym] " + (endTime - startTime) + "ms");
 			return synonyms;
 		} finally {
 			Closer.close(rs);
@@ -2117,6 +2269,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @throws SQLException
 	 */
 	private List<Grant> getAllGrant(Connection conn, Catalog catalog, Schema schema) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllGrant]");
 		PreparedStatement stmt = null;
 		ResultSet rs = null; //NOPMD
 		
@@ -2130,6 +2284,8 @@ public final class CUBRIDSchemaFetcher extends
 			.append(isUserSchema ? " AND a.owner_name=c.owner_name" : "")
 			.append(" AND c.is_system_class='NO'")
 			.append(" AND a.grantee_name=?");
+		
+		LOG.info("[getAllGrant - SQL] " + sql);
 		
 		try {
 			stmt = conn.prepareStatement(sql.toString());			
@@ -2149,7 +2305,9 @@ public final class CUBRIDSchemaFetcher extends
 				grant.setDDL(CUBRIDSQLHelper.getInstance(null).getGrantDDL(grant, isUserSchema));
 				grants.add(grant);
 			}
-			
+			LOG.info("End the [getAllGrant]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getAllGrant] " + (endTime - startTime) + "ms");
 			return grants;
 		} finally {
 			Closer.close(rs);
@@ -2185,6 +2343,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @throws SQLException e
 	 */
 	private Map<String, String> getRountines(Connection conn, String spType) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getRountines]");
 		PreparedStatement stmt = null;
 		ResultSet rs = null; //NOPMD
 		try {
@@ -2197,6 +2357,8 @@ public final class CUBRIDSchemaFetcher extends
 					+ " ON sp.sp_name=spargs.sp_name"
 					+ " WHERE sp.sp_type=?"
 					+ " ORDER BY sp.sp_name asc, spargs.index_of ASC";
+			
+			LOG.info("[getRountines - SQL] " + sql);
 			
 			stmt = conn.prepareStatement(sql);
 			stmt.setString(1, spType);
@@ -2261,7 +2423,9 @@ public final class CUBRIDSchemaFetcher extends
 				String ddl = this.creatSPDDL(tmpMap);
 				spMap.put((String) tmpMap.get("SP_NAME"), ddl);
 			}
-
+			LOG.info("End the [getRountines]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getRountines] " + (endTime - startTime) + "ms");
 			return spMap;
 		} finally {
 			Closer.close(rs);
@@ -2277,8 +2441,10 @@ public final class CUBRIDSchemaFetcher extends
 	 */
 	@Override
 	protected List<String> getSchemaNames(Connection conn, ConnParameters cp) throws SQLException {
-		Integer ver = Integer.parseInt("" + conn.getMetaData().getDatabaseMajorVersion() 
-				+ conn.getMetaData().getDatabaseMinorVersion());
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getSchemaNames]");
+//		Integer ver = Integer.parseInt("" + conn.getMetaData().getDatabaseMajorVersion() 
+//				+ conn.getMetaData().getDatabaseMinorVersion());
 		
 		if (!getPrivilege(conn, cp)) {
 			return getUserSchemaNames(conn, cp);
@@ -2301,6 +2467,7 @@ public final class CUBRIDSchemaFetcher extends
 //					+ "group by grantor_name";
 			
 			String sql = "select name from db_user";
+			LOG.info("[getSchemaNames - SQL] " + sql);
 			stmt = conn.prepareStatement(sql);
 //			stmt.setString(1, cp.getConUser().toUpperCase());
 			rs = stmt.executeQuery();
@@ -2312,7 +2479,9 @@ public final class CUBRIDSchemaFetcher extends
 			if (schemaNames.isEmpty()) {
 				return super.getSchemaNames(conn, cp);
 			}
-			
+			LOG.info("End the [getSchemaNames]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getSchemaNames] " + (endTime - startTime) + "ms");
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -2350,6 +2519,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @return boolean is connect user has dba privilege or dba group
 	 */
 	private boolean getPrivilege(Connection conn, ConnParameters conParams) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getPrivilege]");
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		
@@ -2361,7 +2532,7 @@ public final class CUBRIDSchemaFetcher extends
 			}
 			
 			String sql = "SELECT u.name FROM db_user AS u, TABLE(u.direct_groups) AS g(x) WHERE x.name='DBA'";
-			
+			LOG.info("[getPrivilege - SQL] " + sql);
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			
@@ -2372,7 +2543,9 @@ public final class CUBRIDSchemaFetcher extends
 					return true;
 				}
 			}
-			
+			LOG.info("End the [getPrivilege]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getPrivilege] " + (endTime - startTime) + "ms");
 			return false;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2391,6 +2564,8 @@ public final class CUBRIDSchemaFetcher extends
 	 * @return boolean is connect user has dba privilege or dba group
 	 */
 	private boolean getPrivilege(Connection conn, Catalog catalog) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getPrivilege(Catalog)]");
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		
@@ -2402,7 +2577,7 @@ public final class CUBRIDSchemaFetcher extends
 			}
 			
 			String sql = "SELECT u.name FROM db_user AS u, TABLE(u.direct_groups) AS g(x) WHERE x.name='DBA'";
-			
+			LOG.info("[getPrivilege(Catalog) - SQL] " + sql);
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			
@@ -2413,7 +2588,9 @@ public final class CUBRIDSchemaFetcher extends
 					return true;
 				}
 			}
-			
+			LOG.info("End the [getPrivilege(Catalog)]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getPrivilege(Catalog)] " + (endTime - startTime) + "ms");
 			return false;
 		} catch (Exception e) {
 			e.printStackTrace();

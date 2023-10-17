@@ -145,7 +145,7 @@ public class ObjectMappingPage extends
 	 */
 	protected void afterShowCurrentPage(PageChangedEvent event) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [afterShowCurrentPage] method");
+		LOG.info("Start the [afterShowCurrentPage]");
 		final MigrationWizard mw = getMigrationWizard();
 		setTitle(mw.getStepNoMsg(ObjectMappingPage.this) + Messages.objectMapPageTitle);
 		setDescription(Messages.objectMapPageDescription);
@@ -220,9 +220,9 @@ public class ObjectMappingPage extends
 			LOG.error(LogUtil.getExceptionString(ex));
 			throw ex;
 		}
-		LOG.info("End the [afterShowCurrentPage] method");
+		LOG.info("End the [afterShowCurrentPage]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[afterShowCurrentPage] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [afterShowCurrentPage] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -231,24 +231,24 @@ public class ObjectMappingPage extends
 	 */
 	private void showLobInfo(Catalog sourceCatalog) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [showLobInfo] method");
+		LOG.info("Start the [showLobInfo]");
 		String lobInfo = util.getLobInfo(sourceCatalog);
 		if (StringUtils.isNotEmpty(lobInfo)) {
 			DetailMessageDialog.openInfo(getShell(), Messages.titleLobInformation, Messages.msgLobInformation, lobInfo);
 		}
-		LOG.info("End the [showLobInfo] method");
+		LOG.info("End the [showLobInfo]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[showLobInfo] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [showLobInfo] " + (endTime - startTime) + "ms");
 	}
 
 	private void showDetailMessageDialog(Catalog sourceCatalog) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [showDetailMessageDialog] method");
+		LOG.info("Start the [showDetailMessageDialog]");
 		String detailMessage = getDetailMessage(sourceCatalog, 1);
 		DetailMessageDialog.openInfo(getShell(), Messages.titleDuplicateObjects, Messages.msgDuplicateObjects, detailMessage);
-		LOG.info("End the [showDetailMessageDialog] method");
+		LOG.info("End the [showDetailMessageDialog]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[showDetailMessageDialog] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [showDetailMessageDialog] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -261,16 +261,16 @@ public class ObjectMappingPage extends
 	 */
 	private String getDetailMessage(Catalog sourceCatalog, int messageType) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [getDetailMessage] method");
+		LOG.info("Start the [getDetailMessage]");
 		StringBuffer sb = new StringBuffer();
 		util.createDetailMessage(sb, sourceCatalog, DBObject.OBJ_TYPE_TABLE, messageType);
 		util.createDetailMessage(sb, sourceCatalog, DBObject.OBJ_TYPE_VIEW, messageType);
 		util.createDetailMessage(sb, sourceCatalog, DBObject.OBJ_TYPE_SEQUENCE, messageType);
 		util.createDetailMessage(sb, sourceCatalog, DBObject.OBJ_TYPE_SYNONYM, messageType);
 		util.createDetailMessage(sb, sourceCatalog, DBObject.OBJ_TYPE_GRANT, messageType);
-		LOG.info("End the [getDetailMessage] method");
+		LOG.info("End the [getDetailMessage]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[getDetailMessage] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [getDetailMessage] " + (endTime - startTime) + "ms");
 		return sb.toString();
 	}
 
@@ -280,7 +280,7 @@ public class ObjectMappingPage extends
 	 */
 	private void setSourceTableNoPKWarningMessage() {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [setSourceTableNoPKWarningMessage] method");
+		LOG.info("Start the [setSourceTableNoPKWarningMessage]");
 		final MigrationWizard mw = getMigrationWizard();
 		Catalog sourceCatalog = mw.getSourceCatalog();
 		final MigrationConfiguration cfg = mw.getMigrationConfig();
@@ -297,9 +297,9 @@ public class ObjectMappingPage extends
 			}
 			setMessage(descriptionMessage.toString(), IMessageProvider.WARNING);
 		}
-		LOG.info("End the [setSourceTableNoPKWarningMessage] method");
+		LOG.info("End the [setSourceTableNoPKWarningMessage]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[setSourceTableNoPKWarningMessage] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [setSourceTableNoPKWarningMessage] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -309,7 +309,7 @@ public class ObjectMappingPage extends
 	 */
 	public void createControl(Composite parent) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [createControl] method");
+		LOG.info("Start the [createControl]");
 		Composite container = new Composite(parent, SWT.NONE);
 		container.setLayout(new GridLayout());
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -322,9 +322,9 @@ public class ObjectMappingPage extends
 		createDetailPanel(container2);
 		container2.setWeights(new int[] {1, 3});
 		createToolButtons(container);
-		LOG.info("End the [createControl] method");
+		LOG.info("End the [createControl]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[createControl] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [createControl] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -334,7 +334,7 @@ public class ObjectMappingPage extends
 	 */
 	protected void createDetailPanel(Composite parent) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [createDetailPanel] method");
+		LOG.info("Start the [createDetailPanel]");
 		Group detailContainer = new Group(parent, SWT.NONE);
 		detailContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		detailContainer.setLayout(new GridLayout());
@@ -502,9 +502,9 @@ public class ObjectMappingPage extends
 		node2ViewMapping.put(IndexNode.class.getName(), indexMappingView);
 		node2ViewMapping.put(SQLTableNode.class.getName(), new SQLTableMappingView(detailContainer));
 		node2ViewMapping.put(SQLTablesNode.class.getName(), generalObjMappingView);
-		LOG.info("End the [createDetailPanel] method");
+		LOG.info("End the [createDetailPanel]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[createDetailPanel] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [createDetailPanel] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -514,7 +514,7 @@ public class ObjectMappingPage extends
 	 */
 	private void createToolButtons(Composite parent) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [createToolButtons] method");
+		LOG.info("Start the [createToolButtons]");
 		//***********************************************************************
 		final Composite bottomComposite = new Composite(parent, SWT.NONE);
 		bottomComposite.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 2, 1));
@@ -625,9 +625,9 @@ public class ObjectMappingPage extends
 				openAdjustCharColumnDialog();
 			}
 		});
-		LOG.info("End the [createToolButtons] method");
+		LOG.info("End the [createToolButtons]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[createToolButtons] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [createToolButtons] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -637,7 +637,7 @@ public class ObjectMappingPage extends
 	 */
 	protected void createTreeView(SashForm parent) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [createTreeView] method");
+		LOG.info("Start the [createTreeView]");
 		Group srcDBContainer = new Group(parent, SWT.NONE);
 		GridData gdTV = new GridData(SWT.LEFT, SWT.FILL, false, true);
 		srcDBContainer.setLayoutData(gdTV);
@@ -656,9 +656,9 @@ public class ObjectMappingPage extends
 				showRightView(ss.getFirstElement(), true);
 			}
 		});
-		LOG.info("End the [createTreeView] method");
+		LOG.info("End the [createTreeView]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[createTreeView] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [createTreeView] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -668,17 +668,17 @@ public class ObjectMappingPage extends
 	 */
 	protected void handlePageLeaving(PageChangingEvent event) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [handlePageLeaving] method");
+		LOG.info("Start the [handlePageLeaving]");
 		if (!isGotoNextPage(event)) {
-			LOG.info("End the [handlePageLeaving] method");
+			LOG.info("End the [handlePageLeaving]");
 	        long endTime = System.currentTimeMillis();
-	        LOG.info("[handlePageLeaving] execution time: " + (endTime - startTime) + "ms");
+	        LOG.info("execution time [handlePageLeaving] " + (endTime - startTime) + "ms");
 			return;
 		}
 		event.doit = validateConfig();
-		LOG.info("End the [handlePageLeaving] method");
+		LOG.info("End the [handlePageLeaving]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[handlePageLeaving] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [handlePageLeaving] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -687,14 +687,14 @@ public class ObjectMappingPage extends
 	 */
 	private void openAdjustCharColumnDialog() {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [openAdjustCharColumnDialog] method");
+		LOG.info("Start the [openAdjustCharColumnDialog]");
 		AdjustCharColumnDialog dialog = new AdjustCharColumnDialog(
 				ObjectMappingPage.this.getShell(), util);
 		dialog.open();
 		refreshCurrentView();
-		LOG.info("End the [openAdjustCharColumnDialog] method");
+		LOG.info("End the [openAdjustCharColumnDialog]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[openAdjustCharColumnDialog] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [openAdjustCharColumnDialog] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -703,13 +703,13 @@ public class ObjectMappingPage extends
 	 */
 	public void refreshCurrentView() {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [refreshCurrentView] method");
+		LOG.info("Start the [refreshCurrentView]");
 		if (currentView != null) {
 			currentView.showData(currentView.getModel());
 		}
-		LOG.info("End the [refreshCurrentView] method");
+		LOG.info("End the [refreshCurrentView]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[refreshCurrentView] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [refreshCurrentView] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -720,7 +720,7 @@ public class ObjectMappingPage extends
 	 */
 	private void refreshTreeView() {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [refreshTreeView] method");
+		LOG.info("Start the [refreshTreeView]");
 		final MigrationWizard mw = getMigrationWizard();
 		final MigrationConfiguration cfg = mw.getMigrationConfig();
 		
@@ -746,9 +746,9 @@ public class ObjectMappingPage extends
 		}
 		showRightView(node, true);
 		tvSourceDBObjects.setFocus();
-		LOG.info("End the [refreshTreeView] method");
+		LOG.info("End the [refreshTreeView]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[refreshTreeView] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [refreshTreeView] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -768,20 +768,20 @@ public class ObjectMappingPage extends
 	 */
 	private void showRightView(Object selection, boolean autoSave) {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [showRightView] method");
+		LOG.info("Start the [showRightView]");
 		if (selection == null) {
-			LOG.info("End the [showRightView] method");
+			LOG.info("End the [showRightView]");
 	        long endTime = System.currentTimeMillis();
-	        LOG.info("[showRightView] execution time: " + (endTime - startTime) + "ms");
+	        LOG.info("execution time [showRightView] " + (endTime - startTime) + "ms");
 			return;
 		}
 		AbstractMappingView view = node2ViewMapping.get(selection.getClass().getName());
 		if (view == null) {
 			//Show it's parent
 			showRightView(((ICUBRIDNode) selection).getParent(), autoSave);
-			LOG.info("End the [showRightView] method");
+			LOG.info("End the [showRightView]");
 	        long endTime = System.currentTimeMillis();
-	        LOG.info("[showRightView] execution time: " + (endTime - startTime) + "ms");
+	        LOG.info("execution time [showRightView] " + (endTime - startTime) + "ms");
 			return;
 		}
 		//If old view is not null, save it firstly.
@@ -791,9 +791,9 @@ public class ObjectMappingPage extends
 				if (msg.hasError()) {
 					tvSourceDBObjects.setSelection(currentView.getModel());
 					this.setErrorMessage(msg.getErrorMessage());
-					LOG.info("End the [showRightView] method");
+					LOG.info("End the [showRightView]");
 			        long endTime = System.currentTimeMillis();
-			        LOG.info("[showRightView] execution time: " + (endTime - startTime) + "ms");
+			        LOG.info("execution time [showRightView] " + (endTime - startTime) + "ms");
 					return;
 				}
 			} catch (Exception ex) {
@@ -802,9 +802,9 @@ public class ObjectMappingPage extends
 				if (!MessageDialog.openConfirm(getShell(), Messages.lblSaveConfig,
 						Messages.msgCfmErrorSave)) {
 					tvSourceDBObjects.setSelection(currentView.getModel());
-					LOG.info("End the [showRightView] method");
+					LOG.info("End the [showRightView]");
 			        long endTime = System.currentTimeMillis();
-			        LOG.info("[showRightView] execution time: " + (endTime - startTime) + "ms");
+			        LOG.info("execution time [showRightView] " + (endTime - startTime) + "ms");
 					return;
 				}
 			}
@@ -816,9 +816,9 @@ public class ObjectMappingPage extends
 		currentView = view;
 		currentView.show();
 		currentView.showData(selection);
-		LOG.info("End the [showRightView] method");
+		LOG.info("End the [showRightView]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[showRightView] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [showRightView] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -828,20 +828,20 @@ public class ObjectMappingPage extends
 	 */
 	private boolean validateConfig() {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [validateConfig] method");
+		LOG.info("Start the [validateConfig]");
 		if (!saveCurrentView()) {
 			LOG.info("End the [validateConfig] method");
 		    long endTime = System.currentTimeMillis();
-		    LOG.info("[validateConfig] execution time: " + (endTime - startTime) + "ms");
+		    LOG.info("execution time [validateConfig] " + (endTime - startTime) + "ms");
 			return false;
 		}
 		VerifyResultMessages result = util.checkAll(getMigrationWizard().getMigrationConfig());
 		if (result.hasError()) {
 			setErrorMessage(result.getErrorMessage());
 			MessageDialog.openError(getShell(), Messages.msgError, result.getErrorMessage());
-			LOG.info("End the [validateConfig] method");
+			LOG.info("End the [validateConfig]");
 		    long endTime = System.currentTimeMillis();
-		    LOG.info("[validateConfig] execution time: " + (endTime - startTime) + "ms");
+		    LOG.info("execution time [validateConfig] " + (endTime - startTime) + "ms");
 			return false;
 		}
 		//Clear error message of UI.
@@ -858,15 +858,15 @@ public class ObjectMappingPage extends
 			boolean confirm = DetailMessageDialog.openConfirm(getShell(), Messages.msgConfirmation,
 					Messages.msgConfirmWithDetail, detailMsg.toString());
 			if (!confirm) {
-				LOG.info("End the [validateConfig] method");
+				LOG.info("End the [validateConfig]");
 		        long endTime = System.currentTimeMillis();
-		        LOG.info("[validateConfig] execution time: " + (endTime - startTime) + "ms");
+		        LOG.info("execution time [validateConfig] " + (endTime - startTime) + "ms");
 				return false;
 			}
 		}
-		LOG.info("End the [validateConfig] method");
+		LOG.info("End the [validateConfig]");
 		long endTime = System.currentTimeMillis();
-		LOG.info("[validateConfig] execution time: " + (endTime - startTime) + "ms");
+		LOG.info("execution time [validateConfig] " + (endTime - startTime) + "ms");
 		return true;
 	}
 
@@ -875,21 +875,21 @@ public class ObjectMappingPage extends
 	 */
 	protected boolean saveCurrentView() {
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [saveCurrentView] method");
+		LOG.info("Start the [saveCurrentView]");
 		if (currentView != null) {
 			VerifyResultMessages msg = currentView.save();
 			if (msg.hasError()) {
 				setErrorMessage(msg.getErrorMessage());
 				MessageDialog.openError(getShell(), Messages.msgError, msg.getErrorMessage());
-				LOG.info("End the [saveCurrentView] method");
+				LOG.info("End the [saveCurrentView]");
 		        long endTime = System.currentTimeMillis();
-		        LOG.info("[saveCurrentView] execution time: " + (endTime - startTime) + "ms");
+		        LOG.info("execution time [saveCurrentView] " + (endTime - startTime) + "ms");
 				return false;
 			}
 		}
-		LOG.info("End the [saveCurrentView] method");
+		LOG.info("End the [saveCurrentView]");
 	    long endTime = System.currentTimeMillis();
-	    LOG.info("[saveCurrentView] execution time: " + (endTime - startTime) + "ms");
+	    LOG.info("execution time [saveCurrentView] " + (endTime - startTime) + "ms");
 		return true;
 	}
 }

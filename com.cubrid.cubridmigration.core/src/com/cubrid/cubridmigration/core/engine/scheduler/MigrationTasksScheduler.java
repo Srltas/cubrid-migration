@@ -36,8 +36,10 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import com.cubrid.cubridmigration.core.common.PathUtils;
+import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
 import com.cubrid.cubridmigration.core.engine.MigrationContext;
 import com.cubrid.cubridmigration.core.engine.ThreadUtils;
@@ -65,6 +67,7 @@ import com.cubrid.cubridmigration.core.engine.task.MigrationTaskFactory;
 public class MigrationTasksScheduler {
 
 	private final int USERSCHEMA_VERSION = 112;
+	private final static Logger LOG = LogUtil.getLogger(MigrationTasksScheduler.class);
 	
 	protected MigrationTaskFactory taskFactory;
 	protected MigrationContext context;
@@ -78,6 +81,8 @@ public class MigrationTasksScheduler {
 	 * 
 	 */
 	public void schedule() {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [schedule]");
 		//Execute SQL tasks
 		MigrationConfiguration config = context.getConfig();
 		if (config.sourceIsSQL()) {
@@ -145,6 +150,9 @@ public class MigrationTasksScheduler {
 				createCreateUserSQL();
 			}
 		}
+		LOG.info("End the [schedule]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [schedule] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -163,6 +171,8 @@ public class MigrationTasksScheduler {
 	 * 
 	 */
 	private void initUserDefinedHandlers() {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [initUserDefinedHandlers]");
 		MigrationConfiguration config = context.getConfig();
 		UserDefinedDataHandlerManager udf = UserDefinedDataHandlerManager.getInstance();
 		List<SourceEntryTableConfig> setcs = config.getExpEntryTableCfg();
@@ -189,6 +199,9 @@ public class MigrationTasksScheduler {
 				}
 			}
 		}
+		LOG.info("End the [initUserDefinedHandlers]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [initUserDefinedHandlers] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -228,6 +241,8 @@ public class MigrationTasksScheduler {
 	 * 
 	 */
 	private void clearTargetDB() {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [clearTargetDB]");
 		MigrationConfiguration config = context.getConfig();
 		if (config.targetIsFile()) {
 			List<Schema> schemaList = null;
@@ -260,6 +275,9 @@ public class MigrationTasksScheduler {
 			
 		}
 		executeTask(taskFactory.createCleanDBTask());
+		LOG.info("End the [clearTargetDB]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [clearTargetDB] " + (endTime - startTime) + "ms");
 	}
 
 	/**

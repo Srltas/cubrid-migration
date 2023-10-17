@@ -657,7 +657,7 @@ public class SchemaMappingPage extends MigrationWizardPage {
 	@Override
 	protected void handlePageLeaving(PageChangingEvent event) {
 		long startTime = System.currentTimeMillis();
-		logger.info("Start the [handlePageLeaving] method");
+		logger.info("Start the [handlePageLeaving]");
 		if (!isPageComplete()) {
 			return;
 		}
@@ -673,14 +673,14 @@ public class SchemaMappingPage extends MigrationWizardPage {
 				event.doit = saveOfflineData(config.isAddUserSchema(), config.isSplitSchema());
 			}
 		}
-		logger.info("End the [handlePageLeaving] method");
+		logger.info("End the [handlePageLeaving]");
 	    long endTime = System.currentTimeMillis();
-	    logger.info("[handlePageLeaving] execution time: " + (endTime - startTime) + "ms");
+	    logger.info("execution time [handlePageLeaving] " + (endTime - startTime) + "ms");
 	}
 	
 	private boolean saveOnlineData() {
 		long startTime = System.currentTimeMillis();
-		logger.info("Start the [saveOnlineData] method");
+		logger.info("Start the [saveOnlineData]");
 		if (!isSelectCheckbox()) {
 			MessageDialog.openError(getShell(), Messages.msgError, Messages.msgErrEmptySchemaCheckbox);
 			return false;
@@ -707,8 +707,8 @@ public class SchemaMappingPage extends MigrationWizardPage {
 				continue;
 			}
 			
-			logger.info("src schema : " + srcTable.getSrcSchema());
-			logger.info("tar schema : " + srcTable.getTarSchema());
+//			logger.info("src schema : " + srcTable.getSrcSchema());
+//			logger.info("tar schema : " + srcTable.getTarSchema());
 			
 			Schema targetSchema = tarCatalog.getSchemaByName(srcTable.getTarSchema());
 			
@@ -736,15 +736,15 @@ public class SchemaMappingPage extends MigrationWizardPage {
 		}
 		wizard.setSourceCatalog(srcCatalog);
 		getMigrationWizard().setSourceDBNode(srcCatalog);
-		logger.info("End the [saveOnlineData] method");
+		logger.info("End the [saveOnlineData]");
 	    long endTime = System.currentTimeMillis();
-	    logger.info("[saveOnlineData] execution time: " + (endTime - startTime) + "ms");
+	    logger.info("execution time [saveOnlineData] " + (endTime - startTime) + "ms");
 		return true;
 	}
 	
 	private boolean saveOfflineData(boolean addUserSchema, boolean splitSchema) {
 		long startTime = System.currentTimeMillis();
-		logger.info("Start the [saveOfflineData] method");
+		logger.info("Start the [saveOfflineData]");
 		if (!isSelectCheckbox()) {
 			MessageDialog.openError(getShell(), Messages.msgError, Messages.msgErrEmptySchemaCheckbox);
 			return false;
@@ -823,9 +823,9 @@ public class SchemaMappingPage extends MigrationWizardPage {
 		wizard.setSourceCatalog(srcCatalog);
 		getMigrationWizard().setSourceDBNode(srcCatalog);
 		
-		logger.info("End the [saveOfflineData] method");
+		logger.info("End the [saveOfflineData]");
 	    long endTime = System.currentTimeMillis();
-	    logger.info("[saveOfflineData] execution time: " + (endTime - startTime) + "ms");
+	    logger.info("execution time [saveOfflineData] " + (endTime - startTime) + "ms");
 		return true;
 	}
 	

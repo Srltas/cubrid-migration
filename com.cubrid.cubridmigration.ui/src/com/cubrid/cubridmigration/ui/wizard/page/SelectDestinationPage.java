@@ -33,6 +33,7 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.PageChangedEvent;
@@ -56,6 +57,7 @@ import com.cubrid.cubridmigration.core.common.CharsetUtils;
 import com.cubrid.cubridmigration.core.common.CommonUtils;
 import com.cubrid.cubridmigration.core.common.PathUtils;
 import com.cubrid.cubridmigration.core.common.TimeZoneUtils;
+import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
@@ -79,7 +81,7 @@ import com.cubrid.cubridmigration.ui.wizard.utils.MigrationCfgUtils;
  */
 public class SelectDestinationPage extends
 		MigrationWizardPage {
-
+	private final Logger LOG = LogUtil.getLogger(SelectDestinationPage.class);
 	/**
 	 * OfflineTargetDBView provides settings exporting to a offline CUBRID DB
 	 * 
@@ -448,6 +450,8 @@ public class SelectDestinationPage extends
 		 * @return true if saving successfully
 		 */
 		public boolean save() {
+			long startTime = System.currentTimeMillis();
+			LOG.info("Start the [save - target]");
 			if (conMgrView.getSelectedDCI() == null) {
 				MessageDialog.openError(getShell(), Messages.msgError,
 						Messages.sourceDBPageErrNoSelectedItem);
@@ -479,8 +483,10 @@ public class SelectDestinationPage extends
 			}
 			config.setTargetDBAGroup(catalog.isDBAGroup());
 			config.setCreateConstrainsBeforeData(btnCreateConstrainsNow.getSelection());
+			LOG.info("End the [save - target]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [save - target] " + (endTime - startTime) + "ms");
 			return true;
-
 		}
 
 		/**
@@ -489,7 +495,6 @@ public class SelectDestinationPage extends
 		public void show() {
 			conMgrView.show();
 		}
-
 	}
 
 	/**
@@ -500,6 +505,7 @@ public class SelectDestinationPage extends
 	 */
 	private class UnloadTargetDBView extends
 			AbstractDestinationView {
+		
 		private Composite fileRepositoryContainer;
 		private Text txtFileRepository;
 		private Text txtFilePrefix;
@@ -876,6 +882,8 @@ public class SelectDestinationPage extends
 	 * @param event PageChangedEvent
 	 */
 	protected void afterShowCurrentPage(PageChangedEvent event) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [addGrantNodes]");
 		if (isFirstVisible) {
 			isFirstVisible = false;
 		}
@@ -887,6 +895,9 @@ public class SelectDestinationPage extends
 		crtDBView.init();
 		crtDBView.show();
 		container.layout();
+		LOG.info("End the [addGrantNodes]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [addGrantNodes] " + (endTime - startTime) + "ms");
 	}
 
 	/**

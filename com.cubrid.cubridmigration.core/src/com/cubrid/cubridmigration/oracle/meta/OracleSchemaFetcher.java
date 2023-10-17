@@ -195,6 +195,8 @@ public final class OracleSchemaFetcher extends
 	 * @throws SQLException e
 	 */
 	public Catalog buildCatalog(final Connection conn, ConnParameters cp, IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCatalog]");
 		final Catalog catalog = super.buildCatalog(conn, cp, filter);
 		catalog.setDatabaseType(DatabaseType.ORACLE);
 		setCharset(conn, catalog);
@@ -242,6 +244,9 @@ public final class OracleSchemaFetcher extends
 			}
 			buildPartitions(conn, catalog, schema);
 		}
+		LOG.info("End the [buildCatalog]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildCatalog] " + (endTime - startTime) + "ms");
 		return catalog;
 	}
 
@@ -323,6 +328,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	protected void buildProcedures(Connection conn, Catalog catalog, Schema schema,
 			IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildProcedures]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildProcedures()");
 		}
@@ -337,6 +344,9 @@ public final class OracleSchemaFetcher extends
 			List<Function> funcList = getAllFunctions(conn, schema.getName(), schema.getName());
 			sc.setFunctions(funcList);
 		}
+		LOG.info("End the [buildProcedures]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildProcedures] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -358,12 +368,14 @@ public final class OracleSchemaFetcher extends
 	 */
 	protected void buildSequence(final Connection conn, final Catalog catalog, final Schema schema,
 			IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildSequence]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildSequence()");
 		}
 		PreparedStatement stmt = null; // NOPMD
 		ResultSet rs = null; // NOPMD
-
+		
 		try {
 			stmt = conn.prepareStatement(SQL_SHOW_SEQUENCES);
 			stmt.setString(1, schema.getName());
@@ -371,6 +383,9 @@ public final class OracleSchemaFetcher extends
 				LOG.debug("[SQL]" + SQL_SHOW_SEQUENCES + ", " + "1=" + schema.getName() + ", "
 						+ "2=" + schema.getName());
 			}
+			
+			LOG.info("[buildSequence - SQL] " + SQL_SHOW_SEQUENCES + ", " + "1=" + schema.getName() + ", "
+					+ "2=" + schema.getName());
 
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -392,6 +407,9 @@ public final class OracleSchemaFetcher extends
 				seq.setOwner(schema.getName());
 				schema.addSequence(seq);
 			}
+			LOG.info("End the [buildSequence]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildSequence] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -400,6 +418,8 @@ public final class OracleSchemaFetcher extends
 	
 	protected void buildSynonym(Connection conn, Catalog catlog, Schema schema, 
 			IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildSynonym]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildSynonym()");
 		}
@@ -413,6 +433,9 @@ public final class OracleSchemaFetcher extends
 				LOG.debug("[SQL]" + SQL_SHOW_SYNONYM + ", " + "1=" + schema.getName() + ", "
 						+ "2=" + schema.getName());
 			}
+			
+			LOG.info("[buildSynonym - SQL] " + SQL_SHOW_SYNONYM + ", " + "1=" + schema.getName() + ", "
+					+ "2=" + schema.getName());
 
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -431,6 +454,9 @@ public final class OracleSchemaFetcher extends
 				synonym.setDDL(CUBRIDSQLHelper.getInstance(null).getSynonymDDL(synonym, true));
 				schema.addSynonym(synonym);
 			}
+			LOG.info("End the [buildSynonym]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildSynonym] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -472,6 +498,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	protected void buildTableColumns(final Connection conn, final Catalog catalog,
 			final Schema schema, final Table table) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTableColumns]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildTableColumns()");
 		}
@@ -485,6 +513,10 @@ public final class OracleSchemaFetcher extends
 				LOG.debug("[SQL]" + SQL_GET_COLUMNS + ", 1=" + table.getName() + ", 2="
 						+ schema.getName() + ", 3=" + table.getName());
 			}
+			
+			LOG.info("[buildTableColumns - SQL] " + SQL_GET_COLUMNS + ", 1=" + table.getName() + ", 2="
+					+ schema.getName() + ", 3=" + table.getName());
+			
 			OracleDataTypeHelper dtHelper = OracleDataTypeHelper.getInstance(null);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -541,6 +573,9 @@ public final class OracleSchemaFetcher extends
 					LOG.error("Read table column information error:" + table.getName(), ex);
 				}
 			}
+			LOG.info("End the [buildTableColumns]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildTableColumns] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -586,6 +621,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	protected void buildTableFKs(final Connection conn, final Catalog catalog, final Schema schema,
 			final Table table) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTableFKs]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildTableFKs()");
 		}
@@ -597,6 +634,8 @@ public final class OracleSchemaFetcher extends
 			String fkName = "";
 			FK foreignKey = null;
 
+			LOG.info("[buildTableFKs - SQL] JDBC Meata Data");
+			
 			while (rs.next()) {
 				final String newFkName = rs.getString("FK_NAME");
 				if (LOG.isDebugEnabled()) {
@@ -656,6 +695,9 @@ public final class OracleSchemaFetcher extends
 			if (foreignKey != null) {
 				table.addFK(foreignKey);
 			}
+			LOG.info("End the [buildTableFKs]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildTableFKs] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 		}
@@ -672,6 +714,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	protected void buildTableIndexes(final Connection conn, final Catalog catalog,
 			final Schema schema, final Table table) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTableIndexes]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildTableIndexes()");
 		}
@@ -684,6 +728,8 @@ public final class OracleSchemaFetcher extends
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("[SQL]" + SQL_GET_TABLE_INDEX + ", 1=" + table.getName());
 			}
+			LOG.info("[buildTableIndexes - SQL] " + SQL_GET_TABLE_INDEX + ", 1=" + table.getName());
+			
 			rs = stmt.executeQuery();
 			while (rs.next()) {
 				String indexName = rs.getString("INDEX_NAME");
@@ -722,6 +768,8 @@ public final class OracleSchemaFetcher extends
 					LOG.debug("[SQL]" + SQL_GET_INDEX_COLUMNS + ", " + "1=" + table.getName()
 							+ ", " + "2=" + idx.getName());
 				}
+				LOG.info("[buildTableIndexes - SQL] " + SQL_GET_INDEX_COLUMNS + ", " + "1=" + table.getName()
+						+ ", " + "2=" + idx.getName());
 				rs = stmt.executeQuery();
 				while (rs.next()) {
 					Column col = table.getColumnByName(rs.getString("COLUMN_NAME"));
@@ -752,6 +800,9 @@ public final class OracleSchemaFetcher extends
 			Closer.close(stmt);
 		}
 		setUniquColumnByIndex(table);
+		LOG.info("End the [buildTableIndexes]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildTableIndexes] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -818,6 +869,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	protected void buildGrant(Connection conn, Catalog catalog, Schema schema,
 			IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildGrant]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildGrant()");
 		}
@@ -830,6 +883,8 @@ public final class OracleSchemaFetcher extends
 				LOG.debug("[SQL]" + SQL_SHOW_GRANT_TABLE + ", " + "1=" + schema.getName() + ", "
 						+ "2=" + schema.getName());
 			}
+			LOG.info("[buildGrant - SQL] " + SQL_SHOW_GRANT_TABLE + ", " + "1=" + schema.getName() + ", "
+					+ "2=" + schema.getName());
 
 			stmt.setString(1, schema.getName().toUpperCase());	
 			rs = stmt.executeQuery();
@@ -855,6 +910,8 @@ public final class OracleSchemaFetcher extends
 				LOG.debug("[SQL]" + SQL_SHOW_GRANT_VIEW + ", " + "1=" + schema.getName() + ", "
 						+ "2=" + schema.getName());
 			}
+			LOG.info("[buildGrant - SQL] " + SQL_SHOW_GRANT_VIEW + ", " + "1=" + schema.getName() + ", "
+					+ "2=" + schema.getName());
 
 			stmt.setString(1, schema.getName().toUpperCase());
 			rs = stmt.executeQuery();
@@ -870,6 +927,9 @@ public final class OracleSchemaFetcher extends
 				grant.setDDL(CUBRIDSQLHelper.getInstance(null).getGrantDDL(grant, true));
 				schema.addGrant(grant);
 			}
+			LOG.info("End the [buildGrant]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildGrant] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 			Closer.close(stmt);
@@ -887,6 +947,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	private List<Function> getAllFunctions(final Connection conn, final String dbName,
 			final String ownerName) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllFunctions]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]getAllFunctions()");
 		}
@@ -903,7 +965,9 @@ public final class OracleSchemaFetcher extends
 			func.setFuncDDL(funcDDL);
 			funcs.add(func);
 		}
-
+		LOG.info("End the [getAllFunctions]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [getAllFunctions] " + (endTime - startTime) + "ms");
 		return funcs;
 	}
 
@@ -918,6 +982,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	private List<Procedure> getAllProcedures(final Connection conn, final String dbName,
 			final String ownerName) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllProcedures]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]getAllProcedures()");
 		}
@@ -934,7 +1000,9 @@ public final class OracleSchemaFetcher extends
 			proc.setProcedureDDL(procDDL);
 			procs.add(proc);
 		}
-
+		LOG.info("End the [getAllProcedures]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [getAllProcedures] " + (endTime - startTime) + "ms");
 		return procs;
 	}
 
@@ -979,10 +1047,13 @@ public final class OracleSchemaFetcher extends
 	 */
 	protected List<String> getAllTableNames(final Connection conn, final Catalog catalog,
 			final Schema schema) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllTableNames]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]getAllTableNames()");
 		}
 		final DatabaseMetaData metaData = conn.getMetaData();
+		LOG.info("[getAllTableNames - SQL] JDBC Meata Data");
 		final ResultSet tables = metaData.getTables(catalog.getName(), schema.getName(), null,
 				new String[] { OBJECT_TYPE_TABLE });
 		try {
@@ -997,6 +1068,9 @@ public final class OracleSchemaFetcher extends
 				}
 				tableNameList.add(owner + "." + name);
 			}
+			LOG.info("End the [getAllTableNames]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getAllTableNames] " + (endTime - startTime) + "ms");
 			return tableNameList;
 		} finally {
 			Closer.close(tables);
@@ -1014,6 +1088,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	private List<Trigger> getAllTriggers(final Connection conn, final String dbName,
 			final String ownerName) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllTriggers]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]getAllTriggers()");
 		}
@@ -1030,7 +1106,9 @@ public final class OracleSchemaFetcher extends
 			trigger.setDDL(trigDDL);
 			triggers.add(trigger);
 		}
-
+		LOG.info("End the [getAllTriggers]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [getAllTriggers] " + (endTime - startTime) + "ms");
 		return triggers;
 	}
 
@@ -1046,13 +1124,16 @@ public final class OracleSchemaFetcher extends
 	 */
 	protected List<String> getAllViewNames(final Connection conn, final Catalog catalog,
 			final Schema schema) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllViewNames]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]getAllViewNames()");
 		}
 		List<String> viewNameList = new ArrayList<String>();
 		final String owner = schema.getName();
-		final ResultSet rs = conn.getMetaData().getTables(catalog.getName(), schema.getName(),
+		final ResultSet rs = conn.getMetaData().getTables(catalog.getName(), schema.getName(),				
 				null, new String[] { OBJECT_TYPE_VIEW });
+		LOG.info("[getAllViewNames - SQL] JDBC Meata Data");
 		try {
 			while (rs.next()) {
 				String name = rs.getString(3);
@@ -1061,6 +1142,9 @@ public final class OracleSchemaFetcher extends
 				}
 				viewNameList.add(owner + "." + name);
 			}
+			LOG.info("End the [getAllViewNames]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getAllViewNames] " + (endTime - startTime) + "ms");
 			return viewNameList;
 		} finally {
 			Closer.close(rs);
@@ -1084,6 +1168,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	protected String getObjectDDL(final Connection conn, final String schemaName,
 			final String objectName, final String objectType) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getObjectDDL]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]getObjectDDL()");
 		}
@@ -1106,12 +1192,18 @@ public final class OracleSchemaFetcher extends
 						+ objectType + ", " + "3=" + schemaName + ", " + "4=" + schemaName + ", "
 						+ "5=" + objectType + ", " + "6=" + objectName);
 			}
+			LOG.info("[getObjectDDL - SQL] " + SQL_SHOW_DDL + ", " + "1=" + objectType + ", " + "2="
+					+ objectType + ", " + "3=" + schemaName + ", " + "4=" + schemaName + ", "
+					+ "5=" + objectType + ", " + "6=" + objectName);
 			rs = preStmt.executeQuery();
 
 			String ddl = "";
 			while (rs.next()) {
 				ddl = rs.getString(1);
 			}
+			LOG.info("End the [getObjectDDL]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getObjectDDL] " + (endTime - startTime) + "ms");
 			return ddl;
 		} catch (Exception ex) {
 			LOG.error("Get Oracle Object DDL error:" + objectName, ex);
@@ -1130,12 +1222,17 @@ public final class OracleSchemaFetcher extends
 	 * @return comment
 	 */
 	private String getTableComment(Connection conn, String schemaName, String objectName) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getTableComment]");
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try {
 			pstmt = conn.prepareStatement(SQL_GET_TABLE_COMMENT);
 			pstmt.setString(1, schemaName);
 			pstmt.setString(2, objectName);
+			
+			LOG.info("[getTableComment - SQL] " + SQL_GET_TABLE_COMMENT + ", 1=" + schemaName
+					+ ", 2=" + objectName);
 			
 			rs = pstmt.executeQuery();
 			
@@ -1147,7 +1244,9 @@ public final class OracleSchemaFetcher extends
 			if (comment != null) {
 				comment = commentEditor(comment);
 			}
-			
+			LOG.info("End the [getTableComment]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getTableComment] " + (endTime - startTime) + "ms");
 			return comment;
 		} catch (Exception e){
 			e.printStackTrace();
@@ -1159,12 +1258,16 @@ public final class OracleSchemaFetcher extends
 	}
 	
 	private String getViewComment(Connection conn, String schemaName, String viewName) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getViewComment]");
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try {
 			pstmt = conn.prepareStatement(SQL_GET_VIEW_COMMENT);
 			pstmt.setString(1, schemaName);
 			pstmt.setString(2, viewName);
+			
+			LOG.info("[getViewComment - SQL] " + SQL_GET_VIEW_COMMENT);
 			
 			rs = pstmt.executeQuery();
 			
@@ -1176,7 +1279,9 @@ public final class OracleSchemaFetcher extends
 			if (comment != null) {
 				comment = commentEditor(comment);
 			}
-			
+			LOG.info("End the [getViewComment]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getViewComment] " + (endTime - startTime) + "ms");
 			return comment;
 		} catch (Exception e){
 			e.printStackTrace();
@@ -1188,6 +1293,8 @@ public final class OracleSchemaFetcher extends
 	}
 	
 	private String getViewColumnComment(Connection conn, String schemaName, String viewName, Column column) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getViewColumnComment]");
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try {
@@ -1195,6 +1302,9 @@ public final class OracleSchemaFetcher extends
 			pstmt.setString(1, schemaName);
 			pstmt.setString(2, viewName);
 			pstmt.setString(3, column.getName());
+			
+			LOG.info("[getViewColumnComment - SQL] " + SQL_GET_VIEW_COLUMN_COMMENT + ", 1=" + schemaName
+					+ ", 2=" + viewName + ", 3=" + column.getName());
 			
 			rs = pstmt.executeQuery();
 			
@@ -1206,7 +1316,9 @@ public final class OracleSchemaFetcher extends
 			if (comment != null) {
 				comment = commentEditor(comment);
 			}
-			
+			LOG.info("End the [getViewColumnComment]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getViewColumnComment] " + (endTime - startTime) + "ms");
 			return "\'" + comment + "\'";
 		} catch (Exception e){
 			e.printStackTrace();
@@ -1226,6 +1338,8 @@ public final class OracleSchemaFetcher extends
 	 * @return comment
 	 */
 	private String getColumnComment(Connection conn, String schemaName, String tableName, String columnName) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getColumnComment]");
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try {
@@ -1233,6 +1347,9 @@ public final class OracleSchemaFetcher extends
 			pstmt.setString(1, schemaName);
 			pstmt.setString(2, tableName);
 			pstmt.setString(3, columnName);
+			
+			LOG.info("[getColumnComment - SQL] " + SQL_GET_COLUMN_COMMENT + ", 1=" + schemaName
+					+ ", 2=" + tableName + ", 3=" + columnName);
 			
 			rs = pstmt.executeQuery();
 			
@@ -1244,7 +1361,9 @@ public final class OracleSchemaFetcher extends
 			if (comment != null) {
 				comment = commentEditor(comment);
 			}
-			
+			LOG.info("End the [getColumnComment]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getColumnComment] " + (endTime - startTime) + "ms");
 			return comment;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1489,6 +1608,8 @@ public final class OracleSchemaFetcher extends
 	 */
 	private List<String> getRountines(final Connection conn, final String type,
 			final String ownerName) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getRountines]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]getRountines()");
 		}
@@ -1503,6 +1624,9 @@ public final class OracleSchemaFetcher extends
 				LOG.debug("[SQL]" + SQL_SHOW_ALL_OBJECTS + ", " + "1=" + type + ", " + "2="
 						+ ownerName + ", " + "3=" + type);
 			}
+			
+			LOG.info("[getRountines - SQL] " + SQL_SHOW_ALL_OBJECTS + ", " + "1=" + type + ", " + "2="
+					+ ownerName + ", " + "3=" + type);
 			rs = stmt.executeQuery();
 			final Set<String> list = new HashSet<String>();
 			while (rs.next()) {
@@ -1511,6 +1635,10 @@ public final class OracleSchemaFetcher extends
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("[VAR]list=" + (list.size()));
 			}
+			
+			LOG.info("End the [getRountines]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getRountines] " + (endTime - startTime) + "ms");
 			return new ArrayList<String>(list);
 		} finally {
 			Closer.close(rs);
@@ -1619,6 +1747,8 @@ public final class OracleSchemaFetcher extends
 	 * @param catalog Catalog
 	 */
 	private void setCharset(final Connection conn, final Catalog catalog) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [setCharset]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]setCharset()");
 		}
@@ -1629,6 +1759,7 @@ public final class OracleSchemaFetcher extends
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("[SQL]" + sqlStr);
 			}
+			LOG.info("[setCharset - SQL] " + sqlStr);
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sqlStr);
 			while (rs.next()) {
@@ -1637,6 +1768,9 @@ public final class OracleSchemaFetcher extends
 				catalog.getAdditionalInfo().put(key, value);
 			}
 			catalog.setCharset(catalog.getAdditionalInfo().get("NLS_CHARACTERSET"));
+			LOG.info("End the [setCharset]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [setCharset] " + (endTime - startTime) + "ms");
 		} catch (Exception ex) {
 			LOG.error("", ex);
 		} finally {
@@ -1693,10 +1827,14 @@ public final class OracleSchemaFetcher extends
 	 * @throws SQLException ex;
 	 */
 	protected List<String> getSchemaNames(Connection conn, ConnParameters cp) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getSchemaNames]");
 		List<String> schemaNames = new ArrayList<String>();
 		String sql = "SELECT OWNER FROM USER_TAB_PRIVS WHERE PRIVILEGE='SELECT' GROUP BY OWNER";
 		Statement stmt = null;
 		ResultSet rs = null;
+		
+		LOG.info("[getSchemaNames - SQL] " + sql);
 		try {
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
@@ -1716,6 +1854,9 @@ public final class OracleSchemaFetcher extends
 		if (!schemaNames.contains(defaultSchema)) {
 			schemaNames.add(defaultSchema);
 		}
+		LOG.info("End the [getSchemaNames]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [getSchemaNames] " + (endTime - startTime) + "ms");
 		return schemaNames;
 	}
 

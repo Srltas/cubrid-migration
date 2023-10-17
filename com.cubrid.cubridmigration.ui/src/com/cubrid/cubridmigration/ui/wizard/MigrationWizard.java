@@ -467,6 +467,8 @@ public class MigrationWizard extends
 	 * @param saveSchema if save schema into script file
 	 */
 	public void saveMigrationScript(boolean createNew, boolean saveSchema) {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [saveMigrationScript]");
 		if (migrationScript == null || createNew) {
 			migrationScript = MigrationScriptManager.getInstance().newScript(migrationConfig,
 					saveSchema);
@@ -475,8 +477,10 @@ public class MigrationWizard extends
 			MigrationTemplateParser.save(migrationConfig,
 					migrationScript.getAbstractConfigFileName(), saveSchema);
 			MigrationScriptManager.getInstance().save();
-
 		}
+		LOG.info("End the [saveMigrationScript]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [saveMigrationScript] " + (endTime - startTime) + "ms");
 	}
 
 	public void setSaveSchema(boolean saveSchema) {
@@ -524,6 +528,8 @@ public class MigrationWizard extends
 	 * 
 	 */
 	protected void startMigration() {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [startMigration]");
 		try {
 			migrationConfig.cleanNoUsedConfigForStart();
 			saveMigrationScript(false, saveSchema);
@@ -537,6 +543,9 @@ public class MigrationWizard extends
 			MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(),
 					Messages.msgError, Messages.msgStartMigrationFailed);
 		}
+		LOG.info("End the [startMigration]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [startMigration] " + (endTime - startTime) + "ms");
 	}
 
 	/**

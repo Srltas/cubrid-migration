@@ -89,6 +89,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 * 
 	 */
 	public Catalog buildCatalog(final Connection conn, ConnParameters cp, IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildCatalog]");
 		String dbName = cp.getDbName();
 		String catalogName;
 
@@ -120,6 +122,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 		for (String schema : schemas) {
 			buildSchema(conn, catalog, schema, filter);
 		}
+		LOG.info("End the [buildCatalog]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildCatalog] " + (endTime - startTime) + "ms");
 		return catalog;
 
 	}
@@ -192,6 +197,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	private void buildSchema(final Connection conn, final Catalog catalog, String schemaName,
 			IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildSchema]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildSchema()");
 		}
@@ -256,6 +263,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 		} catch (Exception e) {
 			LOG.error("buildGrant", e);
 		}
+		LOG.info("End the [buildSchema]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildSchema] " + (endTime - startTime) + "ms");
 	}
 	
 	protected void buildGrant(Connection conn, Catalog catalog, Schema schema,
@@ -394,6 +404,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	protected void buildTableColumns(final Connection conn, final Catalog catalog,
 			final Schema schema, final Table table) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTableColumns]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildTableColumns()");
 		}
@@ -458,6 +470,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 					LOG.error("Read table column information error:" + table.getName(), ex);
 				}
 			}
+			LOG.info("End the [buildTableColumns]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildTableColumns] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 		}
@@ -474,6 +489,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	protected void buildTableFKs(final Connection conn, final Catalog catalog, final Schema schema,
 			final Table table) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTableFKs]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildTableFKs()");
 		}
@@ -555,6 +572,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 			if (foreignKey != null) {
 				table.addFK(foreignKey);
 			}
+			LOG.info("End the [buildTableFKs]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildTableFKs] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 		}
@@ -571,6 +591,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	protected void buildTableIndexes(final Connection conn, final Catalog catalog,
 			final Schema schema, final Table table) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTableIndexes]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildTableIndexes()");
 		}
@@ -635,7 +657,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 			if (index != null) {
 				table.addIndex(index);
 			}
-
+			LOG.info("End the [buildTableIndexes]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildTableIndexes] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 		}
@@ -652,6 +676,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	protected void buildTablePK(final Connection conn, final Catalog catalog, final Schema schema,
 			final Table table) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTablePK]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildTablePK()");
 		}
@@ -704,6 +730,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 					}
 				}
 			}
+			LOG.info("End the [buildTablePK]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildTablePK] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 		}
@@ -722,6 +751,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	protected void buildTables(final Connection conn, final Catalog catalog, final Schema schema,
 			IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildTables]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildTables()");
 		}
@@ -768,6 +799,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 				schema.addTable(table);
 			}
 		}
+		LOG.info("End the [buildTables]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildTables] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -795,6 +829,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	protected void buildViewColumns(final Connection conn, final Catalog catalog,
 			final Schema schema, final View view) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildViewColumns]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildViewColumns()");
 		}
@@ -834,6 +870,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 				//						+ column.getDataType() + "  Column Length:"
 				//						+ column.getByteLength());
 			}
+			LOG.info("End the [buildViewColumns]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [buildViewColumns] " + (endTime - startTime) + "ms");
 		} finally {
 			Closer.close(rs);
 		}
@@ -850,6 +889,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	protected void buildViews(final Connection conn, final Catalog catalog, final Schema schema,
 			IBuildSchemaFilter filter) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [buildViews]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildViews()");
 		}
@@ -879,6 +920,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 			schema.addView(view);
 			buildViewColumns(conn, catalog, schema, view);
 		}
+		LOG.info("End the [buildViews]");
+		long endTime = System.currentTimeMillis();
+		LOG.info("execution time [buildViews] " + (endTime - startTime) + "ms");
 	}
 
 	/**
@@ -893,6 +937,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	protected List<String> getAllTableNames(final Connection conn, final Catalog catalog,
 			final Schema schema) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllTableNames]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]getAllTableNames()");
 		}
@@ -904,6 +950,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 			while (rs.next()) {
 				tableNameList.add(rs.getString("TABLE_NAME"));
 			}
+			LOG.info("End the [getAllTableNames]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getAllTableNames] " + (endTime - startTime) + "ms");
 			return tableNameList;
 		} finally {
 			Closer.close(rs);
@@ -922,6 +971,8 @@ public abstract class AbstractJDBCSchemaFetcher implements
 	 */
 	protected List<String> getAllViewNames(final Connection conn, final Catalog catalog,
 			final Schema schema) throws SQLException {
+		long startTime = System.currentTimeMillis();
+		LOG.info("Start the [getAllViewNames]");
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]getAllViewNames()");
 		}
@@ -935,6 +986,9 @@ public abstract class AbstractJDBCSchemaFetcher implements
 			while (rs.next()) {
 				viewNameList.add(prefix + rs.getString("TABLE_NAME"));
 			}
+			LOG.info("End the [getAllViewNames]");
+			long endTime = System.currentTimeMillis();
+			LOG.info("execution time [getAllViewNames] " + (endTime - startTime) + "ms");
 			return viewNameList;
 		} finally {
 			Closer.close(rs);
