@@ -51,7 +51,6 @@ Bundle-ClassPath: lib/commons-beanutils-1.8.0.jar,
  lib/jsch-0.1.51.jar,
  lib/jdbc-4.50.7.1.jar,
  lib/bson-4.8.0.jar,
- lib/orai18n.jar,
  .
 Export-Package: 
  com.ctc.wstx.api;
