@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -246,7 +247,7 @@ public class SchemaMappingPage extends MigrationWizardPage {
 				case 3:
 					return obj.getSrcDBType();
 				case 4:
-					return obj.getTarSchema();
+					return obj.getTarSchema().toUpperCase(Locale.US);
 				case 5:
 					return obj.getTarDBType();
 				default:
@@ -469,7 +470,7 @@ public class SchemaMappingPage extends MigrationWizardPage {
 			@Override
 			public Object getValue(Object element, String property) {
 				if (property.equals(propertyList[4])) {
-					return ((SrcTable) element).getTarSchema();
+					return ((SrcTable) element).getTarSchema().toUpperCase(Locale.US);
 				} else if (property.equals(propertyList[0])) {
 					return true;
 				} else {
@@ -483,7 +484,7 @@ public class SchemaMappingPage extends MigrationWizardPage {
 				SrcTable srcTable = (SrcTable) tabItem.getData();
 				
 				if (property.equals(propertyList[4])) {
-					srcTable.setTarSchema((String) value);
+					srcTable.setTarSchema(((String) value).toUpperCase(Locale.US));
 					addSelectCheckboxValue();
 					srcTableViewer.refresh();
 				} else if (property.equals(propertyList[0])) {
