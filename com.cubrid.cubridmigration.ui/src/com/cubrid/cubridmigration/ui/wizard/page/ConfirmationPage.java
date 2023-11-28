@@ -176,7 +176,8 @@ public class ConfirmationPage extends
 
 				for (Schema targetSchema : migration.getTargetSchemaList()) {
 					for (SourceEntryTableConfig expTable : migration.getExpEntryTableCfg()) {
-						if (expTable.getOwner().equals(targetSchema.getName()) && expTable.isCreateNewTable()) {
+						if (expTable.getOwner() != null ? expTable.getOwner().equals(targetSchema.getName()) : true 
+								&& expTable.isCreateNewTable()) {
 							isCreateFileRepository = true;
 							break;
 						}
@@ -210,7 +211,8 @@ public class ConfirmationPage extends
 				oldLength = text.length();
 				for (Schema targetSchema : migration.getTargetSchemaList()) {
 					for (SourceViewConfig expView : migration.getExpViewCfg()) {
-						if (expView.getOwner().equals(targetSchema.getName()) && expView.isCreate()) {
+						if (expView.getOwner() != null ? expView.getOwner().equals(targetSchema.getName()) : true 
+								&& expView.isCreate()) {
 							isCreateFileRepository = true;
 							break;
 						}
@@ -244,7 +246,7 @@ public class ConfirmationPage extends
 				oldLength = text.length();
 				for (Schema targetSchema : migration.getTargetSchemaList()) {
 					for (SourceEntryTableConfig expTable : migration.getExpEntryTableCfg()) {
-						if (expTable.getOwner().equals(targetSchema.getName()) 
+						if (expTable.getOwner() != null ? expTable.getOwner().equals(targetSchema.getName()) : true 
 								&& expTable.isCreatePK()) {
 							isCreateFileRepository = true;
 							break;
@@ -279,8 +281,8 @@ public class ConfirmationPage extends
 				oldLength = text.length();
 				for (Schema targetSchema : migration.getTargetSchemaList()) {
 					for (SourceEntryTableConfig expTable : migration.getExpEntryTableCfg()) {
-						if (expTable.getOwner().equals(targetSchema.getName()) && 
-								expTable.isCreateNewTable() && expTable.getFKConfigList().size() > 0) {
+						if (expTable.getOwner() != null ? expTable.getOwner().equals(targetSchema.getName()) : true 
+								&& expTable.isCreateNewTable() && expTable.getFKConfigList().size() > 0) {
 							isCreateFileRepository = true;
 							break;
 						}
@@ -314,7 +316,7 @@ public class ConfirmationPage extends
 				oldLength = text.length();
 				for (Schema targetSchema : migration.getTargetSchemaList()) {
 					for (SourceSequenceConfig expSerial : migration.getExpSerialCfg()) {
-						if (expSerial.getOwner().equals(targetSchema.getName()) 
+						if (expSerial.getOwner() != null ? expSerial.getOwner().equals(targetSchema.getName()) : true 
 								&& expSerial.isCreate()) {
 							isCreateFileRepository = true;
 							break;
@@ -349,7 +351,7 @@ public class ConfirmationPage extends
 				oldLength = text.length();
 				for (Schema targetSchema : migration.getTargetSchemaList()) {
 					for (SourceSynonymConfig expSynonym : migration.getExpSynonymCfg()) {
-						if (expSynonym.getOwner().equals(targetSchema.getName())
+						if (expSynonym.getOwner() != null ? expSynonym.getOwner().equals(targetSchema.getName()) : true
 								&& expSynonym.isCreate()) {
 							isCreateFileRepository = true;
 							break;
@@ -387,7 +389,7 @@ public class ConfirmationPage extends
 					String grantSourceObjectOwner = null;
 					for (SourceGrantConfig expGrant : migration.getExpGrantCfg()) {
 						String grantFileKey = expGrant.getOwner() + expGrant.getSourceObjectOwner();
-						if (expGrant.getOwner().equals(targetSchema.getName())
+						if (expGrant.getOwner() != null ? expGrant.getOwner().equals(targetSchema.getName()) : true
 								&& expGrant.isCreate()
 								&& !grantFileKeySet.contains(grantFileKey)) {
 							isCreateFileRepository = true;
@@ -425,7 +427,7 @@ public class ConfirmationPage extends
 				oldLength = text.length();
 				for (Schema targetSchema : migration.getTargetSchemaList()) {
 					for (SourceEntryTableConfig expTable : migration.getExpEntryTableCfg()) {
-						if (expTable.getOwner().equals(targetSchema.getName())
+						if (expTable.getOwner() != null ? expTable.getOwner().equals(targetSchema.getName()) : true
 								&& expTable.isCreateNewTable()) {
 							isCreateFileRepository = true;
 							break;
@@ -434,7 +436,8 @@ public class ConfirmationPage extends
 					
 					for (SourceViewConfig expView : migration.getExpViewCfg()) {
 						if (!isCreateFileRepository 
-								&& expView.getOwner().equals(targetSchema.getName()) && expView.isCreate()) {
+								&& expView.getOwner() != null ? expView.getOwner().equals(targetSchema.getName()) : true 
+								&& expView.isCreate()) {
 							isCreateFileRepository = true;
 							break;
 						}
@@ -442,7 +445,8 @@ public class ConfirmationPage extends
 					
 					for (SourceSequenceConfig expSerial : migration.getExpSerialCfg()) {
 						if (!isCreateFileRepository
-								&& expSerial.getOwner().equals(targetSchema.getName()) && expSerial.isCreate()) {
+								&& expSerial.getOwner() != null ? expSerial.getOwner().equals(targetSchema.getName()) : true 
+								&& expSerial.isCreate()) {
 							isCreateFileRepository = true;
 							break;
 						}
@@ -476,7 +480,7 @@ public class ConfirmationPage extends
 			oldLength = text.length();
 			for (Schema targetSchema : migration.getTargetSchemaList()) {
 				for (SourceEntryTableConfig expTable : migration.getExpEntryTableCfg()) {
-					if (expTable.getOwner().equals(targetSchema.getName()) 
+					if (expTable.getOwner() != null ? expTable.getOwner().equals(targetSchema.getName()) : true 
 							&& expTable.isCreateNewTable() && expTable.getIndexConfigList().size() > 0) {
 						isCreateFileRepository = true;
 						break;
@@ -514,7 +518,8 @@ public class ConfirmationPage extends
 			} else {
 				for (Schema targetSchema : migration.getTargetSchemaList()) {
 					for (SourceEntryTableConfig expTable : migration.getExpEntryTableCfg()) {
-						if (expTable.getOwner().equals(targetSchema.getName()) && expTable.isMigrateData()) {
+						if (expTable.getOwner() != null ? expTable.getOwner().equals(targetSchema.getName()) : true 
+								&& expTable.isMigrateData()) {
 							isCreateFileRepository = true;
 							break;
 						}
@@ -528,7 +533,6 @@ public class ConfirmationPage extends
 						} else {
 							text.append(migration.getFileRepositroyPath());
 							text.append(targetSchema.getName()).append(File.separator);
-							//text.append("data").append(File.separator);
 							text.append(migration.getTargetFilePrefix())
 								.append(targetSchema.getName())
 								.append(Messages.lblConfirmDataFormat)
@@ -559,7 +563,8 @@ public class ConfirmationPage extends
 			oldLength = text.length();
 			for (Schema targetSchema : migration.getTargetSchemaList()) {
 				for (SourceEntryTableConfig expTable : migration.getExpEntryTableCfg()) {
-					if (expTable.getOwner().equals(targetSchema.getName()) && expTable.isMigrateData()) {
+					if (expTable.getOwner() != null ? expTable.getOwner().equals(targetSchema.getName()) : true 
+							&& expTable.isMigrateData()) {
 						isCreateFileRepository = true;
 						break;
 					}

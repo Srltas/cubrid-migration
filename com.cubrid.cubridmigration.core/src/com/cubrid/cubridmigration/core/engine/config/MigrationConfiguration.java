@@ -754,7 +754,7 @@ public class MigrationConfiguration {
 					sc.setGrantorName(getTargetOwner(schemas, grant.getGrantorName()));
 					sc.setGranteeName(getTargetOwner(schemas, grant.getGranteeName()));
 					sc.setAuthType(grant.getAuthType());
-					sc.setClassName(grant.getClassName());
+					sc.setClassName(StringUtils.lowerCase(grant.getClassName()));
 					sc.setClassOwner(getTargetOwner(schemas, grant.getClassOwner()));
 					sc.setGrantable(grant.isGrantable());
 					sc.setCreate(false);
@@ -808,13 +808,13 @@ public class MigrationConfiguration {
 				SourceSynonymConfig sc = getExpSynonymCfg(synonym.getOwner(), synonym.getName());
 				if (sc == null) {
 					sc = new SourceSynonymConfig();
-					sc.setName(synonym.getName());
+					sc.setName(StringUtils.lowerCase(synonym.getName()));
 					sc.setOwner(synonym.getOwner());
-					sc.setObjectName(synonym.getObjectName());
+					sc.setObjectName(StringUtils.lowerCase(synonym.getObjectName()));
 					sc.setObjectOwner(synonym.getObjectOwner());
 					sc.setTarget(getTargetName(isChangeObjectName(allSynonymsCountMap, synonym.getName()), synonym.getOwner(), synonym.getName()));
 					sc.setTargetOwner(getTargetOwner(schemas, synonym.getOwner()));
-					sc.setObjectTargetName(synonym.getObjectName());
+					sc.setObjectTargetName(StringUtils.lowerCase(synonym.getObjectName()));
 					sc.setObjectTargetOwner(synonym.getObjectOwner());
 					sc.setCreate(false);
 					sc.setReplace(false);
@@ -833,8 +833,9 @@ public class MigrationConfiguration {
 				}
 				if (tsynonym == null) {
 					tsynonym = (Synonym) synonym.clone();
-					tsynonym.setOwner(sourceDBSchema.getTargetSchemaName());
-					tsynonym.setObjectOwner(getTargetOwner(schemas, synonym.getObjectOwner()));
+					tsynonym.setName(sc.getName());
+					tsynonym.setObjectName(sc.getObjectTargetName());
+					tsynonym.setObjectOwner(getTargetOwner(schemas, sc.getObjectOwner()));
 					tsynonym.setDDL(cubridddlUtil.getSynonymDDL(tsynonym, this.addUserSchema));
 					tsynonym.setSourceOwner(sourceDBSchema.getName());
 				}

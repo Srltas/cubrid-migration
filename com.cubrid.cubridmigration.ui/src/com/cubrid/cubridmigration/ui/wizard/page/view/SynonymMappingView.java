@@ -267,10 +267,10 @@ public class SynonymMappingView extends
 		 */
 		void setSynonym(Synonym synonym) {
 			this.synonym = synonym;
-			txtName.setText(synonym.getName());
-			txtOwnerName.setText(synonym.getOwner() == null ? "" : synonym.getOwner());
-			txtObjectOwnerName.setText(synonym.getObjectOwner() == null ? "" : synonym.getObjectOwner());
-			txtObjectName.setText(synonym.getObjectName());
+			txtName.setText(StringUtils.lowerCase(synonym.getName()));
+			txtOwnerName.setText(synonym.getOwner() == null ? "" : StringUtils.upperCase(synonym.getOwner()));
+			txtObjectOwnerName.setText(synonym.getObjectOwner() == null ? "" : StringUtils.lowerCase(synonym.getObjectOwner()));
+			txtObjectName.setText(StringUtils.lowerCase(synonym.getObjectName()));
 		}
 		
 		/**
@@ -322,10 +322,10 @@ public class SynonymMappingView extends
 			}
 			
 			//Save target synonym
-			synonym.setName(newName);
-			synonym.setOwner(newOwnerName);
-			synonym.setObjectName(txtObjectName.getText());
-			synonym.setObjectOwner(txtObjectOwnerName.getText());
+			synonym.setName(StringUtils.lowerCase(newName));
+			synonym.setOwner(StringUtils.upperCase(newOwnerName));
+			synonym.setObjectName(StringUtils.lowerCase(txtObjectName.getText()));
+			synonym.setObjectOwner(StringUtils.upperCase(txtObjectOwnerName.getText()));
 			return new VerifyResultMessages();
 		}
 	}
