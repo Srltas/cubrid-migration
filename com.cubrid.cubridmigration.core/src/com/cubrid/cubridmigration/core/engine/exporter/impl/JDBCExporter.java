@@ -35,6 +35,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -148,29 +149,65 @@ public class JDBCExporter extends
 	 * @return new record object
 	 */
 	protected Record createNewRecord(Table st, List<SourceColumnConfig> expCols, ResultSet rs) {
+		Column sCol = null;
+		Record record = new Record();
 		try {
-			Record record = new Record();
+			record = new Record();
 			final DBExportHelper srcDBExportHelper = getSrcDBExportHelper();
 			for (int ci = 1; ci <= expCols.size(); ci++) {
 				SourceColumnConfig cc = expCols.get(ci - 1);
-				Column sCol = st.getColumnByName(cc.getName());
+				sCol = st.getColumnByName(cc.getName());
 				Object value = srcDBExportHelper.getJdbcObject(rs, sCol);
+				
+				if (value == null) {
+					String sColDataType = sCol.getDataType();
+					if ((sColDataType.equalsIgnoreCase("BLOB") 
+							|| sColDataType.equalsIgnoreCase("CLOB"))) {
+						String pkValues = getPkValues(st, record);
+						String lobWarning = "[LOB WARNING]  table: " + st.getName()
+								+ "  column: " + sCol.getName()
+								+ "  pk:" + (pkValues.length() > 0 ? pkValues : " NULL");
+						
+						LOG.warn(lobWarning);
+						eventHandler.handleEvent(new MigrationErrorEvent(new NormalMigrationException(lobWarning)));
+					}
+				}
 				record.addColumnValue(sCol, value);
 			}
 			return record;
 		} catch (NormalMigrationException e) {
-			LOG.error("", e);
+			LOG.error("[RECORD ERROR]", e);
 			eventHandler.handleEvent(new MigrationErrorEvent(e));
 		} catch (SQLException e) {
-			LOG.error("", e);
+			String pkValues = getPkValues(st, record);
+			LOG.error("[RECORD ERROR]", e);
 			eventHandler.handleEvent(new MigrationErrorEvent(new NormalMigrationException(
-					"Transform table [" + st.getName() + "] record error.", e)));
+					"[RECORD ERROR]  table: " + st.getName() 
+					+ "  column: " + (sCol != null ? sCol.getName() : "")
+					+ "  pk:" + (pkValues != null && !pkValues.equals("") ? pkValues : " NULL"), e)));
 		} catch (Exception e) {
-			LOG.error("", e);
+			String pkValues = getPkValues(st, record);
+			LOG.error("[RECORD ERROR]", e);
 			eventHandler.handleEvent(new MigrationErrorEvent(new NormalMigrationException(
-					"Transform table [" + st.getName() + "] record error.", e)));
+					"[RECORD ERROR]  table: " + st.getName() 
+					+ "  column: " + (sCol != null ? sCol.getName() : "")
+					+ "  pk:" + (pkValues != null && !pkValues.equals("") ? pkValues : " NULL"), e)));
 		}
 		return null;
+	}
+	
+	private String getPkValues(Table st, Record record) {
+		List<String> tablePkColumns = st.getPk() != null ? st.getPk().getPkColumns() : null;
+		Map<String, Object> columnValueMap = record.getColumnValueMap();
+		StringBuffer pkValue = new StringBuffer();
+		if (tablePkColumns != null) {
+			for (String tablePkColumn : tablePkColumns) {
+				String value = (String) columnValueMap.get(tablePkColumn);
+				pkValue.append(" ").append(value);
+			}
+		}
+		
+		return pkValue.toString();
 	}
 
 	/**
