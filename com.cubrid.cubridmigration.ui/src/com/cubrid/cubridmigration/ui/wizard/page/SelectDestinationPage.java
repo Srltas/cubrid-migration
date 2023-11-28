@@ -853,7 +853,7 @@ public class SelectDestinationPage extends
 		
 		private boolean isEmptyFileRepository(String fileRepository) {
 			File file = new File(fileRepository);
-			if (file.listFiles().length == 0) {
+			if (!file.exists() || file.listFiles().length == 0) {
 				return false;
 			}
 			return true;

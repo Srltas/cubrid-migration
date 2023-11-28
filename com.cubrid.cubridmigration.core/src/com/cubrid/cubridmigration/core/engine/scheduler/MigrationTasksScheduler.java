@@ -290,7 +290,6 @@ public class MigrationTasksScheduler {
 		} else {
 			PathUtils.deleteFile(new File(config.getTargetDataFileName(schemaName)));
 		}
-		PathUtils.deleteFile(new File(config.getTargetDataFileName(schemaName)));
 		PathUtils.deleteFile(new File(config.getFileRepositroyPath() + schemaName));
 	}
 
