@@ -2361,7 +2361,7 @@ public class MigrationConfiguration {
 	public SourceSynonymConfig getExpSynonymCfg(String schema, String sourceName) {
 		SourceSynonymConfig result = null;
 		for (SourceSynonymConfig config : expSynonyms) {
-			if (config.getName().equals(sourceName)) {
+			if (config.getName().equalsIgnoreCase(sourceName)) {
 				if (schema == null) {
 					return config;
 				}
