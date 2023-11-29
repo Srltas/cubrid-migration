@@ -2444,8 +2444,8 @@ public final class CUBRIDSchemaFetcher extends
 	protected List<String> getSchemaNames(Connection conn, ConnParameters cp) throws SQLException {
 		long startTime = System.currentTimeMillis();
 		LOG.info("Start the [getSchemaNames]");
-//		Integer ver = Integer.parseInt("" + conn.getMetaData().getDatabaseMajorVersion() 
-//				+ conn.getMetaData().getDatabaseMinorVersion());
+		Integer ver = Integer.parseInt("" + conn.getMetaData().getDatabaseMajorVersion() 
+				+ conn.getMetaData().getDatabaseMinorVersion());
 		
 		if (ver < 112) {
 			return super.getSchemaNames(conn, cp);
