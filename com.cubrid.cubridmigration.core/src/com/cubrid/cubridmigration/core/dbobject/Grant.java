@@ -48,6 +48,8 @@ public class Grant extends
 	private String authType;
 	private boolean isGrantable;
 	private String createDDL;
+	private String sourceOwner;
+	private String sourceObjectOwner;
 	
 	public Grant() {
 		//do nothing
@@ -155,6 +157,22 @@ public class Grant extends
 	
 	public void setDDL(String createDDL) {
 		this.createDDL = createDDL;
+	}
+	
+	public String getSourceOwner() {
+		return sourceOwner;
+	}
+	
+	public void setSourceOwner(String sourceOwner) {
+		this.sourceOwner = sourceOwner;
+	}
+	
+	public String getSourceObjectOwner() {
+		return sourceObjectOwner;
+	}
+	
+	public void setSourceObjectOwner(String sourceObjectOwner) {
+		this.sourceObjectOwner = sourceObjectOwner;
 	}
 
 	@Override

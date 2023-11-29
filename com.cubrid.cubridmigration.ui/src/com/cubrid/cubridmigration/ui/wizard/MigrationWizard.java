@@ -529,6 +529,7 @@ public class MigrationWizard extends
 	 */
 	protected void startMigration() {
 		long startTime = System.currentTimeMillis();
+		LOG.info("===============Migration Start===============");
 		LOG.info("Start the [startMigration]");
 		try {
 			migrationConfig.cleanNoUsedConfigForStart();

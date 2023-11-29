@@ -108,7 +108,7 @@ public class LoadFileImporter extends
 	private final Map<String, String> indexFiles = new HashMap<String, String>();
 	private final Map<String, String> sequenceFiles = new HashMap<String, String>();
 	private final Map<String, String> synonymFiles = new HashMap<String, String>();
-	private final Map<String, String> grantFiles = new HashMap<String, String>();
+	private final Map<String, Map<String, String>> grantFiles = new HashMap<String, Map<String, String>>();
 
 	private final Object lockObj = new Object();
 
@@ -148,12 +148,13 @@ public class LoadFileImporter extends
 		synchronized (lockObj) {
 			MigrationDirAndFilesManager mdfm = mrManager.getDirAndFilesMgr();
 			
-			if (!tableFiles.containsKey(stc.getTargetOwner() + stc.getName())) {
-				tableFiles.put(stc.getTargetOwner() + stc.getName(), new CurrentDataFileInfo(config.getTargetDataFileName(stc.getTargetOwner()), 
-						mdfm.getMergeFilesDir(),config.getTargetFilePrefix(), stc.getTargetOwner(), stc.getName(), config.getDataFileExt()));
+			String schemaName = config.isAddUserSchema() ? stc.getOwner() : config.getSourceConParams().getConUser();
+			if (!tableFiles.containsKey(schemaName + stc.getName())) {
+				tableFiles.put(schemaName + stc.getName(), new CurrentDataFileInfo(config.getTargetDataFileName(schemaName), 
+						mdfm.getMergeFilesDir(), config.getTargetFilePrefix(), schemaName, stc.getName(), config.getDataFileExt()));
 			}
 			
-			CurrentDataFileInfo es = tableFiles.get(stc.getTargetOwner() + stc.getName());
+			CurrentDataFileInfo es = tableFiles.get(schemaName + stc.getName());
 			
 			//If the target file is full. 
 			if (mdfm.isDataFileFull(es.fileTableFullName)) {
@@ -321,11 +322,11 @@ public class LoadFileImporter extends
 	 * @param owner
 	 * @return grant file full path
 	 */
-	protected String handleGrantFile(String owner) {
+	protected String handleGrantFile(String owner, String sourceObjectOwner) {
 		if (!grantFiles.containsKey(owner)) {
 			grantFiles.put(owner, config.getTargetGrantFileName(owner));
 		}
-		return grantFiles.get(owner);
+		return grantFiles.get(owner).get(sourceObjectOwner);
 	}
 	
 	/**
@@ -353,11 +354,13 @@ public class LoadFileImporter extends
 	 * @param listener a call interface.
 	 * @param isIndex true if the DDL is about index
 	 */
-	protected void sendSchemaFile(String fileName, RunnableResultHandler listener, String objectType, String owner) {
-		executeTask(fileName, getFilePath(objectType, owner), listener, config.isDeleteTempFile(), true);
+	protected void sendSchemaFile(String fileName, RunnableResultHandler listener, 
+			String objectType, String owner, String sourceObjectOwner) {
+		executeTask(fileName, getFilePath(objectType, owner, sourceObjectOwner), 
+				listener, config.isDeleteTempFile(), true);
 	}
 	
-	private String getFilePath(String objectType, String owner) {
+	private String getFilePath(String objectType, String owner, String sourceObjectOwner) {
 		if (config.isSplitSchema()) {
 			if (objectType.equals(DBObject.OBJ_TYPE_TABLE)) {
 				return handleTableSchemaFile(owner);
@@ -376,7 +379,7 @@ public class LoadFileImporter extends
 			} else if (objectType.equals(DBObject.OBJ_TYPE_SYNONYM)) {
 				return handleSynonymFile(owner);
 			} else if (objectType.equals(DBObject.OBJ_TYPE_GRANT)) {
-				return handleGrantFile(owner);
+				return handleGrantFile(owner, sourceObjectOwner);
 			}
 		} else {
 			if (objectType.equals(DBObject.OBJ_TYPE_TABLE)

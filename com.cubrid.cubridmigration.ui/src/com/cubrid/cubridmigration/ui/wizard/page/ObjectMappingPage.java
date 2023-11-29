@@ -144,6 +144,7 @@ public class ObjectMappingPage extends
 	 * @param event PageChangedEvent
 	 */
 	protected void afterShowCurrentPage(PageChangedEvent event) {
+		LOG.info("===============ObjectMappingPage(5/6)===============");
 		long startTime = System.currentTimeMillis();
 		LOG.info("Start the [afterShowCurrentPage]");
 		final MigrationWizard mw = getMigrationWizard();
@@ -162,6 +163,7 @@ public class ObjectMappingPage extends
 		try {
 			//Update migration source database schema
 			Catalog sourceCatalog = mw.getSourceCatalog();
+			Catalog targetCatalog = mw.getTargetCatalog();
 			
 			final MigrationConfiguration cfg = mw.getMigrationConfig();
 			if (cfg.sourceIsOnline() && !cfg.getSourceDBType().equals(DatabaseType.CUBRID)) {
@@ -172,7 +174,7 @@ public class ObjectMappingPage extends
 			int tarSchemaSize = getMigrationWizard().getTarCatalogSchemaCount();
 			if (isFirstVisible) {
 					if (util.checkMultipleSchema(sourceCatalog, cfg)
-							&& util.createAllObjectsMap(sourceCatalog)
+							&& util.createAllObjectsMap(sourceCatalog, targetCatalog, cfg)
 							&& util.hasDuplicatedObjects(sourceCatalog)
 							&& (tarSchemaSize <= 1 || cfg.isTarSchemaDuplicate())) {
 						showDetailMessageDialog(sourceCatalog);
@@ -267,10 +269,11 @@ public class ObjectMappingPage extends
 		util.createDetailMessage(sb, sourceCatalog, DBObject.OBJ_TYPE_VIEW, messageType);
 		util.createDetailMessage(sb, sourceCatalog, DBObject.OBJ_TYPE_SEQUENCE, messageType);
 		util.createDetailMessage(sb, sourceCatalog, DBObject.OBJ_TYPE_SYNONYM, messageType);
-		util.createDetailMessage(sb, sourceCatalog, DBObject.OBJ_TYPE_GRANT, messageType);
+		
 		LOG.info("End the [getDetailMessage]");
 	    long endTime = System.currentTimeMillis();
 	    LOG.info("execution time [getDetailMessage] " + (endTime - startTime) + "ms");
+
 		return sb.toString();
 	}
 

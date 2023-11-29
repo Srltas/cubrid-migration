@@ -90,10 +90,19 @@ public class OracleExportHelper extends
 	public Object getJdbcObject(final ResultSet rs, final Column column) throws SQLException {
 		String oraType = OracleDataTypeHelper.getOracleDataTypeKey(column.getDataType());
 		IExportDataHandler edh = handlerMap2.get(oraType);
-		if (edh != null) {
-			return edh.getJdbcObject(rs, column);
+		try {
+			if (edh != null) {
+				return edh.getJdbcObject(rs, column);
+			}
+			return super.getJdbcObject(rs, column);
+		} catch (SQLException e) {
+			if (column.getDataType().equalsIgnoreCase("BLOB")
+					|| column.getDataType().equalsIgnoreCase("CLOB")) {
+				LOG.error("Problem with LOB type column [" + column.getName()+ "]");
+				return null;
+			}
+			throw new SQLException();
 		}
-		return super.getJdbcObject(rs, column);
 	}
 
 	/**

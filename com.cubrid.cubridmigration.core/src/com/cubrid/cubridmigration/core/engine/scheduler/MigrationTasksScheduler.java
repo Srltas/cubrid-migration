@@ -32,8 +32,10 @@ package com.cubrid.cubridmigration.core.engine.scheduler;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -253,31 +255,60 @@ public class MigrationTasksScheduler {
 				schemaList = new ArrayList<Schema>(schemas);
 			}
 			
-			for (Schema schema : schemaList) {
-				String schemaName = schema.getTargetSchemaName();
-				if (config.isSplitSchema()) {
-					PathUtils.deleteFile(new File(config.getTargetTableFileName(schemaName)));
-					PathUtils.deleteFile(new File(config.getTargetViewFileName(schemaName)));
-					PathUtils.deleteFile(new File(config.getTargetPkFileName(schemaName)));
-					PathUtils.deleteFile(new File(config.getTargetFkFileName(schemaName)));
-					PathUtils.deleteFile(new File(config.getTargetSerialFileName(schemaName)));
-					PathUtils.deleteFile(new File(config.getTargetSchemaFileListName(schemaName)));
-					PathUtils.deleteFile(new File(config.getTargetSynonymFileName(schemaName)));
-					PathUtils.deleteFile(new File(config.getTargetGrantFileName(schemaName)));
-				} else {
-					PathUtils.deleteFile(new File(config.getTargetSchemaFileName(schemaName)));
+			if (config.isAddUserSchema()) {
+				for (Schema schema : schemaList) {
+					deleteFile(config, schema.getName());
 				}
-				PathUtils.deleteFile(new File(config.getTargetUpdateStatisticFileName(schemaName)));
-				PathUtils.deleteFile(new File(config.getTargetIndexFileName(schemaName)));
-				PathUtils.deleteFile(new File(config.getTargetDataFileName(schemaName)));
-				PathUtils.deleteFile(new File(config.getFileRepositroyPath() + schemaName));
+			} else {
+				deleteFile(config, config.getSourceConParams().getConUser());
 			}
-			
 		}
 		executeTask(taskFactory.createCleanDBTask());
 		LOG.info("End the [clearTargetDB]");
 		long endTime = System.currentTimeMillis();
 		LOG.info("execution time [clearTargetDB] " + (endTime - startTime) + "ms");
+	}
+	
+	/**
+	 * Delete the created file
+	 * 
+	 * @param config MigrationConfiguration
+	 * @param schemaName String
+	 */
+	private void deleteFile(MigrationConfiguration config, String schemaName) {
+		if (config.isSplitSchema()) {
+			PathUtils.deleteFile(new File(config.getTargetTableFileName(schemaName)));
+			PathUtils.deleteFile(new File(config.getTargetViewFileName(schemaName)));
+			PathUtils.deleteFile(new File(config.getTargetViewQuerySpecFileName(schemaName)));
+			PathUtils.deleteFile(new File(config.getTargetPkFileName(schemaName)));
+			PathUtils.deleteFile(new File(config.getTargetFkFileName(schemaName)));
+			PathUtils.deleteFile(new File(config.getTargetSerialFileName(schemaName)));
+			PathUtils.deleteFile(new File(config.getTargetSchemaFileListName(schemaName)));
+			PathUtils.deleteFile(new File(config.getTargetSynonymFileName(schemaName)));
+			
+			Map<String, String> grantFilePaths = config.getTargetGrantFileName(schemaName);
+			Iterator<String> keys = null;
+			if (grantFilePaths != null) {
+				keys = grantFilePaths.keySet().iterator();
+			}
+			if (keys != null) {
+				while (keys.hasNext()) {
+					PathUtils.deleteFile(new File(grantFilePaths.get(keys.next())));
+				}
+			}
+		} else {
+			PathUtils.deleteFile(new File(config.getTargetSchemaFileName(schemaName)));
+		}
+		PathUtils.deleteFile(new File(config.getTargetUpdateStatisticFileName(schemaName)));
+		PathUtils.deleteFile(new File(config.getTargetIndexFileName(schemaName)));
+		if (config.isOneTableOneFile()) {
+			for (String filePath : config.getTargetTableDataFileName(schemaName)) {
+				PathUtils.deleteFile(new File(filePath));
+			}
+		} else {
+			PathUtils.deleteFile(new File(config.getTargetDataFileName(schemaName)));
+		}
+		PathUtils.deleteFile(new File(config.getFileRepositroyPath() + schemaName));
 	}
 
 	/**

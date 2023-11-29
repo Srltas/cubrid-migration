@@ -135,46 +135,53 @@ public class UpdateStatisticsTask extends
 	 * Execute import
 	 */
 	protected void executeImport() {
-		if (config.targetIsOnline()) {
-			if (config.isUpdateStatistics()) {
-				List<Schema> schemaList = config.getTargetSchemaList();
-				for (Schema schema : schemaList) {
-					LOG.debug("Execute update statistics for " + schema.getTargetSchemaName());
-					execSQLList(getUpdateStatisticsSQLs(schema.getTargetSchemaName()));
-				}
+		if (config.targetIsOnline() && config.isUpdateStatistics()) {
+			List<Schema> schemaList = config.getTargetSchemaList();
+			for (Schema schema : schemaList) {
+				LOG.debug("Execute update statistics for " + schema.getTargetSchemaName());
+				execSQLList(getUpdateStatisticsSQLs(schema.getTargetSchemaName()));
 			}
 			return;
 		}
 		
-		List<Schema> schemaList = config.getTargetSchemaList();
-		for (Schema schema : schemaList) {
-			String schemaName = schema.getTargetSchemaName();
-			if (!checkDataFileRepository(schemaName)) {
-				continue;
+		if (config.isAddUserSchema()) {
+			List<Schema> schemaList = config.getTargetSchemaList();
+			for (Schema schema : schemaList) {
+				writeFile(schema.getName(), schema.getTargetSchemaName());
 			}
-			
-			String tfile = config.getTargetUpdateStatisticFileName(schemaName);
-			File file = new File(tfile);
-			//if no indexes, return.
-//			if (!file.exists() || file.length() == 0) {
-//				return;
-//			}
-			
-			OutputStream os = null; //NO PMD
-			try {
-				os = new BufferedOutputStream(new FileOutputStream(file, true));
-				List<String> sqlList = getUpdateStatisticsSQLs(schemaName);
-				byte[] enterBytes = "\n".getBytes();
-				for (String sql : sqlList) {
-					os.write(sql.getBytes());
-					os.write(enterBytes);
-				}
-				os.flush();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			} finally {
-				Closer.close(os);
+		} else {
+			// For versions that do not support multi schema, the targetSchema parameter is not needed.
+			writeFile(config.getSourceConParams().getConUser(), "");
+		}
+		
+	}
+	
+	/**
+	 * Write Update statistic SQL to the file
+	 * 
+	 * @param schemaName String
+	 */
+	private void writeFile(String schemaName, String targetSchemaName) {
+		if (!checkDataFileRepository(schemaName)) {
+			return;
+		}
+		
+		String tfile = config.getTargetUpdateStatisticFileName(schemaName);
+		File file = new File(tfile);
+		OutputStream os = null; //NO PMD
+		try {
+			os = new BufferedOutputStream(new FileOutputStream(file, true));
+			List<String> sqlList = getUpdateStatisticsSQLs(targetSchemaName);
+			byte[] enterBytes = "\n".getBytes();
+			for (String sql : sqlList) {
+				os.write(sql.getBytes());
+				os.write(enterBytes);
 			}
+			os.flush();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			Closer.close(os);
 		}
 	}
 
@@ -201,7 +208,6 @@ public class UpdateStatisticsTask extends
 	 */
 	private boolean checkDataFileRepository(String schemaName) {
 		String fileRepository = config.getTargetDataFileName(schemaName);
-		File file = new File(fileRepository);
-		return file.exists();
+		return fileRepository != null ? new File(fileRepository).exists() : false;
 	}
 }

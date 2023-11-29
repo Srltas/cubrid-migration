@@ -106,8 +106,10 @@ public final class OracleSchemaFetcher extends
 	//	private static final String OBJECT_TYPE_INDEX = "INDEX";
 
 	//Undefined columns will not be supported.
-	private static final String SQL_GET_COLUMNS = "SELECT COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE, DATA_DEFAULT, CHAR_LENGTH, CHAR_USED, COLUMN_ID "
-			+ "FROM ALL_TAB_COLUMNS T WHERE T.OWNER=? AND T.TABLE_NAME=? " + "ORDER BY COLUMN_ID";
+	private static final String SQL_GET_COLUMNS = "SELECT T.COLUMN_NAME, T.DATA_TYPE, T.DATA_LENGTH, T.DATA_PRECISION, T.DATA_SCALE, T.NULLABLE, T.DATA_DEFAULT, T.CHAR_LENGTH, T.CHAR_USED, T.COLUMN_ID, C.COMMENTS"
+			+ " FROM ALL_TAB_COLUMNS T, ALL_COL_COMMENTS C"
+			+ " WHERE T.OWNER=? AND T.TABLE_NAME=? AND C.COLUMN_NAME=T.COLUMN_NAME AND T.TABLE_NAME=C.TABLE_NAME"
+			+ " ORDER BY COLUMN_ID";
 
 	private static final String SQL_GET_INDEX_COLUMNS = "SELECT A.COLUMN_NAME, A.DESCEND, B.COLUMN_EXPRESSION "
 			+ "FROM ALL_IND_COLUMNS A LEFT JOIN ALL_IND_EXPRESSIONS B "
@@ -161,9 +163,6 @@ public final class OracleSchemaFetcher extends
 	
 	private static final String SQL_GET_TABLE_COMMENT = "SELECT COMMENTS FROM ALL_TAB_COMMENTS WHERE OWNER=? AND "
 			+ "TABLE_NAME=?";
-	
-	private static final String SQL_GET_COLUMN_COMMENT = "SELECT COMMENTS FROM ALL_COL_COMMENTS WHERE OWNER=? AND "
-			+ "TABLE_NAME=? AND COLUMN_NAME=?";
 	
 	private static final String SQL_SHOW_GRANT_TABLE = "SELECT P.GRANTEE, P.OWNER, P.TABLE_NAME, P.GRANTOR, P.PRIVILEGE, P.GRANTABLE" 
 			+ " FROM USER_TAB_PRIVS P, ALL_TABLES T"
@@ -333,17 +332,13 @@ public final class OracleSchemaFetcher extends
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("[IN]buildProcedures()");
 		}
-		List<Schema> schemaList = catalog.getSchemas();
-		for (Schema sc : schemaList) {
-			// get procedures
-			List<Procedure> procList = this.getAllProcedures(conn, schema.getName(),
-					schema.getName());
-			sc.setProcedures(procList);
 
-			// get functions
-			List<Function> funcList = getAllFunctions(conn, schema.getName(), schema.getName());
-			sc.setFunctions(funcList);
-		}
+		// get procedures
+		schema.setProcedures(getAllProcedures(conn, schema.getName(), schema.getName()));
+
+		// get functions
+		schema.setFunctions(getAllFunctions(conn, schema.getName(), schema.getName()));
+		
 		LOG.info("End the [buildProcedures]");
 		long endTime = System.currentTimeMillis();
 		LOG.info("execution time [buildProcedures] " + (endTime - startTime) + "ms");
@@ -510,8 +505,8 @@ public final class OracleSchemaFetcher extends
 			stmt.setString(1, schema.getName());
 			stmt.setString(2, table.getName());
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("[SQL]" + SQL_GET_COLUMNS + ", 1=" + table.getName() + ", 2="
-						+ schema.getName() + ", 3=" + table.getName());
+				LOG.debug("[SQL]" + SQL_GET_COLUMNS + ", 1=" + schema.getName() + ", 2="
+						+ table.getName());
 			}
 			
 			LOG.info("[buildTableColumns - SQL] " + SQL_GET_COLUMNS + ", 1=" + table.getName() + ", 2="
@@ -565,8 +560,7 @@ public final class OracleSchemaFetcher extends
 
 					String shownDataType = dtHelper.getShownDataType(column);
 					column.setShownDataType(shownDataType);
-					
-					column.setComment(getColumnComment(conn, schema.getName(), table.getName(), column.getName()));
+					column.setComment(rs.getString("COMMENTS"));
 
 					table.addColumn(column);
 				} catch (Exception ex) {
@@ -824,12 +818,9 @@ public final class OracleSchemaFetcher extends
 			return;
 		}
 
-		List<Schema> schemaList = catalog.getSchemas();
-		for (Schema sc : schemaList) {
-			// get triggers
-			List<Trigger> trigList = this.getAllTriggers(conn, schema.getName(), schema.getName());
-			sc.setTriggers(trigList);
-		}
+		// get triggers
+		schema.setTriggers(getAllTriggers(conn, schema.getName(), schema.getName()));
+		
 	}
 
 	/**
@@ -901,6 +892,7 @@ public final class OracleSchemaFetcher extends
 				grant.setGrantorName(rs.getString("GRANTOR"));
 				grant.setAuthType(convertPrivilegeOracle2Cubrid(rs.getString("PRIVILEGE")));
 				grant.setGrantable(rs.getString("GRANTABLE").equals("YES") ? true : false);
+				grant.setSourceObjectOwner(grant.getClassOwner());
 				grant.setDDL(CUBRIDSQLHelper.getInstance(null).getGrantDDL(grant, true));
 				schema.addGrant(grant);
 			}
@@ -924,6 +916,7 @@ public final class OracleSchemaFetcher extends
 				grant.setGrantorName(rs.getString("GRANTOR"));
 				grant.setAuthType(rs.getString("PRIVILEGE"));
 				grant.setGrantable(rs.getString("GRANTABLE").equals("YES") ? true : false);
+				grant.setSourceObjectOwner(grant.getClassOwner());
 				grant.setDDL(CUBRIDSQLHelper.getInstance(null).getGrantDDL(grant, true));
 				schema.addGrant(grant);
 			}
@@ -1328,51 +1321,6 @@ public final class OracleSchemaFetcher extends
 			Closer.close(pstmt);
 		}
 	}
-	
-	/**
-	 * get column comment
-	 * 
-	 * @param conn
-	 * @param objectName
-	 * @param schemaName
-	 * @return comment
-	 */
-	private String getColumnComment(Connection conn, String schemaName, String tableName, String columnName) {
-		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [getColumnComment]");
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		try {
-			pstmt = conn.prepareStatement(SQL_GET_COLUMN_COMMENT);
-			pstmt.setString(1, schemaName);
-			pstmt.setString(2, tableName);
-			pstmt.setString(3, columnName);
-			
-			LOG.info("[getColumnComment - SQL] " + SQL_GET_COLUMN_COMMENT + ", 1=" + schemaName
-					+ ", 2=" + tableName + ", 3=" + columnName);
-			
-			rs = pstmt.executeQuery();
-			
-			String comment = "";
-			while (rs.next()) {
-				comment = rs.getString("COMMENTS");
-			}
-			
-			if (comment != null) {
-				comment = commentEditor(comment);
-			}
-			LOG.info("End the [getColumnComment]");
-			long endTime = System.currentTimeMillis();
-			LOG.info("execution time [getColumnComment] " + (endTime - startTime) + "ms");
-			return comment;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		} finally {
-			Closer.close(pstmt);
-			Closer.close(rs);
-		}
-	}
 
 	/**
 	 * get partition column information
@@ -1626,7 +1574,7 @@ public final class OracleSchemaFetcher extends
 			}
 			
 			LOG.info("[getRountines - SQL] " + SQL_SHOW_ALL_OBJECTS + ", " + "1=" + type + ", " + "2="
-					+ ownerName + ", " + "3=" + type);
+					+ ownerName);
 			rs = stmt.executeQuery();
 			final Set<String> list = new HashSet<String>();
 			while (rs.next()) {

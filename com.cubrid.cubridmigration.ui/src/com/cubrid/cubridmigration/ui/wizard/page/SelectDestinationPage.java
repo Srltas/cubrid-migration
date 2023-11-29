@@ -60,7 +60,6 @@ import com.cubrid.cubridmigration.core.common.TimeZoneUtils;
 import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
-import com.cubrid.cubridmigration.core.dbobject.Schema;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.ui.common.Status;
 import com.cubrid.cubridmigration.ui.common.UICommonTool;
@@ -467,6 +466,10 @@ public class SelectDestinationPage extends
 			
 			Catalog catalog = conMgrView.getCatalog();
 			
+			if (catalog == null) {
+				return false;
+			}
+			
 			int targetCubridVersion = (catalog.getVersion().getDbMajorVersion() * 10) + (catalog.getVersion().getDbMinorVersion());
 			config.setTargetDBVersion(String.valueOf(targetCubridVersion));
 			config.setAddUserSchema(targetCubridVersion >= USERSCHEMA_VERSION);
@@ -726,13 +729,8 @@ public class SelectDestinationPage extends
 			setTitle(getMigrationWizard().getStepNoMsg(SelectDestinationPage.this)
 					+ Messages.msgDestOutputFilesSetting);
 			setDescription(Messages.msgDestOutputFilesSettingDes);
+			String dbName = getMigrationWizard().getOriginalSourceCatalog().getConnectionParameters().getDbName();
 			
-			MigrationWizard wizard = getMigrationWizard();
-			final Schema schema = wizard.getOriginalSourceCatalog().getSchemas().get(0);
-			String schemaName = "";
-			if (schema != null) {
-				schemaName = schema.getName();
-			}
 			MigrationConfiguration config = getMigrationWizard().getMigrationConfig();
 			btnCSVSetting.setVisible(config.targetIsCSV());
 
@@ -753,7 +751,7 @@ public class SelectDestinationPage extends
 			if (config.getFileRepositroyPath() != null) {
 				txtFileRepository.setText(config.getFileRepositroyPath());
 			}
-			txtFilePrefix.setText(config.getTargetFilePrefix() == null ? schemaName
+			txtFilePrefix.setText(config.getTargetFilePrefix() == null ? dbName
 					: config.getTargetFilePrefix());
 			if (config.getTargetFileTimeZone() != null) {
 				targetFileTimezoneCombo.setText(config.getTargetFileTimeZone());
@@ -792,8 +790,16 @@ public class SelectDestinationPage extends
 			config.setSplitSchema(btnSplitSchema.getSelection());
 			config.setCreateUserSQL(btnCreateUserSQL.getSelection());
 			
-			firstVisible = false;
+			if (isEmptyFileRepository(getFileRepository())) {
+				if(!MessageDialog.openConfirm(
+						PlatformUI.getWorkbench().getDisplay().getActiveShell(),
+						Messages.msgConfirmation, 
+						Messages.fileRepositoryEmptyWarning)) {
+					return false;
+				}
+			}
 			
+			firstVisible = false;
 			return true;
 		}
 
@@ -850,6 +856,14 @@ public class SelectDestinationPage extends
 
 			return !isValid;
 		}
+		
+		private boolean isEmptyFileRepository(String fileRepository) {
+			File file = new File(fileRepository);
+			if (!file.exists() || file.listFiles().length == 0) {
+				return false;
+			}
+			return true;
+		}
 	}
 
 	// private static final Logger LOG =
@@ -882,8 +896,9 @@ public class SelectDestinationPage extends
 	 * @param event PageChangedEvent
 	 */
 	protected void afterShowCurrentPage(PageChangedEvent event) {
+		LOG.info("===============SelectDestinationPage(3/6)===============");
 		long startTime = System.currentTimeMillis();
-		LOG.info("Start the [addGrantNodes]");
+		LOG.info("Start the [afterShowCurrentPage]");
 		if (isFirstVisible) {
 			isFirstVisible = false;
 		}
@@ -895,9 +910,9 @@ public class SelectDestinationPage extends
 		crtDBView.init();
 		crtDBView.show();
 		container.layout();
-		LOG.info("End the [addGrantNodes]");
+		LOG.info("End the [afterShowCurrentPage]");
 		long endTime = System.currentTimeMillis();
-		LOG.info("execution time [addGrantNodes] " + (endTime - startTime) + "ms");
+		LOG.info("execution time [afterShowCurrentPage] " + (endTime - startTime) + "ms");
 	}
 
 	/**

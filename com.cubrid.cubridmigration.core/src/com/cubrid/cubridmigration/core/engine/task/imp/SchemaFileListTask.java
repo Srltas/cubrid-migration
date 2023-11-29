@@ -33,7 +33,9 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -64,92 +66,112 @@ public class SchemaFileListTask extends ImportTask {
 	 */
 	@Override
 	protected void executeImport() {
+		if (config.isAddUserSchema()) {
+			List<Schema> schemaList = config.getTargetSchemaList();
+			for (Schema schema : schemaList) {
+				String schemaName = schema.getName();
+				LOG.debug("Write to info file for " + schemaName);
+				writeFile(schemaName);
+			}
+		} else {
+			String conUser = config.getSourceConParams().getConUser();
+			LOG.debug("Write to info file for " + conUser);
+			writeFile(conUser);
+		}
+	}
+	
+	/**
+	 * Write to info file
+	 * 
+	 * @param schemaName String
+	 */
+	private void writeFile(String schemaName) {
 		String lineSeparator = System.getProperty("line.separator");
-		List<Schema> schemaList = config.getTargetSchemaList();
-		for (Schema schema : schemaList) {
-			String schemaName = schema.getTargetSchemaName();
-			LOG.debug("Write to schema list file for " + schemaName);
+		StringBuilder sb = new StringBuilder();
+		OutputStream os = null;
+		boolean isCreateSchemaListFile = false;
+		File schemaFileListFile = new File(config.getTargetSchemaFileListName(schemaName));
+		try {
+			// table
+			String tableFileRepository = config.getTargetTableFileName(schemaName);
+			if (checkFileRepository(tableFileRepository)) {
+				isCreateSchemaListFile = true;
+				sb.append(getFileName(tableFileRepository));
+				sb.append(lineSeparator);
+			}
 			
-			StringBuilder sb = new StringBuilder();
-			OutputStream os = null;
-			boolean isCreateSchemaListFile = false;
-			File schemaFileListFile = new File(config.getTargetSchemaFileListName(schemaName));
-			try {
-				// table
-				String tableFileRepository = config.getTargetTableFileName(schemaName);
-				if (checkFileRepository(tableFileRepository)) {
-					isCreateSchemaListFile = true;
-					sb.append(getFileName(tableFileRepository));
-					sb.append(lineSeparator);
+			// view
+			String viewFileRepository = config.getTargetViewFileName(schemaName);
+			if (checkFileRepository(viewFileRepository)) {
+				isCreateSchemaListFile = true;
+				sb.append(getFileName(viewFileRepository));
+				sb.append(lineSeparator);
+			}
+			
+			// synonym
+			String synonymFileRepository = config.getTargetSynonymFileName(schemaName);
+			if (checkFileRepository(synonymFileRepository)) {
+				isCreateSchemaListFile = true;
+				sb.append(getFileName(synonymFileRepository));
+				sb.append(lineSeparator);
+			}
+			
+			// serial
+			String serialFileRepository = config.getTargetSerialFileName(schemaName);
+			if (checkFileRepository(serialFileRepository)) {
+				isCreateSchemaListFile = true;
+				sb.append(getFileName(serialFileRepository));
+				sb.append(lineSeparator);
+			}
+			
+			// pk
+			String pkFileRepository = config.getTargetPkFileName(schemaName);
+			if (checkFileRepository(pkFileRepository)) {
+				isCreateSchemaListFile = true;
+				sb.append(getFileName(pkFileRepository));
+				sb.append(lineSeparator);
+			}
+			
+			// fk
+			String fkFileRepository = config.getTargetFkFileName(schemaName);
+			if (checkFileRepository(fkFileRepository)) {
+				isCreateSchemaListFile = true;
+				sb.append(getFileName(fkFileRepository));
+				sb.append(lineSeparator);
+			}
+			
+			// grant
+			Map<String, String> grantFilePaths = config.getTargetGrantFileName(schemaName);
+			if (grantFilePaths != null) {
+				Iterator<String> keys = grantFilePaths.keySet().iterator();
+				while (keys.hasNext()) {
+					String grantFileRepository = grantFilePaths.get(keys.next());
+					if (checkFileRepository(grantFileRepository)) {
+						isCreateSchemaListFile = true;
+						sb.append(getFileName(grantFileRepository));
+						sb.append(lineSeparator);
+					}
 				}
-				
-				// view
-				String viewFileRepository = config.getTargetViewFileName(schemaName);
-				if (checkFileRepository(viewFileRepository)) {
-					isCreateSchemaListFile = true;
-					sb.append(getFileName(viewFileRepository));
-					sb.append(lineSeparator);
-				}
-				
-				// synonym
-				String synonymFileRepository = config.getTargetSynonymFileName(schemaName);
-				if (checkFileRepository(synonymFileRepository)) {
-					isCreateSchemaListFile = true;
-					sb.append(getFileName(synonymFileRepository));
-					sb.append(lineSeparator);
-				}
-				
-				// serial
-				String serialFileRepository = config.getTargetSerialFileName(schemaName);
-				if (checkFileRepository(serialFileRepository)) {
-					isCreateSchemaListFile = true;
-					sb.append(getFileName(serialFileRepository));
-					sb.append(lineSeparator);
-				}
-				
-				// pk
-				String pkFileRepository = config.getTargetPkFileName(schemaName);
-				if (checkFileRepository(pkFileRepository)) {
-					isCreateSchemaListFile = true;
-					sb.append(getFileName(pkFileRepository));
-					sb.append(lineSeparator);
-				}
-				
-				// fk
-				String fkFileRepository = config.getTargetFkFileName(schemaName);
-				if (checkFileRepository(fkFileRepository)) {
-					isCreateSchemaListFile = true;
-					sb.append(getFileName(fkFileRepository));
-					sb.append(lineSeparator);
-				}
-				
-				// grant
-				String grantFileRepository = config.getTargetGrantFileName(schemaName);
-				if (checkFileRepository(grantFileRepository)) {
-					isCreateSchemaListFile = true;
-					sb.append(getFileName(grantFileRepository));
-					sb.append(lineSeparator);
-				}
+			}
 
-				// view query specification
-				String viewQuerySpecFileRepository = config.getTargetViewQuerySpecFileName(schemaName);
-				if (checkFileRepository(viewQuerySpecFileRepository)) {
-					isCreateSchemaListFile = true;
-					sb.append(getFileName(viewQuerySpecFileRepository));
-					sb.append(lineSeparator);
-				}
-				
-				if (isCreateSchemaListFile) {
-					os = new BufferedOutputStream(new FileOutputStream(schemaFileListFile, true));
-					os.write(sb.toString().getBytes());
-					os.flush();
-				}
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			} finally {
-				if (os != null) {
-					Closer.close(os);
-				}
+			// view query specification
+			String viewQuerySpecFileRepository = config.getTargetViewQuerySpecFileName(schemaName);
+			if (checkFileRepository(viewQuerySpecFileRepository)) {
+				isCreateSchemaListFile = true;
+				sb.append(getFileName(viewQuerySpecFileRepository));
+				sb.append(lineSeparator);
+			}
+			
+			if (isCreateSchemaListFile) {
+				os = new BufferedOutputStream(new FileOutputStream(schemaFileListFile, true));
+				os.write(sb.toString().getBytes());
+				os.flush();
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (os != null) {
+				Closer.close(os);
 			}
 		}
 	}

@@ -647,6 +647,7 @@ public class SelectSourcePage extends
 	 */
 
 	protected void afterShowCurrentPage(PageChangedEvent event) {
+		LOG.info("===============SelectSourcePage(2/6)===============");
 		long startTime = System.currentTimeMillis();
 		LOG.info("Start the [afterShowCurrentPage]");
 		try {

@@ -173,7 +173,8 @@ public class MigrationConfiguration {
 	private Map<String, String> targetUpdateStatisticFileName = new HashMap<String, String>();
 	private Map<String, String> targetSchemaFileListName = new HashMap<String, String>();
 	private Map<String, String> targetSynonymFileName = new HashMap<String, String>();
-	private Map<String, String> targetGrantFileName = new HashMap<String, String>();
+	private Map<String, Map<String, String>> targetGrantFileName = new HashMap<String, Map<String, String>>();
+	private Map<String, List<String>> targetTableDataFileName = new HashMap<String, List<String>>();
 	private String targetFilePrefix;
 	private String targetCharSet = "UTF-8";
 	private String targetLOBRootPath = "";
@@ -412,7 +413,7 @@ public class MigrationConfiguration {
 	 */
 	public SourceGrantConfig addExpGrantCfg(String schema, String name, 
 			String grantor, String grantee, String object, String objectOwner, 
-			String authType, boolean grantable, String targetOwner, String sourceGrantorName) {
+			String authType, boolean grantable, String targetOwner, String sourceGrantorName, String sourceObjectOwner) {
 		if (srcCatalog != null) {
 			throw new RuntimeException("Source database was specified.");
 		}
@@ -431,6 +432,7 @@ public class MigrationConfiguration {
 		sc.setGrantable(grantable);
 		sc.setTargetOwner(targetOwner);
 		sc.setSourceGrantorName(sourceGrantorName);
+		sc.setSourceObjectOwner(sourceObjectOwner);
 		return sc;
 	}
 
@@ -717,6 +719,7 @@ public class MigrationConfiguration {
 					tseq = (Sequence) seq.clone();
 					tseq.setName(sc.getTarget());
 					tseq.setOwner(sc.getTargetOwner());
+					tseq.setSourceOwner(sc.getOwner());
 					tseq.setDDL(cubridddlUtil.getSequenceDDL(tseq, this.addUserSchema));
 					tseq.setComment(seq.getComment());
 				}
@@ -751,10 +754,11 @@ public class MigrationConfiguration {
 					sc.setGrantorName(getTargetOwner(schemas, grant.getGrantorName()));
 					sc.setGranteeName(getTargetOwner(schemas, grant.getGranteeName()));
 					sc.setAuthType(grant.getAuthType());
-					sc.setClassName(grant.getClassName());
+					sc.setClassName(StringUtils.lowerCase(grant.getClassName()));
 					sc.setClassOwner(getTargetOwner(schemas, grant.getClassOwner()));
 					sc.setGrantable(grant.isGrantable());
 					sc.setCreate(false);
+					sc.setSourceObjectOwner(grant.getSourceObjectOwner());
 				} else if(sourceDBSchema.getTargetSchemaName() != null) {
 					if (!sourceDBSchema.getTargetSchemaName().equals(sc.getTargetOwner())) {
 						sc.setTargetOwner(sourceDBSchema.getTargetSchemaName());
@@ -773,6 +777,8 @@ public class MigrationConfiguration {
 					tgrant.setClassOwner(sc.getClassOwner());
 					tgrant.setGrantable(sc.isGrantable());
 					tgrant.setName(tgrant.getName());
+					tgrant.setSourceOwner(sc.getOwner());
+					tgrant.setSourceObjectOwner(sc.getSourceObjectOwner());
 					sc.setTarget(tgrant.getName());
 					tgrant.setDDL(cubridddlUtil.getGrantDDL(tgrant, this.addUserSchema));
 				}
@@ -802,13 +808,13 @@ public class MigrationConfiguration {
 				SourceSynonymConfig sc = getExpSynonymCfg(synonym.getOwner(), synonym.getName());
 				if (sc == null) {
 					sc = new SourceSynonymConfig();
-					sc.setName(synonym.getName());
+					sc.setName(StringUtils.lowerCase(synonym.getName()));
 					sc.setOwner(synonym.getOwner());
-					sc.setObjectName(synonym.getObjectName());
+					sc.setObjectName(StringUtils.lowerCase(synonym.getObjectName()));
 					sc.setObjectOwner(synonym.getObjectOwner());
 					sc.setTarget(getTargetName(isChangeObjectName(allSynonymsCountMap, synonym.getName()), synonym.getOwner(), synonym.getName()));
 					sc.setTargetOwner(getTargetOwner(schemas, synonym.getOwner()));
-					sc.setObjectTargetName(synonym.getObjectName());
+					sc.setObjectTargetName(StringUtils.lowerCase(synonym.getObjectName()));
 					sc.setObjectTargetOwner(synonym.getObjectOwner());
 					sc.setCreate(false);
 					sc.setReplace(false);
@@ -827,9 +833,11 @@ public class MigrationConfiguration {
 				}
 				if (tsynonym == null) {
 					tsynonym = (Synonym) synonym.clone();
-					tsynonym.setOwner(sourceDBSchema.getTargetSchemaName());
-					tsynonym.setObjectOwner(getTargetOwner(schemas, synonym.getObjectOwner()));
+					tsynonym.setName(sc.getName());
+					tsynonym.setObjectName(sc.getObjectTargetName());
+					tsynonym.setObjectOwner(getTargetOwner(schemas, sc.getObjectOwner()));
 					tsynonym.setDDL(cubridddlUtil.getSynonymDDL(tsynonym, this.addUserSchema));
+					tsynonym.setSourceOwner(sourceDBSchema.getName());
 				}
 				tempSynonyms.add(tsynonym);
 			}
@@ -840,28 +848,53 @@ public class MigrationConfiguration {
 		targetSynonyms.addAll(tempSynonyms);
 	}
 	
-	public void createDumpfile(boolean isSplit) {
-		Iterator<String> keys = scriptSchemaMapping.keySet().iterator();
-		while (keys.hasNext()) {
-			Schema schema = scriptSchemaMapping.get(keys.next());
-			String schemaName = schema.getTargetSchemaName();
-			if (isSplit) {
-				this.addTargetTableFileName(schemaName, getTableFullName(schemaName));
-				this.addTargetViewFileName(schemaName, getViewFullName(schemaName));
-				this.addTargetViewQuerySpecFileName(schemaName, getViewQuerySpecFullName(schemaName));
-				this.addTargetPkFileName(schemaName, getPkFullName(schemaName));
-				this.addTargetFkFileName(schemaName, getFkFullName(schemaName));
-				this.addTargetSerialFileName(schemaName, getSequenceFullName(schemaName));
-				this.addTargetSynonymFileName(schemaName, getSynonymFullName(schemaName));
-				this.addTargetGrantFileName(schemaName, getGrantFullName(schemaName));
-				this.addTargetSchemaFileListName(schemaName, getSchemaFileListFullName(schemaName));
-			} else {
-				this.addTargetSchemaFileName(schemaName, getSchemaFullName(schemaName));
+	public void createDumpfile(boolean isSplit, boolean isAddUserSchema, boolean isOneTableOneFile) {
+		if (isAddUserSchema) {
+			Iterator<String> keys = scriptSchemaMapping.keySet().iterator();
+			while (keys.hasNext()) {
+				Schema schema = scriptSchemaMapping.get(keys.next());
+				addTargetObjectFileName(schema.getName(), isSplit, isOneTableOneFile);
 			}
-			this.addTargetDataFileName(schemaName, getDataFullName(schemaName));
-			this.addTargetIndexFileName(schemaName, getIndexFullName(schemaName));
-			this.addTargetUpdateStatisticFileName(schemaName, getUpdateStatisticFullName(schemaName));
+		} else {
+			addTargetObjectFileName(this.getSourceConParams().getConUser(), isSplit, isOneTableOneFile);
 		}
+	}
+	
+	private void addTargetObjectFileName(String schemaName, boolean isSplit, boolean isOneTableOneFile) {
+		if (isSplit) {
+			this.addTargetTableFileName(schemaName, getTableFullName(schemaName));
+			this.addTargetViewFileName(schemaName, getViewFullName(schemaName));
+			this.addTargetViewQuerySpecFileName(schemaName, getViewQuerySpecFullName(schemaName));
+			this.addTargetPkFileName(schemaName, getPkFullName(schemaName));
+			this.addTargetFkFileName(schemaName, getFkFullName(schemaName));
+			this.addTargetSerialFileName(schemaName, getSequenceFullName(schemaName));
+			this.addTargetSynonymFileName(schemaName, getSynonymFullName(schemaName));
+			this.addTargetSchemaFileListName(schemaName, getSchemaFileListFullName(schemaName));
+			
+			Map<String, Map<String, String>> grantFileListFullName = new HashMap<String, Map<String, String>>();
+			for (SourceGrantConfig grant : expGrants) {
+				if (!grantFileListFullName.containsKey(schemaName)) {
+					grantFileListFullName.put(schemaName, new HashMap<String, String>());
+				}
+				Map<String, String> grantMap = grantFileListFullName.get(schemaName);
+				if (!grantMap.containsKey(grant.getSourceObjectOwner())) {
+					this.addTargetGrantFileName(schemaName, grant.getSourceGrantorName(), 
+							getGrantFullName(schemaName, grant.getSourceGrantorName()));
+				}
+			}
+		} else {
+			this.addTargetSchemaFileName(schemaName, getSchemaFullName(schemaName));
+		}
+		if (isOneTableOneFile) {
+			for (SourceEntryTableConfig table : expTables) {
+				this.addTargetTableDataFileName(schemaName, getTableDataFullName(schemaName, table.getName()));
+			}
+		} else {
+			this.addTargetTableDataFileName(schemaName, getDataFullName(schemaName));
+		}
+		this.addTargetDataFileName(schemaName, getDataFullName(schemaName));
+		this.addTargetIndexFileName(schemaName, getIndexFullName(schemaName));
+		this.addTargetUpdateStatisticFileName(schemaName, getUpdateStatisticFullName(schemaName));
 	}
 	
 	private String getTargetOwner(List<Schema> schemas, String owner) {
@@ -1375,6 +1408,7 @@ public class MigrationConfiguration {
 					tVw.setName(sc.getTarget());
 					tVw.setOwner(sc.getTargetOwner());
 					tVw.setComment(vw.getComment());
+					tVw.setSourceOwner(sc.getOwner());
 				}
 				tempTarList.add(tVw);
 			}
@@ -1574,20 +1608,75 @@ public class MigrationConfiguration {
 			path2 = path + File.separator;
 		}
 		
-		for (Schema schema : srcCatalog.getSchemas()) {
-			addTargetSchemaFileName(schema.getName(), path2 + targetSchemaFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetTableFileName(schema.getName(), path2 + targetTableFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetViewFileName(schema.getName(), path2 + targetViewFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetViewQuerySpecFileName(schema.getName(), path2 + targetViewQuerySpecFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetPkFileName(schema.getName(), path2 + targetPkFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetFkFileName(schema.getName(), path2 + targetFkFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetDataFileName(schema.getName(), path2 + targetDataFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetIndexFileName(schema.getName(), path2 + targetIndexFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetSerialFileName(schema.getName(), path2 + targetSerialFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetUpdateStatisticFileName(schema.getName(), path2 + targetUpdateStatisticFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetSchemaFileListName(schema.getName(), path2 + targetSchemaFileListName.get(schema.getName().substring(tempPath.length())));
-			addTargetSynonymFileName(schema.getName(), path2 + targetSynonymFileName.get(schema.getName().substring(tempPath.length())));
-			addTargetGrantFileName(schema.getName(), path2 + targetGrantFileName.get(schema.getName().substring(tempPath.length())));
+		if (isAddUserSchema()) {
+			for (Schema schema : srcCatalog.getSchemas()) {
+				mergeTargetFilePath(schema.getName(), tempPath, path2);
+			}
+		} else {
+			mergeTargetFilePath(getSourceConParams().getConUser(), tempPath, path2);
+		}
+	}
+	
+	private void mergeTargetFilePath(String schemaName, String tempPath, String path2) {
+		if (this.splitSchema) {
+			if (targetTableFileName.get(schemaName) != null) {
+				addTargetTableFileName(schemaName, path2 + targetTableFileName.get(schemaName).substring(tempPath.length()));
+			}
+			if (targetViewFileName.get(schemaName) != null) {
+				addTargetViewFileName(schemaName, path2 + targetViewFileName.get(schemaName).substring(tempPath.length()));
+			}
+			if (targetViewQuerySpecFileName.get(schemaName) != null) {
+				addTargetViewQuerySpecFileName(schemaName, path2 + targetViewQuerySpecFileName.get(schemaName).substring(tempPath.length()));
+			}
+			if (targetPkFileName.get(schemaName) != null) {
+				addTargetPkFileName(schemaName, path2 + targetPkFileName.get(schemaName).substring(tempPath.length()));
+			}
+			if (targetFkFileName.get(schemaName) != null) {
+				addTargetFkFileName(schemaName, path2 + targetFkFileName.get(schemaName).substring(tempPath.length()));
+			}
+			if (targetSerialFileName.get(schemaName) != null) {
+				addTargetSerialFileName(schemaName, path2 + targetSerialFileName.get(schemaName).substring(tempPath.length()));
+			}
+			if (targetSynonymFileName.get(schemaName) != null) {
+				addTargetSynonymFileName(schemaName, path2 + targetSynonymFileName.get(schemaName).substring(tempPath.length()));
+			}
+			if (targetSchemaFileListName.get(schemaName) != null) {
+				addTargetSchemaFileListName(schemaName, path2 + targetSchemaFileListName.get(schemaName).substring(tempPath.length()));
+			}
+			if (targetGrantFileName.get(schemaName) != null) {
+				Map<String, String> grantFileFullName = targetGrantFileName.get(schemaName);
+				for (SourceGrantConfig sgc : expGrants) {
+					if(!grantFileFullName.containsKey(schemaName)) {
+						continue;
+					}
+					if (grantFileFullName.get(schemaName) != null) {
+						addTargetGrantFileName(schemaName, sgc.getSourceObjectOwner(), 
+								path2 + grantFileFullName.get(schemaName).substring(tempPath.length()));
+					}
+				}
+			}
+		} else {
+			if (targetSchemaFileName.get(schemaName) != null) {
+				addTargetSchemaFileName(schemaName, path2 + targetSchemaFileName.get(schemaName).substring(tempPath.length()));
+			}
+		}
+		if (this.isOneTableOneFile()) {
+			if (targetTableDataFileName.get(schemaName) != null) {
+				List<String> filePaths = targetTableDataFileName.get(schemaName);
+				for (String filePath : filePaths) {
+					addTargetTableDataFileName(schemaName, path2 + filePath.substring(tempPath.length()));
+				}
+			}
+		} else {
+			if (targetDataFileName.get(schemaName) != null) {
+				addTargetDataFileName(schemaName, path2 + targetDataFileName.get(schemaName).substring(tempPath.length()));
+			}
+		}
+		if (targetIndexFileName.get(schemaName) != null) {
+			addTargetIndexFileName(schemaName, path2 + targetIndexFileName.get(schemaName).substring(tempPath.length()));
+		}
+		if (targetUpdateStatisticFileName.get(schemaName) != null) {
+			addTargetUpdateStatisticFileName(schemaName, path2 + targetUpdateStatisticFileName.get(schemaName).substring(tempPath.length()));
 		}
 	}
 
@@ -2854,6 +2943,10 @@ public class MigrationConfiguration {
 		this.targetSchemaList.addAll(targetSchemaList);
 	}
 	
+	public void removeTargetSchemaList() {
+		this.targetSchemaList.clear();
+	}
+	
 	/**
 	 * Retrieves the target charset;UTF-8 will be returned by default.
 	 * 
@@ -3097,12 +3190,22 @@ public class MigrationConfiguration {
 		return this.targetSynonymFileName.get(schemaName);
 	}
 	
-	public Map<String, String> getTargetGrantFileName1() {
-		return new HashMap<String, String>(this.targetGrantFileName);
+	public Map<String, Map<String, String>> getTargetGrantFileName() {
+		return new HashMap<String, Map<String, String>>(this.targetGrantFileName);
 	}
 	
-	public String getTargetGrantFileName(String schemaName) {
-		return this.targetGrantFileName.get(schemaName);
+	public Map<String, String> getTargetGrantFileName(String schemaName) {
+		return this.targetGrantFileName.get(schemaName) != null ? 
+				new HashMap<String, String>(this.targetGrantFileName.get(schemaName)) : null;
+	}
+	
+	public Map<String, List<String>> getTargetTableDataFileName() {
+		return new HashMap<String, List<String>>(this.targetTableDataFileName);
+	}
+
+	public List<String> getTargetTableDataFileName(String schemaName) {
+		return this.targetTableDataFileName.get(schemaName) != null ? 
+				new ArrayList<String>(this.targetTableDataFileName.get(schemaName)) : null;
 	}
 
 	/**
@@ -3972,19 +4075,34 @@ public class MigrationConfiguration {
 		setFileRepositroyPath(odir);
 		setTargetFilePrefix(prefix);
 		for (Schema schema : srcCatalog.getSchemas()) {
-			addTargetSchemaFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_schema"));
-			addTargetTableFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_class"));
-			addTargetViewFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_vclass"));
-			addTargetViewQuerySpecFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_vclass_query_spec"));
-			addTargetPkFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_pk"));
-			addTargetFkFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_fk"));
-			addTargetIndexFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_indexes"));
-			addTargetSerialFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_serial"));
-			addTargetDataFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_objects" + getDataFileExt()));
-			addTargetUpdateStatisticFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_updatestatistic"));
-			addTargetSchemaFileListName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_info"));
-			addTargetSynonymFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_synonym"));
-			addTargetGrantFileName(schema.getName(), PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schema.getName() + "_grant"));
+			String schemaName = schema.getName();
+			addTargetSchemaFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_schema"));
+			addTargetTableFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_class"));
+			addTargetViewFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_vclass"));
+			addTargetViewQuerySpecFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_vclass_query_spec"));
+			addTargetPkFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_pk"));
+			addTargetFkFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_fk"));
+			addTargetIndexFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_indexes"));
+			addTargetSerialFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_serial"));
+			addTargetDataFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_objects" + getDataFileExt()));
+			addTargetUpdateStatisticFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_updatestatistic"));
+			addTargetSchemaFileListName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_info"));
+			addTargetSynonymFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_synonym"));
+			
+			Map<String, Map<String, String>> grantFileListFullName = new HashMap<String, Map<String, String>>();
+			for (SourceGrantConfig sgc : expGrants) {
+				if (!grantFileListFullName.containsKey(schemaName)) {
+					grantFileListFullName.put(schemaName, new HashMap<String, String>());
+				}
+				Map<String, String> grantMap = grantFileListFullName.get(schemaName);
+				if (!grantMap.containsKey(sgc.getSourceObjectOwner())) {
+					addTargetGrantFileName(schemaName, sgc.getSourceObjectOwner(),
+					PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_grant." + sgc.getSourceObjectOwner()));
+				}
+			}
+			for (Table table : schema.getTables()) {
+				addTargetTableDataFileName(schemaName, PathUtils.mergePath(PathUtils.mergePath(odir, prefix), schemaName + "_" + table.getName()));
+			}
 		}
 		setTargetCharSet(charset);
 	}
@@ -4295,12 +4413,26 @@ public class MigrationConfiguration {
 		this.targetSynonymFileName.put(schemaName, filePath);
 	}
 	
-	public void setTargetGrantFileName(Map<String, String> targetGrantFileName) {
+	public void setTargetGrantFileName(Map<String, Map<String, String>> targetGrantFileName) {
 		this.targetGrantFileName.putAll(targetGrantFileName);
 	}
 	
-	public void addTargetGrantFileName(String schemaName, String filePath) {
-		this.targetGrantFileName.put(schemaName, filePath);
+	public void addTargetGrantFileName(String schemaName, String sourceObjectOwnerName, String filePath) {
+		if (this.targetGrantFileName.get(schemaName) == null) {
+			this.targetGrantFileName.put(schemaName, new HashMap<String, String>());
+		}
+		this.targetGrantFileName.get(schemaName).put(sourceObjectOwnerName, filePath);
+	}
+	
+	public void setTargetTableDataFileName(Map<String, List<String>> targetTableDataFileName) {
+		this.targetTableDataFileName.putAll(targetTableDataFileName);
+	}
+
+	public void addTargetTableDataFileName(String schemaName, String filePath) {
+		if (this.targetTableDataFileName.get(schemaName) == null) {
+			this.targetTableDataFileName.put(schemaName, new ArrayList<String>());
+		}
+		this.targetTableDataFileName.get(schemaName).add(filePath);
 	}
 
 	/**
@@ -4502,6 +4634,10 @@ public class MigrationConfiguration {
 			return "";
 		}
 		return ".sql";
+	}
+	
+	public String getTargetGrantFileExtName(String grantTargetObjectOwnerName) {
+		return targetIsDBDump() ? "." + grantTargetObjectOwnerName : "_" + grantTargetObjectOwnerName + ".sql";
 	}
 	
 	public void clearScriptMapping() {
@@ -4717,10 +4853,25 @@ public class MigrationConfiguration {
 	 * @param targetSchemaName
 	 * @return grant file full path
 	 */
-	public String getGrantFullName(String targetSchemaName) {
+	public String getGrantFullName(String targetSchemaName, String grantTargetObjectOwnerName) {
 		StringBuffer fileName = new StringBuffer();
 		fileName.append(File.separator).append(this.getTargetFilePrefix()).append("_").append(targetSchemaName).append("_grant").append(
-				this.getDefaultTargetSchemaFileExtName());
+				this.getTargetGrantFileExtName(grantTargetObjectOwnerName));
+		
+		return PathUtils.mergePath(PathUtils.mergePath(this.getFileRepositroyPath(), targetSchemaName), fileName.toString());
+	}
+	
+	/**
+	 * get one table one file full path
+	 * 
+	 * @param targetSchemaName
+	 * @param tableName
+	 * @return table data file full path
+	 */
+	public String getTableDataFullName(String targetSchemaName, String tableName) {
+		StringBuffer fileName = new StringBuffer();
+		fileName.append(File.separator).append(this.getTargetFilePrefix()).append("_").append(targetSchemaName).append("_").append(
+				tableName).append(getDataFileExt());
 		
 		return PathUtils.mergePath(PathUtils.mergePath(this.getFileRepositroyPath(), targetSchemaName), fileName.toString());
 	}

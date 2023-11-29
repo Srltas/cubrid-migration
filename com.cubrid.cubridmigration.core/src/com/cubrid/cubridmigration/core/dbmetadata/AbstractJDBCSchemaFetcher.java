@@ -145,7 +145,7 @@ public abstract class AbstractJDBCSchemaFetcher implements
 		//		} else {
 		//			result.add(cp.getDbName());
 		//		}
-		result.add(cp.getDbName());
+		result.add(cp.getConUser().toUpperCase(Locale.US));
 		return result;
 	}
 

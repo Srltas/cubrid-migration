@@ -2302,6 +2302,7 @@ public final class CUBRIDSchemaFetcher extends
 				grant.setAuthType(rs.getString("auth_type"));
 				grant.setGrantable(rs.getString("is_grantable").equals("NO") ? false : true);
 				grant.setClassOwner(isUserSchema ? rs.getString("owner_name") : null);
+				grant.setSourceObjectOwner(grant.getClassOwner());
 				grant.setDDL(CUBRIDSQLHelper.getInstance(null).getGrantDDL(grant, isUserSchema));
 				grants.add(grant);
 			}
@@ -2445,6 +2446,10 @@ public final class CUBRIDSchemaFetcher extends
 		LOG.info("Start the [getSchemaNames]");
 //		Integer ver = Integer.parseInt("" + conn.getMetaData().getDatabaseMajorVersion() 
 //				+ conn.getMetaData().getDatabaseMinorVersion());
+		
+		if (ver < 112) {
+			return super.getSchemaNames(conn, cp);
+		}
 		
 		if (!getPrivilege(conn, cp)) {
 			return getUserSchemaNames(conn, cp);
