@@ -35,7 +35,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -778,14 +782,33 @@ public final class MigrationTemplateParser {
 					col.setAttribute(TemplateTags.ATTR_TARGET, sccc.getTarget());
 					col.setAttribute(TemplateTags.ATTR_CREATE, getBooleanString(sccc.isCreate()));
 				}
+				
 			}
 			return;
 		}
 		Element schemas = createElement(document, source, TemplateTags.TAG_SCHEMAS);
-		Catalog srcCatalog = config.getSrcCatalog();
+		List<Schema> schemaList = null;
 		
-		if (srcCatalog != null){
-			for (Schema schema : srcCatalog.getSchemas()) {
+		Catalog srcCatalog = config.getSrcCatalog();
+		if (srcCatalog != null) {
+			schemaList = srcCatalog.getSchemas();
+		} else {
+			schemaList = new ArrayList<Schema>();
+			Map<String, Schema> schemaMap = config.getScriptSchemaMapping();
+			List<String> schemaKeyList = new ArrayList<String>(schemaMap.keySet());
+			for (String key : schemaKeyList) {
+				schemaList.add(schemaMap.get(key));
+			}
+			class schemaCompare implements Comparator<Schema> {
+				public int compare(Schema s1, Schema s2) {
+					return s1.getName().compareTo(s2.getName());
+				}
+			}
+			Collections.sort(schemaList, new schemaCompare());
+		}
+		
+		if (schemaList != null){
+			for (Schema schema : schemaList) {
 				Element schemaElement = createElement(document, schemas, TemplateTags.TAG_SCHEMA_INFO);
 				
 				schemaElement.setAttribute(TemplateTags.ATTR_SCHEMA_NAME, schema.getName());
