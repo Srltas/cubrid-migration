@@ -618,18 +618,26 @@ public class SchemaMappingPage extends MigrationWizardPage {
 		wizard = getMigrationWizard();
 		config = wizard.getMigrationConfig();
 
-		if (firstVisible) {
-			setTitle(Messages.schemaMappingPageTitle);
-			setDescription(Messages.schemaMappingPageDescription);
-			
-			if (!config.targetIsOnline()) {
-				setOfflineSchemaMappingPage();
-			} else {
-				setOnlineSchemaMappingPage();
-			}
-			srcTableViewer.setInput(srcTableList);
-			firstVisible = false;
+		if (srcTableList != null) {
+			srcTableList.clear();
 		}
+
+		setTitle(wizard.getStepNoMsg(this) + Messages.schemaMappingPageTitle);
+		if ((config.targetIsOnline() && !wizard.getTargetCatalog().isDBAGroup())
+				|| (!config.targetIsOnline()) && !config.isAddUserSchema()) {
+			setDescription(Messages.schemaMappingPageDescriptionUncorrectable);
+		} else {
+			setDescription(Messages.schemaMappingPageDescription);
+		}
+
+		if (!config.targetIsOnline()) {
+			setOfflineSchemaMappingPage();
+		} else {
+			setOnlineSchemaMappingPage();
+		}
+
+		srcTableViewer.setInput(srcTableList);
+		firstVisible = firstVisible ? false : true;
 		logger.info("End the [afterShowCurrentPage]");
 		long endTime = System.currentTimeMillis();
 		logger.info("execution time [afterShowCurrentPage] " + (endTime - startTime) + "ms");
