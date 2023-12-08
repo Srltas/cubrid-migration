@@ -29,6 +29,7 @@
  */
 package com.cubrid.cubridmigration.core.engine.exporter.impl;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -214,7 +215,13 @@ public class JDBCExporter extends
 		StringBuffer pkValue = new StringBuffer();
 		if (tablePkColumns != null) {
 			for (String tablePkColumn : tablePkColumns) {
-				String value = (String) columnValueMap.get(tablePkColumn);
+				String value = null;
+				Object columnValue = columnValueMap.get(tablePkColumn);
+				if (columnValue instanceof BigDecimal) {
+					value = columnValue.toString();
+				} else {
+					value = String.valueOf(columnValue);
+				}
 				pkValue.append(" ").append(value);
 			}
 		}
