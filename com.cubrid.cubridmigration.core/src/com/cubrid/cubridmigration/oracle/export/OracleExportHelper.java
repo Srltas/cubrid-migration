@@ -99,7 +99,7 @@ public class OracleExportHelper extends
 			if (column.getDataType().equalsIgnoreCase("BLOB")
 					|| column.getDataType().equalsIgnoreCase("CLOB")) {
 				LOG.error("Problem with LOB type column [" + column.getName()+ "]");
-				return null;
+				return "[LOB WARNING]";
 			}
 			throw new SQLException();
 		}

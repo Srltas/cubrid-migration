@@ -159,12 +159,24 @@ public class JDBCExporter extends
 				sCol = st.getColumnByName(cc.getName());
 				Object value = srcDBExportHelper.getJdbcObject(rs, sCol);
 				
-				if (value == null) {
+				if (value instanceof String && value.equals("[LOB WARNING]")) {
 					String sColDataType = sCol.getDataType();
 					if ((sColDataType.equalsIgnoreCase("BLOB") 
 							|| sColDataType.equalsIgnoreCase("CLOB"))) {
 						String pkValues = getPkValues(st, record);
 						String lobWarning = "[LOB WARNING]  table: " + st.getName()
+								+ "  column: " + sCol.getName()
+								+ "  pk:" + (pkValues.length() > 0 ? pkValues : " NULL");
+						
+						LOG.warn(lobWarning);
+						eventHandler.handleEvent(new MigrationErrorEvent(new NormalMigrationException(lobWarning)));
+					}
+				} else if (value == null) {
+					String sColDataType = sCol.getDataType();
+					if ((sColDataType.equalsIgnoreCase("BLOB") 
+							|| sColDataType.equalsIgnoreCase("CLOB"))) {
+						String pkValues = getPkValues(st, record);
+						String lobWarning = "[LOB NULL]  table: " + st.getName()
 								+ "  column: " + sCol.getName()
 								+ "  pk:" + (pkValues.length() > 0 ? pkValues : " NULL");
 						

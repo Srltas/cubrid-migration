@@ -97,6 +97,9 @@ public abstract class TableOrView extends
 			this.columns.clear();
 			return;
 		}
+		if (!this.columns.isEmpty()) {
+			return;
+		}
 		this.columns.clear();
 		for (Column col : columns) {
 			addColumn(col);
