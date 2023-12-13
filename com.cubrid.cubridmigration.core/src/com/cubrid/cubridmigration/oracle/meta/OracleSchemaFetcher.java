@@ -1312,7 +1312,7 @@ public final class OracleSchemaFetcher extends
 			LOG.info("End the [getViewColumnComment]");
 			long endTime = System.currentTimeMillis();
 			LOG.info("execution time [getViewColumnComment] " + (endTime - startTime) + "ms");
-			return "\'" + comment + "\'";
+			return comment;
 		} catch (Exception e){
 			e.printStackTrace();
 			return null;

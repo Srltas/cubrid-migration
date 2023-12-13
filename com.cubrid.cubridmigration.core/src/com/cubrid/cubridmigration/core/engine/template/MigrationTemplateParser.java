@@ -344,6 +344,7 @@ public final class MigrationTemplateParser {
 				colNode.setAttribute(TemplateTags.ATTR_NAME, col.getName());
 				colNode.setAttribute(TemplateTags.ATTR_TYPE, col.getShownDataType());
 				colNode.setAttribute(TemplateTags.ATTR_BASE_TYPE, col.getDataType());
+				colNode.setAttribute(TemplateTags.ATTR_COMMENT, col.getComment());
 				if (col.getSubDataType() != null) {
 					colNode.setAttribute(TemplateTags.ATTR_SUB_TYPE, col.getSubDataType());
 				}
@@ -447,6 +448,7 @@ public final class MigrationTemplateParser {
 			table.setAttribute(TemplateTags.ATTR_REUSE_OID,
 					getBooleanString(targetTable.isReuseOID()));
 			table.setAttribute(TemplateTags.ATTR_SOURCE_OWNER, targetTable.getSourceOwner());
+			table.setAttribute(TemplateTags.ATTR_COMMENT, targetTable.getComment());
 
 			Element columns = createElement(document, table, TemplateTags.TAG_COLUMNS);
 			List<Column> cols = targetTable.getColumns();
@@ -458,6 +460,7 @@ public final class MigrationTemplateParser {
 				colNode.setAttribute(TemplateTags.ATTR_NULL, getBooleanString(col.isNullable()));
 				colNode.setAttribute(TemplateTags.ATTR_AUTO_INCREMENT,
 						getBooleanString(col.isAutoIncrement()));
+				colNode.setAttribute(TemplateTags.ATTR_COMMENT, col.getComment());
 
 				colNode.setAttribute(TemplateTags.ATTR_UNIQUE, getBooleanString(col.isUnique()));
 				colNode.setAttribute(TemplateTags.ATTR_SHARED, getBooleanString(col.isShared()));
@@ -530,6 +533,7 @@ public final class MigrationTemplateParser {
 								list2String(index.getColumnOrderRulesString()));
 						//						indexNode.setAttribute(TemplateTags.ATTR_PRE_FIX,
 						//								index.getMigrationPrefix());
+						indexNode.setAttribute(TemplateTags.ATTR_COMMENT, index.getComment());
 					}
 				}
 			}
@@ -851,6 +855,7 @@ public final class MigrationTemplateParser {
 				col.setAttribute(TemplateTags.ATTR_TRIM, getBooleanString(scc.isNeedTrim()));
 				col.setAttribute(TemplateTags.ATTR_REPLACE_EXPRESSION, scc.getReplaceExp());
 				col.setAttribute(TemplateTags.ATTR_USER_DATA_HANDLER, scc.getUserDataHandler());
+				col.setAttribute(TemplateTags.ATTR_COMMENT, scc.getComment());
 			}
 			
 			List<SourceIndexConfig> indexConfigList = setc.getIndexConfigList();
@@ -870,6 +875,7 @@ public final class MigrationTemplateParser {
 				Element index = createElement(document, constraints, TemplateTags.TAG_INDEX);
 				index.setAttribute(TemplateTags.ATTR_NAME, sic.getName());
 				index.setAttribute(TemplateTags.ATTR_TARGET, sic.getTarget());
+				index.setAttribute(TemplateTags.ATTR_COMMENT, sic.getComment());
 			}
 		}
 		//source SQL-tables
@@ -938,6 +944,7 @@ public final class MigrationTemplateParser {
 				vwNode.setAttribute(TemplateTags.ATTR_OWNER, sc.getOwner());
 				vwNode.setAttribute(TemplateTags.ATTR_NAME, sc.getName());
 				vwNode.setAttribute(TemplateTags.ATTR_TARGET, sc.getTarget());
+				vwNode.setAttribute(TemplateTags.ATTR_COMMENT, sc.getComment());
 			}
 		}
 		//source grants

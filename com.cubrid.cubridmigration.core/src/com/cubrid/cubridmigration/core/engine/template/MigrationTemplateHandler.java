@@ -285,6 +285,7 @@ public final class MigrationTemplateHandler extends
 			System.out.println(targetTable.getName() + ":" + column.getName());
 
 		}
+		column.setComment(attributes.getValue(TemplateTags.ATTR_COMMENT));
 		dtHelper.setColumnDataType(type, column);
 		targetTable.addColumn(column);
 		//column.setUnique(unique);
@@ -366,6 +367,7 @@ public final class MigrationTemplateHandler extends
 		//index.setMigrationPrefix(attributes.getValue(TemplateTags.ATTR_PRE_FIX));
 		index.setUnique(getBoolean(attributes.getValue(TemplateTags.ATTR_UNIQUE), false));
 		index.setReverse(getBoolean(attributes.getValue(TemplateTags.ATTR_REVERSE), false));
+		index.setComment(attributes.getValue(TemplateTags.ATTR_COMMENT));
 
 		// If a XE template has a unique index, it need to check whether reverse unique or normal unique.
 		//		if (index.isReverse()) {
@@ -401,7 +403,6 @@ public final class MigrationTemplateHandler extends
 		PK pk = new PK(targetTable);
 		targetTable.setPk(pk);
 		pk.setPkColumns(getStringList(attributes.getValue(TemplateTags.ATTR_FIELDS)));
-
 	}
 
 	/**
@@ -489,6 +490,7 @@ public final class MigrationTemplateHandler extends
 				targetTable.setOwner(null);
 			}
 		}
+		targetTable.setComment(attributes.getValue(TemplateTags.ATTR_COMMENT));
 			
 		config.addTargetTableSchema(targetTable);
 	}
@@ -504,6 +506,7 @@ public final class MigrationTemplateHandler extends
 		targetView.setTargetOwner(attributes.getValue(TemplateTags.ATTR_TARGET_OWNER));
  		targetView.setName(attributes.getValue(TemplateTags.ATTR_NAME));
  		targetView.setSourceOwner(attributes.getValue(TemplateTags.ATTR_SOURCE_OWNER));
+ 		targetView.setComment(attributes.getValue(TemplateTags.ATTR_COMMENT));
  		config.addTargetViewSchema(targetView);
 	}
 
@@ -517,6 +520,7 @@ public final class MigrationTemplateHandler extends
 		targetView.addColumn(column);
 		column.setTableOrView(targetView);
 		column.setName(attributes.getValue(TemplateTags.ATTR_NAME));
+		column.setComment(attributes.getValue(TemplateTags.ATTR_COMMENT));
 		dtHelper.setColumnDataType(attributes.getValue(TemplateTags.ATTR_TYPE), column);
 	}
 
@@ -664,6 +668,7 @@ public final class MigrationTemplateHandler extends
 					true));
 			setc.setStartFromTargetMax(getBoolean(
 					attributes.getValue(TemplateTags.ATTR_START_TAR_MAX), false));
+			setc.setComment(attributes.getValue(TemplateTags.ATTR_COMMENT));
 			config.addExpEntryTableCfg(setc);
 
 		} else if (TemplateTags.TAG_COLUMN.equals(qName)) {
@@ -674,6 +679,7 @@ public final class MigrationTemplateHandler extends
 			scc.setNeedTrim(getBoolean(attributes.getValue(TemplateTags.ATTR_TRIM), false));
 			scc.setReplaceExpression(attributes.getValue(TemplateTags.ATTR_REPLACE_EXPRESSION));
 			scc.setUserDataHandler(attributes.getValue(TemplateTags.ATTR_USER_DATA_HANDLER));
+			scc.setComment(attributes.getValue(TemplateTags.ATTR_COMMENT));
 		} else if (TemplateTags.TAG_FK.equals(qName)) {
 			((SourceEntryTableConfig) srcTableCfg).addFKConfig(
 					attributes.getValue(TemplateTags.ATTR_NAME),
@@ -682,6 +688,7 @@ public final class MigrationTemplateHandler extends
 			((SourceEntryTableConfig) srcTableCfg).addIndexConfig(
 					attributes.getValue(TemplateTags.ATTR_NAME),
 					attributes.getValue(TemplateTags.ATTR_TARGET), true);
+					attributes.getValue(TemplateTags.ATTR_COMMENT);
 		} else if (TemplateTags.TAG_SQLTABLE.equals(qName)) {
 			srcTableCfg = new SourceSQLTableConfig();
 			srcTableCfg.setName(attributes.getValue(TemplateTags.ATTR_NAME));
@@ -713,7 +720,8 @@ public final class MigrationTemplateHandler extends
 		} else if (TemplateTags.TAG_VIEW.equals(qName)) {
 			config.addExpViewCfg(attributes.getValue(TemplateTags.ATTR_OWNER),
 					attributes.getValue(TemplateTags.ATTR_NAME),
-					attributes.getValue(TemplateTags.ATTR_TARGET));
+					attributes.getValue(TemplateTags.ATTR_TARGET),
+					attributes.getValue(TemplateTags.ATTR_COMMENT));
 		} else if (TemplateTags.TAG_GRANT.equals(qName)) {
 			config.addExpGrantCfg(attributes.getValue(TemplateTags.ATTR_OWNER),
 					attributes.getValue(TemplateTags.ATTR_NAME),
