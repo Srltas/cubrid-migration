@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="com.cubrid.cubridmigration.app.feature"
+      label="CUBRID Migration Toolkit Application"
+      version="1.0.0.202401061421"
+      provider-name="%providerName"
+      plugin="com.cubrid.cubridmigration.app">
+
+   <description url="http://www.cubrid.org">
+      %description
+   </description>
+
+   <copyright url="http://www.cubrid.org">
+      %copyright
+   </copyright>
+
+   <license url="http://www.cubrid.org">
+      %licence
+   </license>
+
+   <url>
+      <update label="CUBRID Migration Toolkit" url="http://ftp.cubrid.org/sites/rcp/cubridmigration/"/>
+   </url>
+
+   <includes
+         id="org.eclipse.rcp"
+         version="4.16.0.v20200604-0951"/>
+
+   <requires>
+      <import plugin="org.eclipse.core.runtime" version="0.0.0" match="compatible"/>
+      <import plugin="com.cubrid.common.configuration" version="0.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui" version="0.0.0" match="compatible"/>
+      <import plugin="org.eclipse.equinox.p2.ui" version="0.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jface" version="0.0.0" match="compatible"/>
+      <import plugin="com.ibm.icu"/>
+      <import plugin="org.eclipse.osgi"/>
+   </requires>
+
+   <plugin
+         id="com.cubrid.cubridmigration.core"
+         version="1.0.0.202401061421"
+         unpack="false" download-size="44738" install-size="49591"/>
+
+   <plugin
+         id="com.cubrid.cubridmigration.ui"
+         version="1.0.0.202401061421"
+         unpack="false" download-size="1665" install-size="2807"/>
+
+   <plugin
+         id="com.cubrid.cubridmigration.app"
+         version="1.0.0.202401061421"
+         unpack="false" download-size="248" install-size="1082"/>
+
+   <plugin
+         id="org.eclipse.ui.forms"
+         version="3.9.100.v20200413-1417"
+         unpack="false" download-size="324" install-size="653"/>
+
+   <plugin
+         id="com.cubrid.common.configuration"
+         version="1.0.0.202401061421"
+         unpack="false" download-size="270" install-size="294"/>
+
+</feature>

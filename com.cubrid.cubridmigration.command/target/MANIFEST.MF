@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: com.cubrid.cubridmigration.command
+Bundle-Name: CUBRID Migration Toolkit Plugin Feature
+Bundle-Version: 1.0.0.202401061421
+Bundle-Localization: plugin
+Bundle-ClassPath: .,lib/commons-io-2.1.0.jar
+Require-Bundle: org.eclipse.ui,org.eclipse.core.runtime,com.cubrid.cub
+ ridmigration.core,com.cubrid.cubridmigration.ui,org.eclipse.equinox.p
+ 2.ui
+Bundle-ManifestVersion: 2
+Bundle-Activator: com.cubrid.cubridmigration.command
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: CUBRID
+

@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: com.cubrid.common.configuration;singleton:=true
+Export-Package: com.cubrid.common.configuration.classloader,com.cubrid
+ .common.configuration.jdbc,com.cubrid.common.configuration
+Bundle-Name: Common Configration Migration
+Bundle-Version: 1.0.0.202401061421
+Bundle-ClassPath: .,lib/commons-lang-2.6.jar
+Bundle-ManifestVersion: 2
+Bundle-Activator: com.cubrid.common.configuration.Activator
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: CUBRID
+Import-Package: org.osgi.framework;version="0.0.0"
+

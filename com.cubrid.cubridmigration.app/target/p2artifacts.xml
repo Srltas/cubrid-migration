@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?artifactRepository version='1.1.0'?>
+<artifacts size='1'>
+  <artifact classifier='osgi.bundle' id='com.cubrid.cubridmigration.app' version='1.0.0.202401061421'>
+    <properties size='5'>
+      <property name='artifact.size' value='253999'/>
+      <property name='download.size' value='253999'/>
+      <property name='maven-groupId' value='com.cubrid.cubridmigration'/>
+      <property name='maven-artifactId' value='com.cubrid.cubridmigration.app'/>
+      <property name='maven-version' value='1.0.0-SNAPSHOT'/>
+    </properties>
+  </artifact>
+</artifacts>

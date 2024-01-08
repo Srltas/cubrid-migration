@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="com.cubrid.cubridmigration.plugin.feature"
+      label="CUBRID Migration Toolkit Plug-in"
+      version="1.0.0.202401061421"
+      provider-name="CUBRID"
+      plugin="com.cubrid.cubridmigration.plugin">
+
+   <description url="http://www.cubrid.org">
+      %description
+   </description>
+
+   <copyright url="http://www.cubrid.org">
+      %copyright
+   </copyright>
+
+   <license url="http://www.cubrid.org">
+      %licence
+   </license>
+
+   <requires>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.equinox.p2.ui"/>
+      <import plugin="org.eclipse.ui.forms"/>
+      <import plugin="com.cubrid.common.configuration" version="1.0.0" match="greaterOrEqual"/>
+   </requires>
+
+   <plugin
+         id="com.cubrid.cubridmigration.core"
+         version="1.0.0.202401061421"
+         unpack="false" download-size="44738" install-size="49591"/>
+
+   <plugin
+         id="com.cubrid.cubridmigration.plugin"
+         version="1.0.0.202401061421"
+         unpack="false" download-size="21" install-size="26"/>
+
+   <plugin
+         id="com.cubrid.cubridmigration.ui"
+         version="1.0.0.202401061421"
+         unpack="false" download-size="1665" install-size="2807"/>
+
+</feature>

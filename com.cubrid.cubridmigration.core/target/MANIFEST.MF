@@ -1,0 +1,367 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: com.cubrid.cubridmigration.core
+Export-Package: com.ctc.wstx.api; uses:="org.codehaus.stax2,  com.ctc.
+ wstx.dtd,  com.ctc.wstx.io,  org.codehaus.stax2.io,  org.codehaus.sta
+ x2.validation,  com.ctc.wstx.util,  javax.xml.stream,  com.ctc.wstx.e
+ nt,  com.ctc.wstx.cfg",com.ctc.wstx.cfg;uses:="javax.xml.stream",com.
+ ctc.wstx.compat;uses:="javax.xml.namespace",com.ctc.wstx.dom; uses:="
+ javax.xml.stream,  org.codehaus.stax2.ri.dom,  com.ctc.wstx.api,  jav
+ ax.xml.transform.dom,  com.ctc.wstx.sw,  org.w3c.dom,  javax.xml.name
+ space",com.ctc.wstx.dtd; uses:="com.ctc.wstx.io,  javax.xml.stream.ev
+ ents,  org.codehaus.stax2.validation,  com.ctc.wstx.util,  com.ctc.ws
+ tx.sr,  javax.xml.stream,  com.ctc.wstx.api,  com.ctc.wstx.ent",com.c
+ tc.wstx.ent; uses:="javax.xml.stream,  com.ctc.wstx.io,  com.ctc.wstx
+ .evt,  com.ctc.wstx.api",com.ctc.wstx.evt; uses:="org.codehaus.stax2,
+   com.ctc.wstx.dtd,  org.codehaus.stax2.ri,  javax.xml.stream.events,
+   javax.xml.namespace,  com.ctc.wstx.util,  com.ctc.wstx.sr,  javax.x
+ ml.stream,  org.codehaus.stax2.ri.evt,  javax.xml.stream.util",com.ct
+ c.wstx.exc;uses:="javax.xml.stream,org.codehaus.stax2.validation",com
+ .ctc.wstx.io; uses:="org.codehaus.stax2,  com.ctc.wstx.util,  javax.x
+ ml.stream,  com.ctc.wstx.api",com.ctc.wstx.msv; uses:="com.sun.msv.re
+ ader.util,  com.sun.msv.reader,  javax.xml.parsers,  org.relaxng.data
+ type,  org.codehaus.stax2.validation,  com.sun.msv.verifier.regexp,  
+ com.sun.msv.grammar.xmlschema,  org.xml.sax,  com.ctc.wstx.util,  com
+ .sun.msv.util,  com.sun.msv.grammar,  com.sun.msv.verifier,  com.ctc.
+ wstx.api,  com.sun.msv.grammar.trex",com.ctc.wstx.osgi; uses:="org.co
+ dehaus.stax2,  org.osgi.framework,  org.codehaus.stax2.validation,  o
+ rg.codehaus.stax2.osgi",com.ctc.wstx.sax; uses:="com.ctc.wstx.dtd,  j
+ avax.xml.parsers,  org.xml.sax,  com.ctc.wstx.stax,  com.ctc.wstx.sr,
+   javax.xml.stream,  org.xml.sax.ext,  com.ctc.wstx.api,  org.xml.sax
+ .helpers",com.ctc.wstx.sr; uses:="com.ctc.wstx.exc,  com.ctc.wstx.dtd
+ ,  org.codehaus.stax2,  com.ctc.wstx.io,  org.codehaus.stax2.typed,  
+ org.codehaus.stax2.ri.typed,  org.codehaus.stax2.validation,  org.xml
+ .sax,  javax.xml.namespace,  com.ctc.wstx.util,  javax.xml.stream,  o
+ rg.xml.sax.ext,  com.ctc.wstx.api,  com.ctc.wstx.ent,  com.ctc.wstx.s
+ w,  com.ctc.wstx.cfg",com.ctc.wstx.stax; uses:="com.ctc.wstx.dtd,  or
+ g.codehaus.stax2,  com.ctc.wstx.io,  javax.xml.stream.events,  org.co
+ dehaus.stax2.ri,  javax.xml.namespace,  com.ctc.wstx.sr,  com.ctc.wst
+ x.util,  javax.xml.stream,  javax.xml.stream.util,  javax.xml.transfo
+ rm,  com.ctc.wstx.api,  com.ctc.wstx.sw,  com.ctc.wstx.cfg",com.ctc.w
+ stx.sw; uses:="org.codehaus.stax2,  javax.xml.stream.events,  org.cod
+ ehaus.stax2.ri,  org.codehaus.stax2.typed,  org.codehaus.stax2.ri.typ
+ ed,  org.codehaus.stax2.validation,  javax.xml.namespace,  com.ctc.ws
+ tx.util,  com.ctc.wstx.sr,  javax.xml.stream,  com.ctc.wstx.api,  com
+ .ctc.wstx.cfg",com.ctc.wstx.util; uses:="com.ctc.wstx.dtd,  org.codeh
+ aus.stax2.validation,  org.codehaus.stax2.typed,  org.codehaus.stax2.
+ ri.typed,  javax.xml.namespace,  org.xml.sax,  com.ctc.wstx.sr,  java
+ x.xml.stream,  org.xml.sax.ext,  com.ctc.wstx.api,  new com.ctc.wstx.
+ util",com.cubrid.cubridmigration.core;uses:="org.eclipse.core.runtime
+ ,org.osgi.framework",com.cubrid.cubridmigration.core.common;uses:="co
+ m.cubrid.cubridmigration.core.dbobject,org.apache.log4j",com.cubrid.c
+ ubridmigration.core.common.log;uses:="org.apache.log4j",com.cubrid.cu
+ bridmigration.core.common.xml,com.cubrid.cubridmigration.core.connect
+ ion;uses:="com.cubrid.cubridmigration.core.dbobject,com.cubrid.cubrid
+ migration.core.dbmetadata,com.cubrid.cubridmigration.core.dbtype",com
+ .cubrid.cubridmigration.core.datatype,com.cubrid.cubridmigration.core
+ .dbmetadata;uses:="com.cubrid.cubridmigration.core.dbobject,com.cubri
+ d.cubridmigration.core.connection,com.cubrid.cubridmigration.core.exp
+ ort",com.cubrid.cubridmigration.core.dbobject;uses:="com.cubrid.cubri
+ dmigration.core.dbtype,com.cubrid.cubridmigration.core.connection,com
+ .cubrid.cubridmigration.core.datatype",com.cubrid.cubridmigration.cor
+ e.dbtype; uses:="com.cubrid.cubridmigration.core.dbmetadata,  com.cub
+ rid.cubridmigration.core.connection,  com.cubrid.cubridmigration.core
+ .export,  com.cubrid.cubridmigration.core.sql",com.cubrid.cubridmigra
+ tion.core.engine; uses:="com.cubrid.cubridmigration.core.engine.confi
+ g,  com.cubrid.cubridmigration.core.engine.executors,  com.cubrid.cub
+ ridmigration.cubrid,  com.cubrid.cubridmigration.core.engine.event,  
+ com.cubrid.cubridmigration.core.engine.report",com.cubrid.cubridmigra
+ tion.core.engine.config; uses:="com.cubrid.cubridmigration.core.dbobj
+ ect,  com.cubrid.cubridmigration.core.dbtype,  com.cubrid.cubridmigra
+ tion.core.connection,  com.cubrid.cubridmigration.core.trans",com.cub
+ rid.cubridmigration.core.engine.event;uses:="com.cubrid.cubridmigrati
+ on.core.dbobject,com.cubrid.cubridmigration.core.engine.config",com.c
+ ubrid.cubridmigration.core.engine.exception,com.cubrid.cubridmigratio
+ n.core.engine.exporter;uses:="com.cubrid.cubridmigration.core.dbobjec
+ t,com.cubrid.cubridmigration.core.engine.config,com.cubrid.cubridmigr
+ ation.core.engine",com.cubrid.cubridmigration.core.engine.exporter.im
+ pl; uses:="org.apache.log4j,  com.cubrid.cubridmigration.core.export,
+   com.cubrid.cubridmigration.core.engine.executors,  org.xml.sax,  co
+ m.cubrid.cubridmigration.core.engine.config,  com.cubrid.cubridmigrat
+ ion.core.dbobject,  com.cubrid.cubridmigration.core.engine,  com.cubr
+ id.cubridmigration.core.engine.exporter,  org.xml.sax.helpers",com.cu
+ brid.cubridmigration.core.engine.importer;uses:="com.cubrid.cubridmig
+ ration.core.engine.config,com.cubrid.cubridmigration.core.dbobject,co
+ m.cubrid.cubridmigration.core.engine",com.cubrid.cubridmigration.core
+ .engine.importer.impl; uses:="com.cubrid.cubridmigration.core.dbobjec
+ t,  com.cubrid.cubridmigration.core.engine.config,  com.cubrid.cubrid
+ migration.core.engine.task,  org.apache.log4j,  com.cubrid.cubridmigr
+ ation.core.engine.executors,  com.cubrid.cubridmigration.core.engine.
+ importer,  com.cubrid.cubridmigration.core.engine,  com.cubrid.cubrid
+ migration.cubrid",com.cubrid.cubridmigration.core.engine.listener,com
+ .cubrid.cubridmigration.core.engine.report; uses:="com.cubrid.cubridm
+ igration.core.engine.config,  com.cubrid.cubridmigration.core.dbobjec
+ t,  org.apache.log4j,  com.cubrid.cubridmigration.core.engine.event",
+ com.cubrid.cubridmigration.core.engine.scheduler;uses:="com.cubrid.cu
+ bridmigration.core.engine.task,com.cubrid.cubridmigration.core.engine
+ ",com.cubrid.cubridmigration.core.engine.task; uses:="com.cubrid.cubr
+ idmigration.core.engine.task.imp,  com.cubrid.cubridmigration.core.db
+ object,  com.cubrid.cubridmigration.core.engine.config,  com.cubrid.c
+ ubridmigration.core.engine.task.exp,  com.cubrid.cubridmigration.core
+ .engine.executors,  com.cubrid.cubridmigration.core.engine.importer, 
+  com.cubrid.cubridmigration.core.engine,  com.cubrid.cubridmigration.
+ core.engine.exporter",com.cubrid.cubridmigration.core.engine.task.exp
+ ;uses:="com.cubrid.cubridmigration.core.engine.config,com.cubrid.cubr
+ idmigration.core.engine.task,com.cubrid.cubridmigration.core.engine",
+ com.cubrid.cubridmigration.core.engine.task.imp; uses:="com.cubrid.cu
+ bridmigration.core.dbobject,  com.cubrid.cubridmigration.core.engine.
+ config,  com.cubrid.cubridmigration.core.engine.task,  com.cubrid.cub
+ ridmigration.core.engine",com.cubrid.cubridmigration.core.engine.temp
+ late;uses:="com.cubrid.cubridmigration.core.engine.config,org.xml.sax
+ .helpers,org.xml.sax",com.cubrid.cubridmigration.core.export; uses:="
+ com.cubrid.cubridmigration.core.engine.config,  com.cubrid.cubridmigr
+ ation.core.dbobject,  com.cubrid.cubridmigration.core.dbtype,  org.ap
+ ache.log4j",com.cubrid.cubridmigration.core.hadoop;uses:="org.apache.
+ hadoop.fs",com.cubrid.cubridmigration.core.io,com.cubrid.cubridmigrat
+ ion.core.mapping;uses:="com.cubrid.cubridmigration.core.mapping.model
+ ",com.cubrid.cubridmigration.core.mapping.model;uses:="com.cubrid.cub
+ ridmigration.core.mapping",com.cubrid.cubridmigration.core.sql,com.cu
+ brid.cubridmigration.core.trans; uses:="com.cubrid.cubridmigration.co
+ re.dbobject,  com.cubrid.cubridmigration.core.engine.config,  com.cub
+ rid.cubridmigration.core.mapping,  com.cubrid.cubridmigration.core.db
+ type,  com.cubrid.cubridmigration.core.mapping.model,  com.cubrid.cub
+ ridmigration.cubrid.trans",com.cubrid.cubridmigration.cubrid; uses:="
+ com.cubrid.cubridmigration.core.dbobject,  com.cubrid.cubridmigration
+ .core.engine.config,  com.cubrid.cubridmigration.core.dbtype,  com.cu
+ brid.cubridmigration.core.trans,  com.cubrid.cubridmigration.core.sql
+ ",com.cubrid.cubridmigration.cubrid.exception,com.cubrid.cubridmigrat
+ ion.cubrid.export.handler;uses:="com.cubrid.cubridmigration.core.dbob
+ ject,com.cubrid.cubridmigration.core.export",com.cubrid.cubridmigrati
+ on.cubrid.format;uses:="com.cubrid.cubridmigration.core.engine.config
+ ,com.cubrid.cubridmigration.cubrid",com.cubrid.cubridmigration.cubrid
+ .format.csv;uses:="com.cubrid.cubridmigration.core.engine.config,com.
+ cubrid.cubridmigration.cubrid.format,com.cubrid.cubridmigration.cubri
+ d",com.cubrid.cubridmigration.cubrid.format.dump;uses:="com.cubrid.cu
+ bridmigration.cubrid.format,com.cubrid.cubridmigration.cubrid",com.cu
+ brid.cubridmigration.cubrid.meta; uses:="com.cubrid.cubridmigration.c
+ ore.dbobject,  com.cubrid.cubridmigration.core.dbmetadata,  com.cubri
+ d.cubridmigration.core.connection,  com.cubrid.cubridmigration.core.e
+ xport",com.cubrid.cubridmigration.cubrid.stmt,com.cubrid.cubridmigrat
+ ion.cubrid.stmt.handler,com.cubrid.cubridmigration.cubrid.trans; uses
+ :="com.cubrid.cubridmigration.core.engine.config,  com.cubrid.cubridm
+ igration.core.dbobject,  com.cubrid.cubridmigration.core.mapping,  co
+ m.cubrid.cubridmigration.core.trans,  com.cubrid.cubridmigration.core
+ .mapping.model",com.cubrid.cubridmigration.cubrid.trans.converter;use
+ s:="com.cubrid.cubridmigration.core.engine.config,com.cubrid.cubridmi
+ gration.core.trans",com.cubrid.cubridmigration.mariadb.trans,com.cubr
+ id.cubridmigration.mssql; uses:="com.cubrid.cubridmigration.core.dbob
+ ject,  com.cubrid.cubridmigration.core.dbtype,  com.cubrid.cubridmigr
+ ation.core.datatype,  com.cubrid.cubridmigration.core.sql",com.cubrid
+ .cubridmigration.mssql.meta; uses:="com.cubrid.cubridmigration.core.d
+ bobject,  com.cubrid.cubridmigration.core.dbmetadata,  com.cubrid.cub
+ ridmigration.core.connection,  com.cubrid.cubridmigration.core.export
+ ",com.cubrid.cubridmigration.mssql.trans; uses:="com.cubrid.cubridmig
+ ration.core.engine.config,  com.cubrid.cubridmigration.core.dbobject,
+   com.cubrid.cubridmigration.core.mapping,  com.cubrid.cubridmigratio
+ n.core.trans,  com.cubrid.cubridmigration.cubrid.trans",com.cubrid.cu
+ bridmigration.mysql; uses:="com.cubrid.cubridmigration.core.dbobject,
+   com.cubrid.cubridmigration.core.dbmetadata,  com.cubrid.cubridmigra
+ tion.core.io,  com.cubrid.cubridmigration.core.dbtype,  com.cubrid.cu
+ bridmigration.core.sql",com.cubrid.cubridmigration.mysql.export.handl
+ er;uses:="com.cubrid.cubridmigration.core.dbobject,com.cubrid.cubridm
+ igration.core.export",com.cubrid.cubridmigration.mysql.meta; uses:="c
+ om.cubrid.cubridmigration.core.dbobject,  com.cubrid.cubridmigration.
+ core.dbmetadata,  com.cubrid.cubridmigration.core.connection,  com.cu
+ brid.cubridmigration.core.export,  org.xml.sax.helpers,  org.xml.sax"
+ ,com.cubrid.cubridmigration.mysql.trans; uses:="com.cubrid.cubridmigr
+ ation.core.engine.config,  com.cubrid.cubridmigration.core.dbobject, 
+  com.cubrid.cubridmigration.core.mapping,  com.cubrid.cubridmigration
+ .core.trans,  com.cubrid.cubridmigration.core.mapping.model,  com.cub
+ rid.cubridmigration.cubrid.trans",com.cubrid.cubridmigration.oracle;u
+ ses:="com.cubrid.cubridmigration.core.dbobject,com.cubrid.cubridmigra
+ tion.core.dbtype,com.cubrid.cubridmigration.core.sql",com.cubrid.cubr
+ idmigration.oracle.export.handler;uses:="com.cubrid.cubridmigration.c
+ ore.dbobject,com.cubrid.cubridmigration.core.export.handler,com.cubri
+ d.cubridmigration.core.export",com.cubrid.cubridmigration.oracle.meta
+ ; uses:="com.cubrid.cubridmigration.core.dbobject,  com.cubrid.cubrid
+ migration.core.dbmetadata,  com.cubrid.cubridmigration.core.connectio
+ n,  com.cubrid.cubridmigration.core.export",com.cubrid.cubridmigratio
+ n.oracle.trans; uses:="com.cubrid.cubridmigration.core.engine.config,
+   com.cubrid.cubridmigration.core.dbobject,  com.cubrid.cubridmigrati
+ on.core.mapping,  com.cubrid.cubridmigration.core.trans,  com.cubrid.
+ cubridmigration.core.mapping.model,  com.cubrid.cubridmigration.cubri
+ d.trans",com.cubrid.jdbc.proxy.driver,com.cubrid.jdbc.proxy.manage;us
+ es:="org.eclipse.core.runtime,org.osgi.framework",com.jcraft.jsch,net
+ .sf.json;uses:="net.sf.json.processors,net.sf.json.util,org.apache.co
+ mmons.lang.exception",net.sf.json.filters;uses:="net.sf.json.util",ne
+ t.sf.json.groovy;uses:="groovy.lang,org.codehaus.groovy.runtime,net.s
+ f.json",net.sf.json.processors;uses:="net.sf.json",net.sf.json.regexp
+ ,net.sf.json.test;uses:="junit.framework,net.sf.json",net.sf.json.uti
+ l;uses:="org.apache.commons.beanutils,net.sf.ezmorph,net.sf.json",net
+ .sf.json.xml;uses:="net.sf.json",org.apache.commons.beanutils;uses:="
+ org.apache.commons.collections.keyvalue,org.apache.commons.collection
+ s,org.apache.commons.beanutils.expression",org.apache.commons.beanuti
+ ls.converters;uses:="org.apache.commons.beanutils,org.apache.commons.
+ logging",org.apache.commons.beanutils.expression,org.apache.commons.b
+ eanutils.locale;uses:="org.apache.commons.beanutils,org.apache.common
+ s.collections",org.apache.commons.beanutils.locale.converters;uses:="
+ org.apache.commons.beanutils.locale",org.apache.commons.cli,org.apach
+ e.commons.collections;uses:="org.apache.commons.collections.keyvalue,
+ new org.apache.commons.collections",org.apache.commons.collections.ba
+ g;uses:="org.apache.commons.collections,org.apache.commons.collection
+ s.collection,org.apache.commons.collections.set",org.apache.commons.c
+ ollections.bidimap; uses:="org.apache.commons.collections.iterators, 
+  org.apache.commons.collections.keyvalue,  org.apache.commons.collect
+ ions.map,  org.apache.commons.collections,  org.apache.commons.collec
+ tions.collection",org.apache.commons.collections.buffer;uses:="org.ap
+ ache.commons.collections,org.apache.commons.collections.collection",o
+ rg.apache.commons.collections.collection;uses:="org.apache.commons.co
+ llections",org.apache.commons.collections.comparators;uses:="org.apac
+ he.commons.collections",org.apache.commons.collections.functors;uses:
+ ="new org.apache.commons.collections.functors,org.apache.commons.coll
+ ections",org.apache.commons.collections.iterators;uses:="org.apache.c
+ ommons.collections",org.apache.commons.collections.keyvalue;uses:="or
+ g.apache.commons.collections",org.apache.commons.collections.list; us
+ es:="org.apache.commons.collections.iterators,  org.apache.commons.co
+ llections,  new org.apache.commons.collections.list,  org.apache.comm
+ ons.collections.collection",org.apache.commons.collections.map; uses:
+ ="org.apache.commons.collections.iterators,  org.apache.commons.colle
+ ctions.keyvalue,  org.apache.commons.collections,  org.apache.commons
+ .collections.set",org.apache.commons.collections.set; uses:="org.apac
+ he.commons.collections.iterators,  new org.apache.commons.collections
+ .set,  org.apache.commons.collections,  org.apache.commons.collection
+ s.collection",org.apache.commons.io,org.apache.commons.lang;uses:="or
+ g.apache.commons.lang.exception",org.apache.commons.lang.builder,org.
+ apache.commons.lang.enums,org.apache.commons.lang.exception,org.apach
+ e.commons.lang.math,org.apache.commons.lang.mutable,org.apache.common
+ s.lang.text,org.apache.commons.lang.time,org.apache.commons.logging,o
+ rg.apache.commons.logging.impl; uses:="org.apache.commons.logging,  o
+ rg.apache.log4j,  org.apache.avalon.framework.logger,  javax.servlet,
+   org.apache.log",org.apache.commons.net.util;uses:="new org.apache.c
+ ommons.net.util,javax.net.ssl",org.apache.hadoop,org.apache.hadoop.fs
+ ; uses:="org.apache.hadoop.hdfs,  org.apache.hadoop.fs.permission,  o
+ rg.apache.hadoop.mapred,  org.apache.commons.logging,  org.apache.had
+ oop.tools,  org.apache.hadoop.security,  org.apache.hadoop.io,  junit
+ .framework,  org.apache.hadoop.conf,  org.apache.hadoop.util",org.apa
+ che.log4j;uses:="org.apache.log4j.helpers,org.apache.log4j.or,org.apa
+ che.log4j.spi",org.apache.poi; uses:="org.openxmlformats.schemas.offi
+ ceDocument.x2006.customProperties,  org.apache.xmlbeans,  org.apache.
+ poi.openxml4j.opc.internal,  org.openxmlformats.schemas.officeDocumen
+ t.x2006.extendedProperties,  org.apache.poi.openxml4j.util,  new org.
+ apache.poi,  org.apache.poi.openxml4j.opc",org.apache.poi.common.user
+ model,org.apache.poi.ddf,org.apache.poi.dev;uses:="org.apache.poi.ope
+ nxml4j.opc",org.apache.poi.hpsf;uses:="org.apache.poi.hpsf.wellknown,
+ org.apache.poi.poifs.filesystem",org.apache.poi.hpsf.extractor;uses:=
+ "org.apache.poi.poifs.filesystem,org.apache.poi",org.apache.poi.hpsf.
+ wellknown,org.apache.poi.hssf;uses:="org.apache.poi",org.apache.poi.h
+ ssf.dev;uses:="org.apache.poi.hssf.record,org.apache.poi.hssf.eventus
+ ermodel",org.apache.poi.hssf.eventmodel;uses:="org.apache.poi.hssf.re
+ cord",org.apache.poi.hssf.eventusermodel; uses:="org.apache.poi.hssf.
+ record,  org.apache.poi.hssf.model,  org.apache.poi.poifs.filesystem,
+   org.apache.poi.hssf.usermodel",org.apache.poi.hssf.eventusermodel.d
+ ummyrecord;uses:="org.apache.poi.hssf.record",org.apache.poi.hssf.ext
+ ractor; uses:="org.apache.poi.ss.usermodel,  org.apache.poi.ss.extrac
+ tor,  org.apache.poi.hpsf,  org.apache.poi,  org.apache.poi.poifs.fil
+ esystem,  org.apache.poi.hssf.usermodel",org.apache.poi.hssf.model; u
+ ses:="org.apache.poi.ss.formula,  org.apache.poi.ss.formula.udf,  org
+ .apache.poi.hssf.usermodel,  org.apache.poi.ddf,  org.apache.poi.hssf
+ .util,  org.apache.poi.hssf.record,  org.apache.poi.ss.util,  org.apa
+ che.poi.hssf.record.aggregates,  org.apache.poi.ss.formula.ptg,  org.
+ apache.poi.hssf.record.common",org.apache.poi.hssf.record; uses:="org
+ .apache.poi.hssf.record.cf,  org.apache.poi.ss.formula,  org.apache.p
+ oi.hssf.record.crypto,  org.apache.poi.hssf.usermodel,  org.apache.po
+ i.ddf,  org.apache.poi.hssf.util,  org.apache.poi.ss.util,  org.apach
+ e.poi.util,  org.apache.poi.hssf.model,  org.apache.poi.ss.formula.pt
+ g,  org.apache.poi.hssf.record.common,  org.apache.poi.hssf.record.co
+ nt",org.apache.poi.hssf.record.aggregates; uses:="org.apache.poi.hssf
+ .util,  org.apache.poi.ss.formula,  org.apache.poi.hssf.record,  org.
+ apache.poi.ss.util,  org.apache.poi.hssf.model,  org.apache.poi.ss.fo
+ rmula.ptg",org.apache.poi.hssf.record.cf;uses:="org.apache.poi.hssf.r
+ ecord,org.apache.poi.ss.util,org.apache.poi.util",org.apache.poi.hssf
+ .record.chart;uses:="org.apache.poi.hssf.record,org.apache.poi.util,o
+ rg.apache.poi.ss.formula.ptg",org.apache.poi.hssf.record.cont;uses:="
+ org.apache.poi.hssf.record,org.apache.poi.util",org.apache.poi.hssf.r
+ ecord.crypto;uses:="org.apache.poi.hssf.record,org.apache.poi.util",o
+ rg.apache.poi.hssf.record.pivottable;uses:="org.apache.poi.hssf.recor
+ d,org.apache.poi.util",org.apache.poi.hssf.usermodel; uses:="org.apac
+ he.poi.hssf.record.cf,  org.apache.poi.ss.formula,  org.apache.poi.ss
+ .usermodel,  org.apache.poi.ss,  org.apache.poi.poifs.filesystem,  or
+ g.apache.poi.ddf,  org.apache.poi.hssf.util,  org.apache.poi.hssf.rec
+ ord,  org.apache.poi.hssf.model,  org.apache.poi.ss.formula.ptg,  org
+ .apache.poi,  org.apache.poi.hssf.record.common,  org.apache.poi.ss.f
+ ormula.udf,  org.apache.poi.ss.util,  org.apache.poi.hssf.record.aggr
+ egates",org.apache.poi.hssf.util; uses:="org.apache.poi.ss.usermodel,
+   org.apache.poi.hssf.record,  org.apache.poi.ss.util,  org.apache.po
+ i.util,  org.apache.poi.hssf.usermodel",org.apache.poi.openxml4j.exce
+ ptions,org.apache.poi.openxml4j.opc;uses:="org.dom4j,org.apache.poi.o
+ penxml4j.opc.internal,org.apache.poi.openxml4j.util",org.apache.poi.o
+ penxml4j.opc.internal; uses:="org.dom4j,  org.apache.poi.openxml4j.op
+ c.internal.unmarshallers,  org.apache.poi.openxml4j.util,  org.apache
+ .poi.openxml4j.opc",org.apache.poi.openxml4j.opc.internal.marshallers
+ ;uses:="org.dom4j,org.apache.poi.openxml4j.opc.internal,org.apache.po
+ i.openxml4j.opc",org.apache.poi.openxml4j.opc.internal.signature;uses
+ :="org.apache.poi.openxml4j.opc",org.apache.poi.openxml4j.opc.interna
+ l.unmarshallers;uses:="org.dom4j,org.apache.poi.openxml4j.opc.interna
+ l,org.apache.poi.openxml4j.opc",org.apache.poi.openxml4j.opc.signatur
+ e;uses:="org.apache.poi.openxml4j.opc",org.apache.poi.openxml4j.util,
+ org.apache.poi.poifs.common,org.apache.poi.poifs.dev;uses:="org.apach
+ e.poi.poifs.storage,org.apache.poi.poifs.filesystem",org.apache.poi.p
+ oifs.eventfilesystem;uses:="org.apache.poi.poifs.filesystem",org.apac
+ he.poi.poifs.filesystem; uses:="org.apache.poi.poifs.storage,  org.ap
+ ache.poi.poifs.property,  org.apache.poi.util,  org.apache.poi.hpsf, 
+  org.apache.poi.poifs.dev,  org.apache.poi.poifs.common",org.apache.p
+ oi.poifs.property; uses:="org.apache.poi.poifs.storage,  org.apache.p
+ oi.hpsf,  org.apache.poi.poifs.filesystem,  org.apache.poi.poifs.dev"
+ ,org.apache.poi.poifs.storage; uses:="new org.apache.poi.poifs.storag
+ e,  org.apache.poi.poifs.property,  org.apache.poi.poifs.filesystem, 
+  org.apache.poi.poifs.common",org.apache.poi.ss,org.apache.poi.ss.ext
+ ractor,org.apache.poi.ss.formula; uses:="org.apache.poi.ss.formula.ev
+ al,  org.apache.poi.ss.util,  org.apache.poi.ss,  org.apache.poi.ss.f
+ ormula.functions,  org.apache.poi.util,  org.apache.poi.ss.formula.ud
+ f,  org.apache.poi.ss.formula.ptg",org.apache.poi.ss.formula.eval;use
+ s:="org.apache.poi.ss.formula,org.apache.poi.ss.formula.functions,org
+ .apache.poi.ss.formula.ptg",org.apache.poi.ss.formula.eval.forked; us
+ es:="org.apache.poi.ss.formula.eval,  org.apache.poi.ss.formula,  org
+ .apache.poi.ss.usermodel,  org.apache.poi.ss.formula.udf,  org.apache
+ .poi.ss.formula.ptg",org.apache.poi.ss.usermodel;uses:="org.apache.po
+ i.poifs.filesystem,org.apache.poi.openxml4j.opc",org.apache.poi.ss.ut
+ il; uses:="javax.imageio,  org.apache.poi.ss.usermodel,  org.apache.p
+ oi.hssf.record,  org.apache.poi.ss,  org.apache.poi.util",org.apache.
+ poi.util;uses:="org.apache.poi.openxml4j.opc",org.dom4j; uses:="org.d
+ om4j.tree,  org.jaxen,  org.dom4j.rule,  org.xml.sax",org.dom4j.bean;
+ uses:="org.dom4j.tree,org.dom4j,org.xml.sax",org.dom4j.datatype; uses
+ :="org.dom4j.tree,  com.sun.msv.datatype.xsd,  org.dom4j,  com.sun.ms
+ v.datatype,  org.relaxng.datatype",org.dom4j.dom;uses:="org.dom4j.tre
+ e,org.dom4j,org.w3c.dom",org.dom4j.dtd,org.dom4j.io; uses:="org.dom4j
+ .tree,  org.dom4j,  org.xmlpull.v1,  javax.xml.stream.events,  org.w3
+ c.dom,  javax.xml.namespace,  org.xml.sax,  javax.xml.stream,  javax.
+ xml.stream.util,  org.xml.sax.ext,  org.gjt.xpp,  javax.xml.transform
+ .sax,  org.xml.sax.helpers",org.dom4j.jaxb; uses:="org.dom4j,  org.do
+ m4j.io,  javax.xml.bind,  org.xml.sax",org.dom4j.rule;uses:="org.dom4
+ j,org.jaxen",org.dom4j.rule.pattern;uses:="org.dom4j,org.dom4j.rule",
+ org.dom4j.swing; uses:="javax.swing.tree,  org.dom4j,  javax.swing.ta
+ ble,  org.jaxen",org.dom4j.tree;uses:="org.dom4j,org.dom4j.rule,org.x
+ ml.sax",org.dom4j.util; uses:="org.dom4j.tree,  org.dom4j,  org.jaxen
+ ,  org.dom4j.rule,  org.xml.sax",org.dom4j.xpath; uses:="org.jaxen.pa
+ ttern,  org.dom4j,  org.jaxen,  org.dom4j.rule",org.dom4j.xpp;uses:="
+ org.dom4j,org.gjt.xpp",org.slf4j;uses:="org.slf4j.spi,org.slf4j.helpe
+ rs",org.slf4j.helpers;uses:="org.slf4j.spi,org.slf4j",org.slf4j.spi;u
+ ses:="org.slf4j"
+Bundle-Name: Core Plug-in
+Bundle-Version: 1.0.0.202401061421
+Bundle-ClassPath: lib/commons-beanutils-1.8.0.jar,lib/commons-collecti
+ ons-3.2.1.jar,lib/commons-lang-2.4.jar,lib/commons-logging-1.1.1.jar,
+ lib/commons-beanutils-1.7.0.jar,lib/commons-beanutils-core-1.8.0.jar,
+ lib/commons-cli-1.2.jar,lib/commons-codec-1.4.jar,lib/commons-configu
+ ration-1.6.jar,lib/commons-daemon-1.0.1.jar,lib/commons-digester-1.8.
+ jar,lib/commons-el-1.0.jar,lib/commons-httpclient-3.0.1.jar,lib/commo
+ ns-io-2.1.jar,lib/commons-logging-api-1.0.4.jar,lib/commons-math-2.1.
+ jar,lib/commons-net-3.1.jar,lib/dom4j-1.6.1.jar,lib/json-lib-2.3-jdk1
+ 5.jar,lib/poi-3.8-20120326.jar,lib/commons-cli-1.1.jar,lib/slf4j-api-
+ 1.5.8.jar,lib/org.apache.log4j_1.2.13.v200806030600.jar,lib/com.cubri
+ d.cubridmanager.jdbc.proxy.jar,lib/xmlbeans-2.3.0.jar,lib/stax2-api-3
+ .1.1.jar,lib/poi-ooxml-3.8-20120326.jar,lib/poi-ooxml-schemas-3.8-201
+ 20326.jar,lib/woodstox-core-lgpl-4.1.2.jar,lib/ezmorph-1.0.6.jar,lib/
+ opencsv-2.3.jar,lib/jxl.jar,lib/hadoop-core-1.1.2.jar,lib/hadoop-capa
+ city-scheduler-1.1.2.jar,lib/hadoop-client-1.1.2.jar,lib/hadoop-fairs
+ cheduler-1.1.2.jar,lib/hadoop-minicluster-1.1.2.jar,lib/hadoop-thrift
+ fs-1.1.2.jar,lib/hadoop-tools-1.1.2.jar,lib/hsqldb-1.8.0.10.jar,lib/j
+ sch-0.1.51.jar,lib/jdbc-4.50.7.1.jar,lib/bson-4.8.0.jar,.
+Require-Bundle: org.eclipse.core.runtime,com.cubrid.common.configurati
+ on;bundle-version="1.0.0"
+Bundle-ManifestVersion: 2
+Bundle-Activator: com.cubrid.cubridmigration.core.CubridMigrationCoreP
+ lugin
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: CUBRID
+

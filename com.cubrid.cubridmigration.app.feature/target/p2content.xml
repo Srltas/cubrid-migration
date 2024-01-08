@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<units size='2'>
+  <unit id='com.cubrid.cubridmigration.app.feature.feature.group' version='1.0.0.202401061421' singleton='false'>
+    <update id='com.cubrid.cubridmigration.app.feature.feature.group' range='[0.0.0,1.0.0.202401061421)' severity='0'/>
+    <properties size='8'>
+      <property name='org.eclipse.equinox.p2.name' value='CUBRID Migration Toolkit Application'/>
+      <property name='org.eclipse.equinox.p2.description' value='%description'/>
+      <property name='org.eclipse.equinox.p2.description.url' value='http://www.cubrid.org'/>
+      <property name='org.eclipse.equinox.p2.provider' value='%providerName'/>
+      <property name='org.eclipse.equinox.p2.type.group' value='true'/>
+      <property name='maven-groupId' value='com.cubrid.cubridmigration'/>
+      <property name='maven-artifactId' value='com.cubrid.cubridmigration.app.feature'/>
+      <property name='maven-version' value='1.0.0-SNAPSHOT'/>
+    </properties>
+    <provides size='1'>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='com.cubrid.cubridmigration.app.feature.feature.group' version='1.0.0.202401061421'/>
+    </provides>
+    <requires size='14'>
+      <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.rcp.feature.group' range='[4.16.0.v20200604-0951,4.16.0.v20200604-0951]'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.core.runtime' range='0.0.0'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='com.cubrid.common.configuration' range='0.0.0'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui' range='0.0.0'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.equinox.p2.ui' range='0.0.0'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.jface' range='0.0.0'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='com.ibm.icu' range='0.0.0'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.osgi' range='0.0.0'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='com.cubrid.cubridmigration.core' range='[1.0.0.202401061421,1.0.0.202401061421]'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='com.cubrid.cubridmigration.ui' range='[1.0.0.202401061421,1.0.0.202401061421]'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='com.cubrid.cubridmigration.app' range='[1.0.0.202401061421,1.0.0.202401061421]'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.forms' range='[3.9.100.v20200413-1417,3.9.100.v20200413-1417]'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='com.cubrid.common.configuration' range='[1.0.0.202401061421,1.0.0.202401061421]'/>
+      <required namespace='org.eclipse.equinox.p2.iu' name='com.cubrid.cubridmigration.app.feature.feature.jar' range='[1.0.0.202401061421,1.0.0.202401061421]'>
+        <filter>
+          (org.eclipse.update.install.features=true)
+        </filter>
+      </required>
+    </requires>
+    <touchpoint id='null' version='0.0.0'/>
+    <licenses size='1'>
+      <license uri='http://www.cubrid.org' url='http://www.cubrid.org'>
+        %licence
+      </license>
+    </licenses>
+    <copyright uri='http://www.cubrid.org' url='http://www.cubrid.org'>
+      %copyright
+    </copyright>
+  </unit>
+  <unit id='com.cubrid.cubridmigration.app.feature.feature.jar' version='1.0.0.202401061421'>
+    <properties size='8'>
+      <property name='org.eclipse.equinox.p2.name' value='CUBRID Migration Toolkit Application'/>
+      <property name='org.eclipse.equinox.p2.description' value='%description'/>
+      <property name='org.eclipse.equinox.p2.description.url' value='http://www.cubrid.org'/>
+      <property name='org.eclipse.equinox.p2.provider' value='%providerName'/>
+      <property name='org.eclipse.update.feature.plugin' value='com.cubrid.cubridmigration.app'/>
+      <property name='maven-groupId' value='com.cubrid.cubridmigration'/>
+      <property name='maven-artifactId' value='com.cubrid.cubridmigration.app.feature'/>
+      <property name='maven-version' value='1.0.0-SNAPSHOT'/>
+    </properties>
+    <provides size='3'>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='com.cubrid.cubridmigration.app.feature.feature.jar' version='1.0.0.202401061421'/>
+      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='feature' version='1.0.0'/>
+      <provided namespace='org.eclipse.update.feature' name='com.cubrid.cubridmigration.app.feature' version='1.0.0.202401061421'/>
+    </provides>
+    <filter>
+      (org.eclipse.update.install.features=true)
+    </filter>
+    <artifacts size='1'>
+      <artifact classifier='org.eclipse.update.feature' id='com.cubrid.cubridmigration.app.feature' version='1.0.0.202401061421'/>
+    </artifacts>
+    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+    <touchpointData size='1'>
+      <instructions size='1'>
+        <instruction key='zipped'>
+          true
+        </instruction>
+      </instructions>
+    </touchpointData>
+    <licenses size='1'>
+      <license uri='http://www.cubrid.org' url='http://www.cubrid.org'>
+        %licence
+      </license>
+    </licenses>
+    <copyright uri='http://www.cubrid.org' url='http://www.cubrid.org'>
+      %copyright
+    </copyright>
+  </unit>
+</units>

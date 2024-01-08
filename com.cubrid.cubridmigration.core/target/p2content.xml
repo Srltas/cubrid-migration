@@ -1,0 +1,215 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<units size='1'>
+  <unit id='com.cubrid.cubridmigration.core' version='1.0.0.202401061421' singleton='false' generation='2'>
+    <update id='com.cubrid.cubridmigration.core' range='[0.0.0,1.0.0.202401061421)' severity='0'/>
+    <properties size='5'>
+      <property name='org.eclipse.equinox.p2.name' value='Core Plug-in'/>
+      <property name='org.eclipse.equinox.p2.provider' value='CUBRID'/>
+      <property name='maven-groupId' value='com.cubrid.cubridmigration'/>
+      <property name='maven-artifactId' value='com.cubrid.cubridmigration.core'/>
+      <property name='maven-version' value='1.0.0-SNAPSHOT'/>
+    </properties>
+    <provides size='180'>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='com.cubrid.cubridmigration.core' version='1.0.0.202401061421'/>
+      <provided namespace='osgi.bundle' name='com.cubrid.cubridmigration.core' version='1.0.0.202401061421'/>
+      <provided namespace='java.package' name='com.ctc.wstx.api' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.cfg' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.compat' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.dom' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.dtd' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.ent' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.evt' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.exc' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.io' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.msv' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.osgi' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.sax' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.sr' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.stax' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.sw' version='0.0.0'/>
+      <provided namespace='java.package' name='com.ctc.wstx.util' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.common' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.common.log' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.common.xml' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.connection' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.datatype' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.dbmetadata' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.dbobject' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.dbtype' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.config' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.event' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.exception' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.exporter' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.exporter.impl' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.importer' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.importer.impl' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.listener' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.report' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.scheduler' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.task' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.task.exp' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.task.imp' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.engine.template' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.export' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.hadoop' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.io' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.mapping' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.mapping.model' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.sql' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.core.trans' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.exception' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.export.handler' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.format' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.format.csv' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.format.dump' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.meta' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.stmt' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.stmt.handler' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.trans' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.cubrid.trans.converter' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.mariadb.trans' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.mssql' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.mssql.meta' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.mssql.trans' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.mysql' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.mysql.export.handler' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.mysql.meta' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.mysql.trans' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.oracle' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.oracle.export.handler' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.oracle.meta' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.cubridmigration.oracle.trans' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.jdbc.proxy.driver' version='0.0.0'/>
+      <provided namespace='java.package' name='com.cubrid.jdbc.proxy.manage' version='0.0.0'/>
+      <provided namespace='java.package' name='com.jcraft.jsch' version='0.0.0'/>
+      <provided namespace='java.package' name='net.sf.json' version='0.0.0'/>
+      <provided namespace='java.package' name='net.sf.json.filters' version='0.0.0'/>
+      <provided namespace='java.package' name='net.sf.json.groovy' version='0.0.0'/>
+      <provided namespace='java.package' name='net.sf.json.processors' version='0.0.0'/>
+      <provided namespace='java.package' name='net.sf.json.regexp' version='0.0.0'/>
+      <provided namespace='java.package' name='net.sf.json.test' version='0.0.0'/>
+      <provided namespace='java.package' name='net.sf.json.util' version='0.0.0'/>
+      <provided namespace='java.package' name='net.sf.json.xml' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.beanutils' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.beanutils.converters' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.beanutils.expression' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.beanutils.locale' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.beanutils.locale.converters' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.cli' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.bag' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.bidimap' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.buffer' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.collection' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.comparators' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.functors' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.iterators' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.keyvalue' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.list' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.map' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.collections.set' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.io' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.lang' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.lang.builder' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.lang.enums' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.lang.exception' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.lang.math' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.lang.mutable' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.lang.text' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.lang.time' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.logging' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.logging.impl' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.commons.net.util' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.hadoop' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.hadoop.fs' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.log4j' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.common.usermodel' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.ddf' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.dev' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hpsf' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hpsf.extractor' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hpsf.wellknown' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.dev' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.eventmodel' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.eventusermodel' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.eventusermodel.dummyrecord' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.extractor' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.model' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.record' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.record.aggregates' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.record.cf' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.record.chart' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.record.cont' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.record.crypto' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.record.pivottable' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.usermodel' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.hssf.util' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.openxml4j.exceptions' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.openxml4j.opc' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.openxml4j.opc.internal' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.openxml4j.opc.internal.marshallers' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.openxml4j.opc.internal.signature' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.openxml4j.opc.internal.unmarshallers' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.openxml4j.opc.signature' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.openxml4j.util' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.poifs.common' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.poifs.dev' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.poifs.eventfilesystem' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.poifs.filesystem' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.poifs.property' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.poifs.storage' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.ss' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.ss.extractor' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.ss.formula' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.ss.formula.eval' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.ss.formula.eval.forked' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.ss.usermodel' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.ss.util' version='0.0.0'/>
+      <provided namespace='java.package' name='org.apache.poi.util' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.bean' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.datatype' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.dom' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.dtd' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.io' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.jaxb' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.rule' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.rule.pattern' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.swing' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.tree' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.util' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.xpath' version='0.0.0'/>
+      <provided namespace='java.package' name='org.dom4j.xpp' version='0.0.0'/>
+      <provided namespace='java.package' name='org.slf4j' version='0.0.0'/>
+      <provided namespace='java.package' name='org.slf4j.helpers' version='0.0.0'/>
+      <provided namespace='java.package' name='org.slf4j.spi' version='0.0.0'/>
+      <provided namespace='osgi.identity' name='com.cubrid.cubridmigration.core' version='1.0.0.202401061421'>
+        <properties size='1'>
+          <property name='type' value='osgi.bundle'/>
+        </properties>
+      </provided>
+      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+    </provides>
+    <requires size='3'>
+      <required namespace='osgi.bundle' name='org.eclipse.core.runtime' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='com.cubrid.common.configuration' range='1.0.0'/>
+      <requiredProperties namespace='osgi.ee' match='(&amp;(osgi.ee=JavaSE)(version=1.8))'/>
+    </requires>
+    <artifacts size='1'>
+      <artifact classifier='osgi.bundle' id='com.cubrid.cubridmigration.core' version='1.0.0.202401061421'/>
+    </artifacts>
+    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+    <touchpointData size='1'>
+      <instructions size='1'>
+        <instruction key='manifest'>
+          Bundle-SymbolicName: com.cubrid.cubridmigration.core&#xA;Bundle-Version: 1.0.0.202401061421&#xA;
+        </instruction>
+      </instructions>
+    </touchpointData>
+  </unit>
+</units>
