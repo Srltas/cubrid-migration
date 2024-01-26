@@ -1,0 +1,10 @@
+[ SCHEMA(s) ]
+
+[ TABLE(s) ]
+
+[ VIEW(s) ]
+
+[ SERIAL(s) ]
+
+[ SYNONYM(s) ]
+

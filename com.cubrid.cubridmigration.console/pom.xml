@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.cubrid.cubridmigration</groupId>
+        <artifactId>cubridmigration</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../</relativePath>
+    </parent>
+    <version>1.0.0-SNAPSHOT</version>
+    <artifactId>com.cubrid.cubridmigration.console</artifactId>
+    <packaging>pom</packaging>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>migrationconsole-tar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <!-- release 프로젝트 위치한 console-tar.xml파일 : 어셈블리 옵션 설정 -->
+                                <descriptor>${basedir}/console-tar.xml</descriptor>
+                            </descriptors>
+                            <finalName>migration_console</finalName>
+                            <archive>
+                                <manifest>
+                                    <!-- classpath 추가 하도록 설정 -->
+                                    <addClasspath>true</addClasspath>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>migrationconsole-zip</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <!-- release 프로젝트 위치한 console-zip.xml파일 : 어셈블리 옵션 설정 -->
+                                <descriptor>${basedir}/console-zip.xml</descriptor>
+                            </descriptors>
+                            <finalName>migration_console</finalName>
+                            <archive>
+                                <manifest>
+                                    <!-- classpath 추가 하도록 설정 -->
+                                    <addClasspath>true</addClasspath>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <dependencies>
+        <dependency>
+            <groupId>com.cubrid.cubridmigration</groupId>
+            <artifactId>com.cubrid.cubridmigration.command</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+</project>

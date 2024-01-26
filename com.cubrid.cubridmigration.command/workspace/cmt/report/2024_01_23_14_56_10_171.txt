@@ -1,0 +1,22 @@
+[Overview]
+    schema: Exported[0]; Imported[0]
+    table: Exported[1]; Imported[1]
+    view: Exported[0]; Imported[0]
+    primary key: Exported[1]; Imported[1]
+    foreign key: Exported[0]; Imported[0]
+    index: Exported[0]; Imported[0]
+    sequence: Exported[0]; Imported[0]
+    synonym: Exported[0]; Imported[0]
+    trigger: Exported[0]; Imported[0]
+    function: Exported[0]; Imported[0]
+    procedure: Exported[0]; Imported[0]
+    grant: Exported[1]; Imported[1]
+    record: Exported[3]; Imported[3]
+
+[Objects]
+    [table][TOOLS_4365_U1.u1_tb_1]: successfully
+    [primary key][primary key of u1_tb_1]: successfully
+    [grant][SELECT ON TOOLS_4365_U2.u2_tb_1 TO TOOLS_4365_U1]: successfully
+
+[Records]
+    [u1_tb_1 >> u1_tb_1]: Exported:[3] Imported:[3]

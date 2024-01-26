@@ -1,0 +1,4 @@
+INFO  2024-01-23 14:56:08 JDBC Driver repository:C:\Users\CUBRID\Desktop\eclipse_build\com.cubrid.cubridmigration.command\jdbc com.cubrid.cubridmigration.core.connection.JDBCUtil.initialJdbcByPath(JDBCUtil.java:70)
+INFO  2024-01-23 14:56:08 Source driver name:C:\Users\CUBRID\Desktop\jdbc\JDBC-11.1.1.0030-cubrid.jar com.cubrid.cubridmigration.command.handler.StartCommandHandler.initializeSource(StartCommandHandler.java:290)
+INFO  2024-01-23 14:56:08 Source driver name2:C:\Users\CUBRID\Desktop\jdbc\JDBC-11.1.1.0030-cubrid.jar com.cubrid.cubridmigration.command.handler.StartCommandHandler.initializeSource(StartCommandHandler.java:297)
+INFO  2024-01-23 14:56:10 drop table query : DROP TABLE [u1_tb_1]; com.cubrid.cubridmigration.core.engine.task.imp.CleanDBTask.executeImport(CleanDBTask.java:138)

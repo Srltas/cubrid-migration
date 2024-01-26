@@ -1,0 +1,23 @@
+#################
+## Misc
+
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+.settings
+local.properties
+.loadpath
+
+## Maven stuff
+
+target/
+/workspace/
+
+## Eclipse configs
+
+.project
+.classpath
+.settings/
