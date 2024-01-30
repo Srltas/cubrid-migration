@@ -109,7 +109,9 @@
         <!-- desktop build: includes UI components and products -->
         <profile>
             <id>desktop</id>
-			
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <modules>
                 <!-- plugins -->
                 <module>com.cubrid.common.configuration</module>
