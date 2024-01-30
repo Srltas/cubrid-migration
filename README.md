@@ -10,7 +10,7 @@ We want to change the version of Java and Eclipse RCP so that it can work withou
 
 **Build**
 ```
-git clone https://github.com/Srltas/cubrid-migration.git eclipse_version_upgrade
+git clone -b eclipse_version_upgrade --single-branch https://github.com/Srltas/cubrid-migration.git eclipse_version_upgrade
 cd eclipse_version_upgrade
 
 // UI build
