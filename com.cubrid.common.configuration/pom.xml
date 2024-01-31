@@ -20,18 +20,7 @@
   
   <profiles>
     <profile>
-        <id>desktop</id>
-    </profile>
-    
-    <profile>
         <id>console</id>
-        <activation>
-            <property>
-                <name>consoleBuild</name>
-                <value>true</value>
-            </property>
-        </activation>
-		
         <build>
             <plugins>
                 <plugin>

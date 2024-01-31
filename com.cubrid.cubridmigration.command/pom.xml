@@ -14,13 +14,14 @@
     <packaging>jar</packaging>
     
     <build>
+        <finalName>migration</finalName>
         <resources>
-          <resource>
-        <directory>src/</directory>
-        <includes>
-          <include>**/*.txt</include>
-        </includes>
-          </resource>
+            <resource>
+                <directory>src/</directory>
+                <includes>
+                    <include>**/*.txt</include>
+                </includes>
+            </resource>
         </resources>
 
         <sourceDirectory>src/</sourceDirectory>
