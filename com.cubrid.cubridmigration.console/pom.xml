@@ -26,13 +26,11 @@
                         </goals>
                         <configuration>
                             <descriptors>
-                                <!-- release 프로젝트 위치한 console-tar.xml파일 : 어셈블리 옵션 설정 -->
                                 <descriptor>${basedir}/console-tar.xml</descriptor>
                             </descriptors>
                             <finalName>migration_console</finalName>
                             <archive>
                                 <manifest>
-                                    <!-- classpath 추가 하도록 설정 -->
                                     <addClasspath>true</addClasspath>
                                 </manifest>
                             </archive>
@@ -46,13 +44,11 @@
                         </goals>
                         <configuration>
                             <descriptors>
-                                <!-- release 프로젝트 위치한 console-zip.xml파일 : 어셈블리 옵션 설정 -->
                                 <descriptor>${basedir}/console-zip.xml</descriptor>
                             </descriptors>
                             <finalName>migration_console</finalName>
                             <archive>
                                 <manifest>
-                                    <!-- classpath 추가 하도록 설정 -->
                                     <addClasspath>true</addClasspath>
                                 </manifest>
                             </archive>
