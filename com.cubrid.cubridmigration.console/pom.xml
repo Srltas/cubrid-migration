@@ -13,6 +13,10 @@
     <artifactId>com.cubrid.cubridmigration.console</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <console-filename>cubridmigration-console</console-filename>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -28,7 +32,7 @@
                             <descriptors>
                                 <descriptor>${basedir}/console-tar.xml</descriptor>
                             </descriptors>
-                            <finalName>migration_console</finalName>
+                            <finalName>${console-filename}</finalName>
                             <archive>
                                 <manifest>
                                     <addClasspath>true</addClasspath>
@@ -46,7 +50,7 @@
                             <descriptors>
                                 <descriptor>${basedir}/console-zip.xml</descriptor>
                             </descriptors>
-                            <finalName>migration_console</finalName>
+                            <finalName>${console-filename}</finalName>
                             <archive>
                                 <manifest>
                                     <addClasspath>true</addClasspath>
@@ -55,6 +59,10 @@
                         </configuration>
                     </execution>
                 </executions>
+
+                <configuration>
+                    <tarLongFileMode>posix</tarLongFileMode>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -4,10 +4,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.cubrid.cubridmigration</groupId>
-    <artifactId>cubridmigration</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../</relativePath>
+      <groupId>com.cubrid.cubridmigration</groupId>
+      <artifactId>cubridmigration</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <relativePath>../</relativePath>
   </parent>
   <artifactId>com.cubrid.cubridmigration.app.update.site</artifactId>
   <version>1.0.0-SNAPSHOT</version>

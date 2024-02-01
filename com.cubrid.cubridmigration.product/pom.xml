@@ -105,6 +105,10 @@
                         </configuration>
                     </execution>
                 </executions>
+
+                <configuration>
+                    <tarLongFileMode>posix</tarLongFileMode>
+                </configuration>
             </plugin>
         </plugins>
     </build>

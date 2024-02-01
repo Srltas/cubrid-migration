@@ -34,7 +34,7 @@
         </repository>
     </repositories>
      
-     <build>
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
@@ -106,7 +106,6 @@
     </build>
 
     <profiles>
-        <!-- desktop build: includes UI components and products -->
         <profile>
             <id>desktop</id>
             <activation>
