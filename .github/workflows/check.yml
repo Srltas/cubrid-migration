@@ -34,14 +34,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: files
-        uses: jitterbit/get-changed-files@v1
-        continue-on-error: true
+      - uses: tj-actions/changed-files@v42
+        with:
+          files_yaml: |
+            src:
+              - src/**
       - uses: axel-op/googlejavaformat-action@v3
         with:
           skipCommit: true
           version: 1.7
           args: "--aosp --replace --set-exit-if-changed"
-          files: ${{ steps.files.outputs.added_modified }}
+          files: ${{ steps.changed-files-yaml.output.all_changed_files }}
       - name: Suggest code changes
         if: ${{ failure() }}
         uses: reviewdog/action-suggester@v1
