@@ -28,8 +28,8 @@ function get_options ()
     case $opt in
 	  p ) PROFILE="${OPTARG,,}" ;;
           X ) MVN_DEBUG="-Dtycho.debug.resolver=true -X" ;;
-          *) show_usage 
-             exit ;;
+          * ) show_usage 
+              exit ;;
     esac
   done
 }
@@ -40,9 +40,9 @@ function check_configuration ()
     echo JAVA_HOME: ${JAVA_HOME}
   fi
 
-  if [ -n "${M2_HOME}" ]; then
-    echo MAVEN_HOME: ${M2_HOME}
-    MVN="${M2_HOME}/bin/mvn"
+  if [ -n "${MAVEN_HOME}" ]; then
+    echo MAVEN_HOME: ${MAVEN_HOME}
+    MVN="${MAVEN}/bin/mvn"
   fi
 
   if [ -z "$MVN" ]; then
@@ -71,12 +71,12 @@ function copy_desktopcmt_to_directory ()
 
 function copy_consolecmt_to_directory ()
 {
-  CONSOLE_LINUX=$CONSOLE_TARGET/migration_console-linux.tar.gz
+  CONSOLE_LINUX=$CONSOLE_TARGET/cubridmigration_console-linux.tar.gz
   if [ -e $CONSOLE_LINUX ]; then
     cp -vfp $CONSOLE_LINUX $TARGET
   fi
 
-  CONSOLE_WINDOWS=$CONSOLE_TARGET/migration_console-windows.zip
+  CONSOLE_WINDOWS=$CONSOLE_TARGET/cubridmigration_console-windows.zip
   if [ -e $CONSOLE_WINDOWS ]; then
     cp -vfp $CONSOLE_WINDOWS $TARGET
   fi
