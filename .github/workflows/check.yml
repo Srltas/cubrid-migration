@@ -50,7 +50,7 @@ jobs:
           skipCommit: true
           version: 1.7
           args: "--aosp --replace --set-exit-if-changed"
-          files: ${{ steps.changed-java-files.outputs.all_changed_files }}
+          files: ${{ steps.changed-java-files.outputs.src_all_changed_files }}
       - name: Suggest code changes
         if: ${{ failure() }}
         uses: reviewdog/action-suggester@v1
