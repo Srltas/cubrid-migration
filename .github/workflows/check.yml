@@ -36,8 +36,15 @@ jobs:
       - uses: tj-actions/changed-files@v42
         id: changed-java-files
         with:
-          files: |
-            **.java      
+          files_yaml: |
+            src:
+              - com.cubrid.common.configuration/src/**
+              - com.cubrid.common.update/src/**
+              - com.cubrid.cubridmigration.app/src/**
+              - com.cubrid.cubridmigration.command/src/**
+              - com.cubrid.cubridmigration.core/src/**
+              - com.cubrid.cubridmigration.plugin/src/**
+              - com.cubrid.cubridmigration.ui/src/**
       - uses: axel-op/googlejavaformat-action@v3
         with:
           skipCommit: true
