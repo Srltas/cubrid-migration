@@ -38,12 +38,12 @@ jobs:
         with:
           files_yaml: |
             src:
-              - com.cubrid.common.configuration/src/**/*.java
-              - com.cubrid.common.update/src/**/*.java
-              - com.cubrid.cubridmigration.app/src/**/*.java
-              - com.cubrid.cubridmigration.core/src/**/*.java
-              - com.cubrid.cubridmigration.plugin/src/**/*.java
-              - com.cubrid.cubridmigration.ui/src/**/*.java
+              - 'com.cubrid.common.configuration/src/**/*.java'
+              - 'com.cubrid.common.update/src/**/*.java'
+              - 'com.cubrid.cubridmigration.app/src/**/*.java'
+              - 'com.cubrid.cubridmigration.core/src/**/*.java'
+              - 'com.cubrid.cubridmigration.plugin/src/**/*.java'
+              - 'com.cubrid.cubridmigration.ui/src/**/*.java'
       - uses: axel-op/googlejavaformat-action@v3
         with:
           skipCommit: true
