@@ -33,23 +33,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - id: changed-java-files
-        uses: tj-actions/changed-files@v42
-        with:
-          files_yaml: |
-            src:
-              - 'com.cubrid.common.configuration/src/**/*.java'
-              - 'com.cubrid.common.update/src/**/*.java'
-              - 'com.cubrid.cubridmigration.app/src/**/*.java'
-              - 'com.cubrid.cubridmigration.core/src/**/*.java'
-              - 'com.cubrid.cubridmigration.plugin/src/**/*.java'
-              - 'com.cubrid.cubridmigration.ui/src/**/*.java'
+      - id: files
+        uses: jitterbit/get-changed-files@v1
+        continue-on-error: true
       - uses: axel-op/googlejavaformat-action@v3
         with:
           skipCommit: true
           version: 1.7
           args: "--aosp --replace --set-exit-if-changed"
-          files: ${{ steps.changed-java-files.outputs.src_all_changed_files }}
+          run: |
+            for f in ${{ steps.files.outputs.added_modified }}; do
+              files: $f
+            done
       - name: Suggest code changes
         if: ${{ failure() }}
         uses: reviewdog/action-suggester@v1
