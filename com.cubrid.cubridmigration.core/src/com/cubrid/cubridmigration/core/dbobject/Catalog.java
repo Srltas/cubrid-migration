@@ -52,7 +52,8 @@ import java.util.Map;
  * @author moulinwang fulei
  * @version 1.0 - 2009-9-15 created by moulinwang modify by fulei 2011-09-28
  */
-public class Catalog implements Serializable {
+public class Catalog 
+             implements Serializable {
 
     private static final long serialVersionUID = 1997070198874610025L;
     public static final String KEY_DB_NCHAR_CHARACTERSET = "NCHAR_CHARACTERSET";
