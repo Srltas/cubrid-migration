@@ -41,11 +41,10 @@ jobs:
           skipCommit: true
           version: 1.7
           args: "--aosp --replace --set-exit-if-changed"
-      - name: code style checking
-        run: |
-          for f in ${{ steps.files.outputs.added_modified }}; do
-            files: $f
-          done
+          run: |
+            for f in ${{ steps.files.outputs.added_modified }}; do
+              files: $f
+            done
       - name: Suggest code changes
         if: ${{ failure() }}
         uses: reviewdog/action-suggester@v1
