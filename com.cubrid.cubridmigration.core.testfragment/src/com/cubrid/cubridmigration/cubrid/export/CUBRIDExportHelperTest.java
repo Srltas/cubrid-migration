@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2009 Search Solution Corporation. All rights reserved by Search Solution.
+ * Copyright (C) 2009 Search Solution Corporation
+ * Copyright (C) 2016 CUBRID Corporation
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -111,3 +112,4 @@ public class CUBRIDExportHelperTest {
                 new BigInteger("1"), helper.getSerialStartValue(config.getSourceConParams(), sq));
     }
 }
+
