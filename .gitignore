@@ -10,7 +10,13 @@ tmp/
 .settings
 local.properties
 .loadpath
-.DB_Store
+
+## Mac
+
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
 
 ## Maven stuff
 
