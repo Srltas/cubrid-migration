@@ -10,6 +10,7 @@ tmp/
 .settings
 local.properties
 .loadpath
+.DB_Store
 
 ## Maven stuff
 
