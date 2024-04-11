@@ -50,7 +50,7 @@ jobs:
             for header in `find $license_headers -type f`; do
               line_cnt=`wc -l < $header`
               echo "$header: $line_cnt"
-              echo "head -n $line_cnt $f | diff -w - $header"
+              echo "head -n $line_cnt $f"
               head -n $line_cnt $f | diff -w - $header 2>&1 1>/dev/null
               if [ $? -eq 0 ]; then
                 result_for_f="PASS"
