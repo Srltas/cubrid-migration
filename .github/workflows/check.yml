@@ -53,8 +53,8 @@ jobs:
               echo "temp"
               cat temp
               echo ""
-              echo "headr"
-              cat $headr
+              echo "header"
+              cat $header
               diff -q temp $header
               if [ $? -eq 0 ]; then
                 result_for_f="PASS"
