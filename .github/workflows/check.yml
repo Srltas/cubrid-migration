@@ -61,7 +61,8 @@ jobs:
                 echo "file No EOF"
               fi
               line_cnt=`wc -l < $header`
-              diff -w <(head -n $line_cnt $f) $header
+              head -n $line_cnt $f > temp
+              diff -w temp $header
               if [ $? -eq 0 ]; then
                 result_for_f="PASS"
                 break
