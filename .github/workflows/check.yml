@@ -50,10 +50,10 @@ jobs:
             for header in `find $license_headers -type f`; do
               line_cnt=`wc -l < $header`
               head -n $line_cnt $f > temp
+              echo "temp"
               cat temp
-              echo ''
-              echo ''
-              echo ''
+              echo ""
+              echo "headr"
               cat $headr
               diff -q temp $header
               if [ $? -eq 0 ]; then
