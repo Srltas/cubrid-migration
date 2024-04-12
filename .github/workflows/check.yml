@@ -48,20 +48,9 @@ jobs:
 
             result_for_f="FAIL"
             for header in `find $license_headers -type f`; do
-              header_byte_count=$(cat $header | wc -c)
-              if [ $header_byte_count -gt 0 ]; then
-                echo "header EOF"
-              else
-                echo "header No EOF"
-              fi
-              file_byte_count=$(cat $f | wc -c)
-              if [ $file_byte_count -gt 0 ]; then
-                echo "file EOF"
-              else
-                echo "file No EOF"
-              fi
               line_cnt=`wc -l < $header`
               head -n $line_cnt $f > temp
+              cat temp
               diff -w temp $header
               if [ $? -eq 0 ]; then
                 result_for_f="PASS"
