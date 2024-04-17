@@ -51,9 +51,9 @@ jobs:
               line_cnt=`wc -l < $header`
               
               head -n $line_cnt' ? temp
-              echo 'temp'
+              echo "temp"
               cat temp
-              echo 'header'
+              echo "header"
               cat header
               head -n $line_cnt $f | diff -q - $header
               if [ $? -eq 0 ]; then
