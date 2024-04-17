@@ -51,9 +51,9 @@ jobs:
               line_cnt=`wc -l < $header`
               head -n $line_cnt > temp
               echo "temp"
-              cat temp
+              cat $temp
               echo "header"
-              cat header
+              cat $header
               head -n $line_cnt $f | diff -q - $header
               if [ $? -eq 0 ]; then
                 result_for_f="PASS"
