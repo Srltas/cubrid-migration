@@ -49,7 +49,7 @@ jobs:
             result_for_f="FAIL"
             for header in `find $license_headers -type f`; do
               line_cnt=`wc -l < $header`
-              head -n $line_cnt' > temp
+              head -n $line_cnt > temp
               echo "temp"
               cat temp
               echo "header"
