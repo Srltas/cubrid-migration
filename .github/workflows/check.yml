@@ -51,7 +51,8 @@ jobs:
               line_cnt=`wc -l < $header`
               echo "line_cnt"
               echo $line_cnt
-              echo `head -n $line_cnt`
+              echo "temp_file"
+              head -n $line_cnt > ./temp_file
               cat $temp_file
               echo "header"
               cat $header
