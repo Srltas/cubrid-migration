@@ -56,7 +56,7 @@ jobs:
               cat temp_file
               echo "header"
               cat $header
-              head -n $line_cnt $f | diff -q - $header
+              head -n $line_cnt $f | diff -q -w - $header
               if [ $? -eq 0 ]; then
                 result_for_f="PASS"
                 break
