@@ -18,8 +18,7 @@ name: github-checks
 on:
   pull_request:
     branches:
-      - develop
-      - release/**
+      - '**'
 
 jobs:
   license:
