@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Test Fragment
+Bundle-SymbolicName: com.cubrid.cubridmigration.core.testfragment
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: CUBRID
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Fragment-Host: com.cubrid.cubridmigration.core
+Bundle-ClassPath: lib/cglib-nodep-2.1_3.jar,
+ lib/hamcrest-core-1.1.jar,
+ lib/hamcrest-library-1.1.jar,
+ lib/jmock-2.5.1.jar,
+ lib/jmock-junit4-2.5.1.jar,
+ lib/jmock-legacy-2.5.1.jar,
+ lib/objenesis-1.0.jar,
+ . 
+Import-Package: org.junit.jupiter.api;version="5.0.0"
+Require-Bundle: org.junit

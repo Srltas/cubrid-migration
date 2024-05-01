@@ -112,6 +112,9 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+            	<!-- test -->
+            	<module>com.cubrid.cubridmigration.tests</module>
+            
                 <!-- plugins -->
                 <module>com.cubrid.common.configuration</module>
                 <module>com.cubrid.common.update</module>
@@ -138,6 +141,9 @@
             <id>console</id>
     
             <modules>
+            	<!-- test -->
+            	<module>com.cubrid.cubridmigration.tests</module>
+            	
                 <module>com.cubrid.common.configuration</module>
                 <module>com.cubrid.cubridmigration.core</module>
                 <module>com.cubrid.cubridmigration.command</module>
