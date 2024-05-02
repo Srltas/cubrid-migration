@@ -13,7 +13,7 @@
 
     <modules>
         <module>com.cubrid.cubridmigration.core.testfragment</module>
-        <!-- <module>com.cubrid.cubridmigration.ui.testfragment</module> -->
+        <module>com.cubrid.cubridmigration.ui.testfragment</module>
     </modules>
 
     <build>
