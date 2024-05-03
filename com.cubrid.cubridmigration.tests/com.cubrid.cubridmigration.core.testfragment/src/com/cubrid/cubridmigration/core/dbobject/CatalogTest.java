@@ -30,45 +30,47 @@
  */
 package com.cubrid.cubridmigration.core.dbobject;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class CatalogTest {
     @Test
     public final void testEqual() throws CloneNotSupportedException {
         Catalog catalog1 = new Catalog();
-        Assert.assertTrue(catalog1.equals(catalog1));
-        Assert.assertFalse(catalog1.equals(12));
-        Assert.assertFalse(catalog1.equals(null));
-        Assert.assertTrue(catalog1.hashCode() == catalog1.hashCode());
+        assertTrue(catalog1.equals(catalog1));
+        assertFalse(catalog1.equals(12));
+        assertFalse(catalog1.equals(null));
+        assertTrue(catalog1.hashCode() == catalog1.hashCode());
 
         Catalog catalog2 = new Catalog();
-        Assert.assertTrue(catalog1.equals(catalog2));
-        Assert.assertTrue(catalog1.hashCode() == catalog2.hashCode());
+        assertTrue(catalog1.equals(catalog2));
+        assertTrue(catalog1.hashCode() == catalog2.hashCode());
 
         catalog1.setHost("localhost");
-        Assert.assertFalse(catalog2.equals(catalog1));
+        assertFalse(catalog2.equals(catalog1));
         catalog2.setHost("localhost");
-        Assert.assertTrue(catalog1.equals(catalog2));
-        Assert.assertTrue(catalog1.hashCode() == catalog2.hashCode());
+        assertTrue(catalog1.equals(catalog2));
+        assertTrue(catalog1.hashCode() == catalog2.hashCode());
 
         catalog1.setName("testdb");
-        Assert.assertFalse(catalog2.equals(catalog1));
+        assertFalse(catalog2.equals(catalog1));
         catalog2.setName("testdb");
-        Assert.assertTrue(catalog1.equals(catalog2));
-        Assert.assertTrue(catalog1.hashCode() == catalog2.hashCode());
+        assertTrue(catalog1.equals(catalog2));
+        assertTrue(catalog1.hashCode() == catalog2.hashCode());
 
         catalog1.setPort(3306);
-        Assert.assertFalse(catalog2.equals(catalog1));
+        assertFalse(catalog2.equals(catalog1));
         catalog2.setPort(3306);
-        Assert.assertTrue(catalog1.equals(catalog2));
-        Assert.assertTrue(catalog1.hashCode() == catalog2.hashCode());
+        assertTrue(catalog1.equals(catalog2));
+        assertTrue(catalog1.hashCode() == catalog2.hashCode());
 
         catalog2.setName("testdb2");
-        Assert.assertFalse(catalog1.equals(catalog2));
+        assertFalse(catalog1.equals(catalog2));
 
         catalog2.setName("testdb");
         catalog2.setHost("localhost2");
-        Assert.assertFalse(catalog1.equals(catalog2));
+        assertFalse(catalog1.equals(catalog2));
     }
 }

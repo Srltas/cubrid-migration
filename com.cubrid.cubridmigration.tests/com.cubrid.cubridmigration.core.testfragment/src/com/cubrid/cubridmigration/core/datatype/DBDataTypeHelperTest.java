@@ -33,8 +33,11 @@ package com.cubrid.cubridmigration.core.datatype;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DBDataTypeHelperTest extends DBDataTypeHelper {
 
@@ -65,32 +68,32 @@ public class DBDataTypeHelperTest extends DBDataTypeHelper {
 
     @Test
     public void test() {
-        Assert.assertTrue(this.isChar("character(1)"));
-        Assert.assertTrue(this.isChar("character"));
-        Assert.assertTrue(this.isChar("CHARACTER"));
-        Assert.assertTrue(this.isChar("char(1)"));
-        Assert.assertTrue(this.isChar("CHAR"));
-        Assert.assertTrue(this.isString("char"));
-        Assert.assertTrue(this.isString("varchar"));
-        Assert.assertFalse(this.isString("nchar"));
-        Assert.assertFalse(this.isString("nvarchar"));
-        Assert.assertTrue(this.isVarchar("varchar"));
-        Assert.assertTrue(this.isVarchar("varchar(100)"));
-        Assert.assertTrue(this.isEnum("enum"));
-        Assert.assertTrue(this.isEnum("ENUM"));
-        Assert.assertTrue(this.isNumeric("numeric"));
-        Assert.assertTrue(this.isNumeric("numeric(38,2)"));
-        Assert.assertTrue(this.isNumeric("NUMERIC(38)"));
-        Assert.assertTrue(this.isNumeric("dec"));
-        Assert.assertTrue(this.isNumeric("decimal"));
-        Assert.assertTrue(this.isSupportAutoIncr("int", "", null));
-        Assert.assertEquals("int", this.getMainDataType("int"));
-        Assert.assertEquals("varchar", this.getMainDataType("varchar(200)"));
-        Assert.assertEquals("numeric", this.getMainDataType("numeric(10,2)"));
+        assertTrue(this.isChar("character(1)"));
+        assertTrue(this.isChar("character"));
+        assertTrue(this.isChar("CHARACTER"));
+        assertTrue(this.isChar("char(1)"));
+        assertTrue(this.isChar("CHAR"));
+        assertTrue(this.isString("char"));
+        assertTrue(this.isString("varchar"));
+        assertFalse(this.isString("nchar"));
+        assertFalse(this.isString("nvarchar"));
+        assertTrue(this.isVarchar("varchar"));
+        assertTrue(this.isVarchar("varchar(100)"));
+        assertTrue(this.isEnum("enum"));
+        assertTrue(this.isEnum("ENUM"));
+        assertTrue(this.isNumeric("numeric"));
+        assertTrue(this.isNumeric("numeric(38,2)"));
+        assertTrue(this.isNumeric("NUMERIC(38)"));
+        assertTrue(this.isNumeric("dec"));
+        assertTrue(this.isNumeric("decimal"));
+        assertTrue(this.isSupportAutoIncr("int", "", null));
+        assertEquals("int", this.getMainDataType("int"));
+        assertEquals("varchar", this.getMainDataType("varchar(200)"));
+        assertEquals("numeric", this.getMainDataType("numeric(10,2)"));
         //		Column col = new Column();
-        //		Assert.assertTrue(this.isNChar(col));
-        //		Assert.assertTrue(this.isNVarchar(col));
-        //		Assert.assertTrue(this.isString(col));
+        //		assertTrue(this.isNChar(col));
+        //		assertTrue(this.isNVarchar(col));
+        //		assertTrue(this.isString(col));
 
     }
 }

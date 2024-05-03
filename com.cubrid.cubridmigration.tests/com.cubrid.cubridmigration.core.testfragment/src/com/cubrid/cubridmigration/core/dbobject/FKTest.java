@@ -30,19 +30,20 @@
  */
 package com.cubrid.cubridmigration.core.dbobject;
 
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FKTest {
 
     @Test
     public void testFK() {
-
         FK fk = new FK(new Table());
-        Assert.assertNotNull(fk.getTable());
-        Assert.assertTrue(fk.getCol2RefMapping().isEmpty());
-        Assert.assertTrue(fk.getCol2RefMapping().isEmpty());
+        assertNotNull(fk.getTable());
+        assertTrue(fk.getCol2RefMapping().isEmpty());
+        assertTrue(fk.getCol2RefMapping().isEmpty());
         fk.addRefColumnName("name", "name");
-        Assert.assertTrue(fk.getCol2RefMapping().size() == 1);
+        assertTrue(fk.getCol2RefMapping().size() == 1);
     }
 }

@@ -31,7 +31,7 @@
 package com.cubrid.cubridmigration.mysql;
 
 import com.cubrid.cubridmigration.mysql.dbobj.MySQLTrigger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MySQLTriggerTest {
 

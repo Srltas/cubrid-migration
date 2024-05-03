@@ -33,8 +33,9 @@ package com.cubrid.cubridmigration.core.io;
 import au.com.bytecode.opencsv.CSVReader;
 import java.io.StringReader;
 import java.util.List;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CSVReaderTest {
 
@@ -43,9 +44,9 @@ public class CSVReaderTest {
         StringReader sr = new StringReader("aaa,\"bbb\",ccc\r\nddd,\"eee\",fff\r\nggg,hhh,iii");
         CSVReader reader = new CSVReader(sr, ',', '"', 1);
         List<String[]> result = reader.readAll();
-        Assert.assertEquals(2, result.size());
-        Assert.assertEquals("ddd", result.get(0)[0]);
-        Assert.assertEquals("eee", result.get(0)[1]);
+        assertEquals(2, result.size());
+        assertEquals("ddd", result.get(0)[0]);
+        assertEquals("eee", result.get(0)[1]);
     }
 
     @Test
@@ -53,7 +54,7 @@ public class CSVReaderTest {
         StringReader sr = new StringReader("aaa");
         CSVReader reader = new CSVReader(sr, ',', '"', 0);
         List<String[]> result = reader.readAll();
-        Assert.assertEquals(1, result.size());
+        assertEquals(1, result.size());
     }
 
     @Test
@@ -61,6 +62,6 @@ public class CSVReaderTest {
         StringReader sr = new StringReader("aaa\r\nbbb");
         CSVReader reader = new CSVReader(sr, ',', '"', 0);
         List<String[]> result = reader.readAll();
-        Assert.assertEquals(2, result.size());
+        assertEquals(2, result.size());
     }
 }

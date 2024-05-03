@@ -32,8 +32,12 @@ package com.cubrid.cubridmigration.core.dbobject;
 
 import java.util.ArrayList;
 import java.util.List;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class PartitionInfoTest {
 
@@ -43,27 +47,27 @@ public class PartitionInfoTest {
     public void testPartitionInfo() throws CloneNotSupportedException {
         PartitionInfo cloneObj = newPartitionInfo();
 
-        Assert.assertEquals(1, cloneObj.getPartitionColumnCount());
-        Assert.assertFalse(cloneObj.getPartitionColumns().isEmpty());
-        Assert.assertEquals(4, cloneObj.getPartitionCount());
-        Assert.assertNotNull(cloneObj.getDDL());
-        Assert.assertNotNull(cloneObj.getPartitionExp());
-        Assert.assertNotNull(cloneObj.getPartitionFunc());
-        Assert.assertNotNull(cloneObj.getPartitionMethod());
-        Assert.assertNotNull(cloneObj.getPartitions());
-        Assert.assertNotNull(cloneObj.getPartitionTableByName("part_0"));
-        Assert.assertNull(cloneObj.getPartitionTableByName("nopart"));
-        Assert.assertNotNull(cloneObj.getPartitionTableByPosition(0));
-        Assert.assertNull(cloneObj.getPartitionTableByPosition(100));
-        Assert.assertNotNull(cloneObj.getSubPartitionColumnCount());
-        Assert.assertNotNull(cloneObj.getSubPartitionColumns());
-        Assert.assertNotNull(cloneObj.getSubPartitionCount());
-        Assert.assertNotNull(cloneObj.getSubPartitionExp());
-        Assert.assertNotNull(cloneObj.getSubPartitionFunc());
-        Assert.assertNotNull(cloneObj.getSubPartitionMethod());
-        Assert.assertNotNull(cloneObj.getSubPartitionNameByIdx(0));
-        Assert.assertNull(cloneObj.getSubPartitionNameByIdx(100));
-        Assert.assertNotNull(cloneObj.getSubPartitions());
+        assertEquals(1, cloneObj.getPartitionColumnCount());
+        assertFalse(cloneObj.getPartitionColumns().isEmpty());
+        assertEquals(4, cloneObj.getPartitionCount());
+        assertNotNull(cloneObj.getDDL());
+        assertNotNull(cloneObj.getPartitionExp());
+        assertNotNull(cloneObj.getPartitionFunc());
+        assertNotNull(cloneObj.getPartitionMethod());
+        assertNotNull(cloneObj.getPartitions());
+        assertNotNull(cloneObj.getPartitionTableByName("part_0"));
+        assertNull(cloneObj.getPartitionTableByName("nopart"));
+        assertNotNull(cloneObj.getPartitionTableByPosition(0));
+        assertNull(cloneObj.getPartitionTableByPosition(100));
+        assertNotNull(cloneObj.getSubPartitionColumnCount());
+        assertNotNull(cloneObj.getSubPartitionColumns());
+        assertNotNull(cloneObj.getSubPartitionCount());
+        assertNotNull(cloneObj.getSubPartitionExp());
+        assertNotNull(cloneObj.getSubPartitionFunc());
+        assertNotNull(cloneObj.getSubPartitionMethod());
+        assertNotNull(cloneObj.getSubPartitionNameByIdx(0));
+        assertNull(cloneObj.getSubPartitionNameByIdx(100));
+        assertNotNull(cloneObj.getSubPartitions());
     }
 
     /** @return PartitionInfo */

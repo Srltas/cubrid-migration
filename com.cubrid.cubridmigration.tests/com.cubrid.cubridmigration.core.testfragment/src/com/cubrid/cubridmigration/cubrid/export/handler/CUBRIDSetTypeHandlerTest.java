@@ -37,8 +37,9 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * Test Class CUBRIDSetTypeHandler
@@ -70,7 +71,7 @@ public class CUBRIDSetTypeHandlerTest {
                 column3.setName("f3");
                 result.add(handler.getJdbcObject(rs, column3));
             }
-            Assert.assertFalse(result.isEmpty());
+            assertFalse(result.isEmpty());
         } finally {
             con.close();
         }

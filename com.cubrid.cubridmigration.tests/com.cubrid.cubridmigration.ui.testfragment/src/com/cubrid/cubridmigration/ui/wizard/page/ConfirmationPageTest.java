@@ -34,7 +34,7 @@ import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import java.util.List;
 import org.eclipse.swt.custom.StyleRange;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ConfirmationPageTest {
 
@@ -43,32 +43,32 @@ public class ConfirmationPageTest {
         List<StyleRange> styleRanges = null;
         MigrationConfiguration migration = TemplateParserTest.get_OL_CUBRID2CUBRIDConfig();
         String result = ConfirmationPage.getConfigSummary(migration, styleRanges);
-        // Assert.assertEquals(1021,result.length());
+        // assertEquals(1021,result.length());
         System.out.println(result);
 
         migration = TemplateParserTest.get_OL_CUBRID2CSVConfig();
         result = ConfirmationPage.getConfigSummary(migration, styleRanges);
-        // Assert.assertEquals(1249,result.length());
+        // assertEquals(1249,result.length());
         System.out.println(result);
 
         migration = TemplateParserTest.get_OL_CUBRID2DumpConfig();
         result = ConfirmationPage.getConfigSummary(migration, styleRanges);
-        // Assert.assertEquals(1047,result.length());
+        // assertEquals(1047,result.length());
         System.out.println(result);
 
         migration = TemplateParserTest.get_OL_CUBRID2SQLConfig();
         result = ConfirmationPage.getConfigSummary(migration, styleRanges);
-        // Assert.assertEquals(1328,result.length());
+        // assertEquals(1328,result.length());
         System.out.println(result);
 
         migration = TemplateParserTest.get_OL_CUBRID2XLSConfig();
         result = ConfirmationPage.getConfigSummary(migration, styleRanges);
-        // Assert.assertEquals(1249,result.length());
+        // assertEquals(1249,result.length());
         System.out.println(result);
 
         migration = TemplateParserTest.get_OF_MySQLXML2CUBRIDConfig();
         result = ConfirmationPage.getConfigSummary(migration, styleRanges);
-        // Assert.assertEquals(1034,result.length());
+        // assertEquals(1034,result.length());
         System.out.println(result);
     }
 }

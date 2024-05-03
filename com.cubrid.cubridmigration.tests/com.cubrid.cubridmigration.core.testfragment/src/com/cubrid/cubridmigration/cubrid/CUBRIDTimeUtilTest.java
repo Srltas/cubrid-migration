@@ -37,8 +37,12 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class CUBRIDTimeUtilTest {
 
@@ -52,14 +56,14 @@ public class CUBRIDTimeUtilTest {
         String timestring = "11:12:13 am";
         long t1 = CUBRIDTimeUtil.parseTime2Long(timestring, null);
 
-        Assert.assertTrue(t1 > 0);
+        assertTrue(t1 > 0);
 
         timestring = "11:12:1311";
         try {
             t1 = CUBRIDTimeUtil.parseTime2Long(timestring, null);
         } catch (Exception e) {
-            Assert.assertNotNull(LogUtil.getExceptionString(e));
-            Assert.assertTrue(e instanceof ParseException);
+            assertNotNull(LogUtil.getExceptionString(e));
+            assertTrue(e instanceof ParseException);
         }
     }
 
@@ -73,14 +77,14 @@ public class CUBRIDTimeUtilTest {
         String datestring = "2009-11-01";
         //		datestring = "0000-00-00";
         long t1 = CUBRIDTimeUtil.parseDate2Long(datestring, null);
-        Assert.assertTrue(t1 > 0);
+        assertTrue(t1 > 0);
         Date dt = new Date(t1 * 1000);
         System.err.println(dt);
         datestring = "2009";
         try {
             t1 = CUBRIDTimeUtil.parseDate2Long(datestring, null);
         } catch (Exception e) {
-            Assert.assertTrue(e instanceof ParseException);
+            assertTrue(e instanceof ParseException);
         }
     }
 
@@ -93,13 +97,13 @@ public class CUBRIDTimeUtilTest {
     public final void testGetTimestamp() throws ParseException {
         String datestring = "2009-02-20 16:42:46";
         long res = CUBRIDTimeUtil.parseTimestamp(datestring, null);
-        Assert.assertTrue(res > 0);
+        assertTrue(res > 0);
 
         datestring = "2009";
         try {
             res = CUBRIDTimeUtil.parseTimestamp(datestring, null);
         } catch (Exception e) {
-            Assert.assertTrue(e instanceof ParseException);
+            assertTrue(e instanceof ParseException);
         }
     }
 
@@ -112,13 +116,13 @@ public class CUBRIDTimeUtilTest {
     public final void testGetDatetime() throws ParseException {
         String datestring = "2009-02-20 16:42:46";
         long res = CUBRIDTimeUtil.parseDatetime2Long(datestring, TimeZone.getDefault());
-        Assert.assertTrue(res > 0);
+        assertTrue(res > 0);
 
         datestring = "2009";
         try {
             res = CUBRIDTimeUtil.parseDatetime2Long(datestring, TimeZone.getDefault());
         } catch (Exception e) {
-            Assert.assertTrue(e instanceof ParseException);
+            assertTrue(e instanceof ParseException);
         }
     }
 
@@ -130,12 +134,12 @@ public class CUBRIDTimeUtilTest {
         String res =
                 CUBRIDTimeUtil.formatDateTime(
                         datestring, newDatetimePattern, TimeZone.getDefault());
-        Assert.assertEquals("2009-11-05 06:44:15", res);
+        assertEquals("2009-11-05 06:44:15", res);
 
         datestring = "06:44:15.111 AM 11/05/2009";
         newDatetimePattern = "yyyy-MM-dd HH:mm:ss.SSS";
         res = CUBRIDTimeUtil.formatDateTime(datestring, newDatetimePattern, TimeZone.getDefault());
-        Assert.assertEquals("2009-11-05 06:44:15.111", res);
+        assertEquals("2009-11-05 06:44:15.111", res);
     }
 
     /** testValidateTimestamp */
@@ -144,11 +148,11 @@ public class CUBRIDTimeUtilTest {
         String datepattern = "yyyy-MM-dd HH:mm:ss";
         String datestring = "2009-11-05 06:44:15";
         boolean flag = CUBRIDTimeUtil.validateDateString(datestring, datepattern);
-        Assert.assertTrue(flag);
+        assertTrue(flag);
         datepattern = "yyyy-MM-dd HH:mm:ss";
         datestring = "06:44:15 AM 11/05/2009";
         flag = CUBRIDTimeUtil.validateDateString(datestring, datepattern);
-        Assert.assertFalse(flag);
+        assertFalse(flag);
     }
 
     /** testGetDateFormat */
@@ -158,7 +162,7 @@ public class CUBRIDTimeUtilTest {
         Locale locale = Locale.CHINESE;
         TimeZone timeZone = SimpleTimeZone.getDefault();
         DateFormat df = CUBRIDTimeUtil.getDateFormat(datepattern, locale, timeZone);
-        Assert.assertEquals(timeZone, df.getTimeZone());
+        assertEquals(timeZone, df.getTimeZone());
     }
 
     //	/**
@@ -171,7 +175,7 @@ public class CUBRIDTimeUtilTest {
     //		String datestring = "2009-11-05 06:44:15";
     //		String datepattern = "yyyy-MM-dd HH:mm:ss";
     //		long res = CUBRIDTimeUtil.parseTimestamp(datestring, datepattern);
-    //		Assert.assertTrue(res > 0);
+    //		assertTrue(res > 0);
     //	}
     //
     //	/**
@@ -186,7 +190,7 @@ public class CUBRIDTimeUtilTest {
     //		long res = CUBRIDTimeUtil.parseTimestamp(datestring, datepattern);
     //
     //		datestring = CUBRIDTimeUtil.formatTimestampLong(res, datepattern);
-    //		Assert.assertTrue("2009-11-05 06:44:15".equalsIgnoreCase(datestring));
+    //		assertTrue("2009-11-05 06:44:15".equalsIgnoreCase(datestring));
     //	}
 
     //	/**
@@ -197,16 +201,16 @@ public class CUBRIDTimeUtilTest {
     //		long timestamp = System.currentTimeMillis();
     //		String datepattern = "yyyy-MM-dd";
     //		String str = CUBRIDTimeUtil.parseTimestamp(timestamp, datepattern);
-    //		Assert.assertNotNull(str);
+    //		assertNotNull(str);
     //	}
 
     @Test
     public void testDefaultFormater() {
         Date date = new Date();
-        Assert.assertEquals(10, CUBRIDTimeUtil.defaultFormatDate(date).length());
-        Assert.assertEquals(19, CUBRIDTimeUtil.defaultFormatDateTime(date).length());
-        Assert.assertEquals(23, CUBRIDTimeUtil.defaultFormatMilin(date).length());
-        Assert.assertEquals(8, CUBRIDTimeUtil.defaultFormatTime(date).length());
-        Assert.assertEquals(12, CUBRIDTimeUtil.defaultFormatTimeMilin(date).length());
+        assertEquals(10, CUBRIDTimeUtil.defaultFormatDate(date).length());
+        assertEquals(19, CUBRIDTimeUtil.defaultFormatDateTime(date).length());
+        assertEquals(23, CUBRIDTimeUtil.defaultFormatMilin(date).length());
+        assertEquals(8, CUBRIDTimeUtil.defaultFormatTime(date).length());
+        assertEquals(12, CUBRIDTimeUtil.defaultFormatTimeMilin(date).length());
     }
 }

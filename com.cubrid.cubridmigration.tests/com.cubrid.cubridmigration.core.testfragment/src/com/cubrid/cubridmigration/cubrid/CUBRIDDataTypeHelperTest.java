@@ -32,8 +32,13 @@ package com.cubrid.cubridmigration.cubrid;
 
 import com.cubrid.cubridmigration.core.datatype.DataTypeInstance;
 import com.cubrid.cubridmigration.core.dbobject.Column;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * CUBRIDDataTypeTest
@@ -88,10 +93,10 @@ public class CUBRIDDataTypeHelperTest {
             System.out.println(strs[0]);
             Column column = new Column();
             dataTypeHelper.setColumnDataType(strs[0], column);
-            Assert.assertTrue(dataTypeHelper.isValidDatatype(strs[0]));
+            assertTrue(dataTypeHelper.isValidDatatype(strs[0]));
             String shownType = dataTypeHelper.getShownDataType(column);
-            Assert.assertEquals(strs[1], shownType);
-            Assert.assertEquals(strs[2], dataTypeHelper.getStdMainDataType(strs[0]));
+            assertEquals(strs[1], shownType);
+            assertEquals(strs[2], dataTypeHelper.getStdMainDataType(strs[0]));
         }
     }
 
@@ -100,34 +105,34 @@ public class CUBRIDDataTypeHelperTest {
     public final void testIsValidDatatype() {
         String dataTypeInstance = null;
         boolean flag = dataTypeHelper.isValidDatatype(dataTypeInstance);
-        Assert.assertFalse(flag);
+        assertFalse(flag);
 
         dataTypeInstance = "smallint";
         flag = dataTypeHelper.isValidDatatype(dataTypeInstance);
-        Assert.assertTrue(flag);
+        assertTrue(flag);
 
         dataTypeInstance = "VARCHAR(10)";
         flag = dataTypeHelper.isValidDatatype(dataTypeInstance);
 
-        Assert.assertTrue(flag);
+        assertTrue(flag);
 
         dataTypeInstance = "VARCHAR(2";
         flag = dataTypeHelper.isValidDatatype(dataTypeInstance);
-        Assert.assertFalse(flag);
+        assertFalse(flag);
 
         dataTypeInstance = "VARCHAR2(2";
         flag = dataTypeHelper.isValidDatatype(dataTypeInstance);
-        Assert.assertFalse(flag);
+        assertFalse(flag);
 
         dataTypeInstance = "VARCHAR(a)";
         flag = dataTypeHelper.isValidDatatype(dataTypeInstance);
-        Assert.assertFalse(flag);
+        assertFalse(flag);
 
         dataTypeInstance = "sequence_of(char(10)";
-        Assert.assertFalse(dataTypeHelper.isValidDatatype(dataTypeInstance));
+        assertFalse(dataTypeHelper.isValidDatatype(dataTypeInstance));
 
         dataTypeInstance = "char(10))";
-        Assert.assertFalse(dataTypeHelper.isValidDatatype(dataTypeInstance));
+        assertFalse(dataTypeHelper.isValidDatatype(dataTypeInstance));
     }
 
     /** testGetScale */
@@ -136,189 +141,189 @@ public class CUBRIDDataTypeHelperTest {
         String jdbcType = "numeric(10,3)";
         int res = dataTypeHelper.getScale(jdbcType);
         System.out.println(res);
-        Assert.assertEquals(3, res);
+        assertEquals(3, res);
 
         String jdbcType2 = "SET(numeric(10,3))";
         int res2 = dataTypeHelper.getScale(jdbcType2);
         System.out.println(res2);
-        Assert.assertEquals(3, res2);
+        assertEquals(3, res2);
 
-        Assert.assertNull(dataTypeHelper.getScale("varchar(200)"));
-        Assert.assertNull(dataTypeHelper.getScale("numeric(38)"));
-        Assert.assertNull(dataTypeHelper.getScale("int"));
+        assertNull(dataTypeHelper.getScale("varchar(200)"));
+        assertNull(dataTypeHelper.getScale("numeric(38)"));
+        assertNull(dataTypeHelper.getScale("int"));
     }
 
     /** testGetPrecision */
     @Test
     public final void testGetPrecision() {
-        Assert.assertTrue(10 == dataTypeHelper.getPrecision("SET(numeric(10,3))"));
-        Assert.assertTrue(10 == dataTypeHelper.getPrecision("SET(varchar(10))"));
-        Assert.assertNull(dataTypeHelper.getPrecision("SET(int)"));
-        Assert.assertTrue(10 == dataTypeHelper.getPrecision("numeric(10)"));
-        Assert.assertTrue(10 == dataTypeHelper.getPrecision("varchar(10)"));
-        Assert.assertNull(dataTypeHelper.getPrecision("int"));
+        assertTrue(10 == dataTypeHelper.getPrecision("SET(numeric(10,3))"));
+        assertTrue(10 == dataTypeHelper.getPrecision("SET(varchar(10))"));
+        assertNull(dataTypeHelper.getPrecision("SET(int)"));
+        assertTrue(10 == dataTypeHelper.getPrecision("numeric(10)"));
+        assertTrue(10 == dataTypeHelper.getPrecision("varchar(10)"));
+        assertNull(dataTypeHelper.getPrecision("int"));
     }
 
     /** testGetTypeRemain */
     @Test
     public final void testGetRemain() {
-        Assert.assertEquals("int", dataTypeHelper.getRemain("MULTISET(int)"));
-        Assert.assertEquals("varchar(10)", dataTypeHelper.getRemain("MULTISET(varchar(10))"));
-        Assert.assertEquals("numeric(10,2)", dataTypeHelper.getRemain("MULTISET(numeric(10,2))"));
-        Assert.assertEquals("numeric(10,2)", dataTypeHelper.getRemain("MULTISET(NUMERIC(10,2))"));
+        assertEquals("int", dataTypeHelper.getRemain("MULTISET(int)"));
+        assertEquals("varchar(10)", dataTypeHelper.getRemain("MULTISET(varchar(10))"));
+        assertEquals("numeric(10,2)", dataTypeHelper.getRemain("MULTISET(numeric(10,2))"));
+        assertEquals("numeric(10,2)", dataTypeHelper.getRemain("MULTISET(NUMERIC(10,2))"));
     }
 
     @Test
     public void testIsValidValue() {
         CUBRIDDataTypeHelper helper = CUBRIDDataTypeHelper.getInstance(null);
-        Assert.assertTrue(helper.isValidValue("char(1)", "a"));
-        Assert.assertFalse(helper.isValidValue("char(1)", "aa"));
-        Assert.assertTrue(helper.isValidValue("varchar(2)", "aa"));
-        Assert.assertFalse(helper.isValidValue("varchar(2)", "aaa"));
-        Assert.assertTrue(helper.isValidValue("int", "1"));
-        Assert.assertFalse(helper.isValidValue("int", "a"));
+        assertTrue(helper.isValidValue("char(1)", "a"));
+        assertFalse(helper.isValidValue("char(1)", "aa"));
+        assertTrue(helper.isValidValue("varchar(2)", "aa"));
+        assertFalse(helper.isValidValue("varchar(2)", "aaa"));
+        assertTrue(helper.isValidValue("int", "1"));
+        assertFalse(helper.isValidValue("int", "a"));
 
-        Assert.assertTrue(helper.isValidValue("integer", "1"));
-        Assert.assertFalse(helper.isValidValue("integer", "b"));
-        Assert.assertFalse(helper.isValidValue("integer", "99999999999999999"));
+        assertTrue(helper.isValidValue("integer", "1"));
+        assertFalse(helper.isValidValue("integer", "b"));
+        assertFalse(helper.isValidValue("integer", "99999999999999999"));
 
-        Assert.assertTrue(helper.isValidValue("short", "1"));
-        Assert.assertFalse(helper.isValidValue("short", "b"));
+        assertTrue(helper.isValidValue("short", "1"));
+        assertFalse(helper.isValidValue("short", "b"));
 
-        Assert.assertTrue(helper.isValidValue("smallint", "1"));
-        Assert.assertFalse(helper.isValidValue("smallint", "a"));
+        assertTrue(helper.isValidValue("smallint", "1"));
+        assertFalse(helper.isValidValue("smallint", "a"));
 
-        Assert.assertTrue(helper.isValidValue("long", "111"));
-        Assert.assertFalse(helper.isValidValue("long", "ff"));
+        assertTrue(helper.isValidValue("long", "111"));
+        assertFalse(helper.isValidValue("long", "ff"));
 
-        Assert.assertTrue(helper.isValidValue("bigint", "111"));
-        Assert.assertFalse(helper.isValidValue("bigint", "ddd"));
+        assertTrue(helper.isValidValue("bigint", "111"));
+        assertFalse(helper.isValidValue("bigint", "ddd"));
 
-        Assert.assertTrue(helper.isValidValue("date", "2013-01-01"));
-        Assert.assertFalse(helper.isValidValue("date", "fasdf"));
+        assertTrue(helper.isValidValue("date", "2013-01-01"));
+        assertFalse(helper.isValidValue("date", "fasdf"));
 
-        Assert.assertTrue(helper.isValidValue("time", "01:01:01.001"));
-        Assert.assertFalse(helper.isValidValue("time", "fasdfasdf"));
+        assertTrue(helper.isValidValue("time", "01:01:01.001"));
+        assertFalse(helper.isValidValue("time", "fasdfasdf"));
 
-        Assert.assertTrue(helper.isValidValue("datetime", "2013-01-01 01:01:01.001"));
-        Assert.assertFalse(helper.isValidValue("datetime", "ttttt"));
+        assertTrue(helper.isValidValue("datetime", "2013-01-01 01:01:01.001"));
+        assertFalse(helper.isValidValue("datetime", "ttttt"));
 
-        Assert.assertTrue(helper.isValidValue("timestamp", "2013-01-01 01:01:01"));
-        Assert.assertFalse(helper.isValidValue("timestamp", "ffff"));
+        assertTrue(helper.isValidValue("timestamp", "2013-01-01 01:01:01"));
+        assertFalse(helper.isValidValue("timestamp", "ffff"));
 
-        Assert.assertTrue(helper.isValidValue("bit(8)", "b'00000001'"));
-        Assert.assertTrue(helper.isValidValue("bit(8)", "B'00000001'"));
-        Assert.assertTrue(helper.isValidValue("bit(8)", "x'FF'"));
-        Assert.assertTrue(helper.isValidValue("bit(8)", "X'ff'"));
-        Assert.assertTrue(helper.isValidValue("bit(8)", "0xFF"));
-        Assert.assertTrue(helper.isValidValue("bit(8)", "0Xff"));
-        Assert.assertTrue(helper.isValidValue("bit(8)", "0b00000001"));
-        Assert.assertTrue(helper.isValidValue("bit(8)", "0B00000001"));
-        Assert.assertTrue(helper.isValidValue("bit varying(16)", "b'00000001'"));
-        Assert.assertFalse(!helper.isValidValue("bit(8)", "b'0a000001'"));
+        assertTrue(helper.isValidValue("bit(8)", "b'00000001'"));
+        assertTrue(helper.isValidValue("bit(8)", "B'00000001'"));
+        assertTrue(helper.isValidValue("bit(8)", "x'FF'"));
+        assertTrue(helper.isValidValue("bit(8)", "X'ff'"));
+        assertTrue(helper.isValidValue("bit(8)", "0xFF"));
+        assertTrue(helper.isValidValue("bit(8)", "0Xff"));
+        assertTrue(helper.isValidValue("bit(8)", "0b00000001"));
+        assertTrue(helper.isValidValue("bit(8)", "0B00000001"));
+        assertTrue(helper.isValidValue("bit varying(16)", "b'00000001'"));
+        assertFalse(!helper.isValidValue("bit(8)", "b'0a000001'"));
     }
 
     @Test
     public void testparseDTInstance() {
         DataTypeInstance dti = dataTypeHelper.parseDTInstance("int");
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("int", dti.getName());
-        Assert.assertNull(dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("int", dti.getName());
+        assertNull(dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
 
         dti = dataTypeHelper.parseDTInstance("enum('1','2','4','3','A')");
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("enum", dti.getName());
-        Assert.assertNull(dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertEquals("'1','2','4','3','A'", dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("enum", dti.getName());
+        assertNull(dti.getPrecision());
+        assertNull(dti.getScale());
+        assertEquals("'1','2','4','3','A'", dti.getElments());
 
         dti = dataTypeHelper.parseDTInstance("varchar(100)");
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("varchar", dti.getName());
-        Assert.assertEquals(new Integer(100), dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("varchar", dti.getName());
+        assertEquals(new Integer(100), dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
 
         dti = dataTypeHelper.parseDTInstance("numeric(38,2)");
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("numeric", dti.getName());
-        Assert.assertEquals(new Integer(38), dti.getPrecision());
-        Assert.assertEquals(new Integer(2), dti.getScale());
-        Assert.assertNull(dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("numeric", dti.getName());
+        assertEquals(new Integer(38), dti.getPrecision());
+        assertEquals(new Integer(2), dti.getScale());
+        assertNull(dti.getElments());
 
         dti = dataTypeHelper.parseDTInstance("numeric(38)");
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("numeric", dti.getName());
-        Assert.assertEquals(new Integer(38), dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("numeric", dti.getName());
+        assertEquals(new Integer(38), dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
 
         dti = dataTypeHelper.parseDTInstance("set(int)");
-        Assert.assertEquals("set", dti.getName());
-        Assert.assertNull(dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
-        Assert.assertNotNull(dti.getSubType());
+        assertEquals("set", dti.getName());
+        assertNull(dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
+        assertNotNull(dti.getSubType());
         dti = dti.getSubType();
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("int", dti.getName());
-        Assert.assertNull(dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("int", dti.getName());
+        assertNull(dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
 
         dti = dataTypeHelper.parseDTInstance("set(varchar(100))");
-        Assert.assertEquals("set", dti.getName());
-        Assert.assertNull(dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
-        Assert.assertNotNull(dti.getSubType());
+        assertEquals("set", dti.getName());
+        assertNull(dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
+        assertNotNull(dti.getSubType());
         dti = dti.getSubType();
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("varchar", dti.getName());
-        Assert.assertEquals(new Integer(100), dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("varchar", dti.getName());
+        assertEquals(new Integer(100), dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
 
         dti = dataTypeHelper.parseDTInstance("set(numeric(38,2))");
-        Assert.assertEquals("set", dti.getName());
-        Assert.assertNull(dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
-        Assert.assertNotNull(dti.getSubType());
+        assertEquals("set", dti.getName());
+        assertNull(dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
+        assertNotNull(dti.getSubType());
         dti = dti.getSubType();
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("numeric", dti.getName());
-        Assert.assertEquals(new Integer(38), dti.getPrecision());
-        Assert.assertEquals(new Integer(2), dti.getScale());
-        Assert.assertNull(dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("numeric", dti.getName());
+        assertEquals(new Integer(38), dti.getPrecision());
+        assertEquals(new Integer(2), dti.getScale());
+        assertNull(dti.getElments());
 
         dti = dataTypeHelper.parseDTInstance("SET(NUMERIC(38,2))");
-        Assert.assertEquals("SET", dti.getName());
-        Assert.assertNull(dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
-        Assert.assertNotNull(dti.getSubType());
+        assertEquals("SET", dti.getName());
+        assertNull(dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
+        assertNotNull(dti.getSubType());
         dti = dti.getSubType();
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("NUMERIC", dti.getName());
-        Assert.assertEquals(new Integer(38), dti.getPrecision());
-        Assert.assertEquals(new Integer(2), dti.getScale());
-        Assert.assertNull(dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("NUMERIC", dti.getName());
+        assertEquals(new Integer(38), dti.getPrecision());
+        assertEquals(new Integer(2), dti.getScale());
+        assertNull(dti.getElments());
 
         dti = dataTypeHelper.parseDTInstance("SET(STRING)");
-        Assert.assertEquals("SET", dti.getName());
-        Assert.assertNull(dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
-        Assert.assertNotNull(dti.getSubType());
+        assertEquals("SET", dti.getName());
+        assertNull(dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
+        assertNotNull(dti.getSubType());
         dti = dti.getSubType();
-        Assert.assertNull(dti.getSubType());
-        Assert.assertEquals("varchar", dti.getName());
-        Assert.assertEquals(new Integer(1073741823), dti.getPrecision());
-        Assert.assertNull(dti.getScale());
-        Assert.assertNull(dti.getElments());
+        assertNull(dti.getSubType());
+        assertEquals("varchar", dti.getName());
+        assertEquals(new Integer(1073741823), dti.getPrecision());
+        assertNull(dti.getScale());
+        assertNull(dti.getElments());
     }
 
     @Test
@@ -351,7 +356,7 @@ public class CUBRIDDataTypeHelperTest {
                     {"enum", "61111"}
                 };
         for (String[] strs : testcases) {
-            Assert.assertEquals(
+            assertEquals(
                     Integer.parseInt(strs[1]), dataTypeHelper.getCUBRIDDataTypeID(strs[0]));
         }
         testcases =
@@ -388,7 +393,7 @@ public class CUBRIDDataTypeHelperTest {
                     {"ENUM('a','A','b')", "61111"}
                 }; // , {"string", "12" }
         for (String[] strs : testcases) {
-            Assert.assertEquals(
+            assertEquals(
                     Integer.parseInt(strs[1]), dataTypeHelper.getCUBRIDDataTypeID(strs[0]));
         }
     }

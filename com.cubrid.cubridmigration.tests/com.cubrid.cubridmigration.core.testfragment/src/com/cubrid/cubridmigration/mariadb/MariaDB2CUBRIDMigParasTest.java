@@ -33,7 +33,7 @@ import com.cubrid.cubridmigration.mariadb.trans.MariaDB2CUBRIDMigParas;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.TimeZone;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MariaDB2CUBRIDMigParasTest {
 

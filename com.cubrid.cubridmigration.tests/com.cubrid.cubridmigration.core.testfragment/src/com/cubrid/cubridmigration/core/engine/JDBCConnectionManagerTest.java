@@ -36,8 +36,10 @@ import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import java.sql.Connection;
 import java.sql.SQLException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * JDBCConnectionManagerTester
@@ -86,16 +88,16 @@ public class JDBCConnectionManagerTest {
 
     private void testSource(JDBCConManager cm) throws SQLException {
         Connection cons = cm.getSourceConnection();
-        Assert.assertNotNull(cons);
-        Assert.assertTrue(!cons.isClosed());
+        assertNotNull(cons);
+        assertTrue(!cons.isClosed());
         cm.closeSrc(cons);
         cm.closeSrc(null);
     }
 
     private void testTarget(JDBCConManager cm) throws SQLException {
         Connection cont = cm.getTargetConnection();
-        Assert.assertNotNull(cont);
-        Assert.assertTrue(!cont.isClosed());
+        assertNotNull(cont);
+        assertTrue(!cont.isClosed());
         cm.closeTar(cont);
         cm.closeTar(null);
     }

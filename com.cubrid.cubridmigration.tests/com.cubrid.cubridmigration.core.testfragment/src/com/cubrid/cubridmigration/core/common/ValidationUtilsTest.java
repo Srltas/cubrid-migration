@@ -30,70 +30,72 @@
  */
 package com.cubrid.cubridmigration.core.common;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ValidationUtilsTest {
 
     @Test
     public void test_ValidationUtils() {
-        Assert.assertTrue(ValidationUtils.isDouble("1.1"));
-        Assert.assertTrue(ValidationUtils.isDouble("1.111111111111111"));
-        Assert.assertFalse(ValidationUtils.isDouble("1.1111111.11111111"));
-        Assert.assertFalse(ValidationUtils.isDouble("1.1111111.111111a11"));
-        Assert.assertFalse(ValidationUtils.isDouble("a"));
-        Assert.assertFalse(ValidationUtils.isDouble(" "));
-        Assert.assertFalse(ValidationUtils.isDouble(null));
+        assertTrue(ValidationUtils.isDouble("1.1"));
+        assertTrue(ValidationUtils.isDouble("1.111111111111111"));
+        assertFalse(ValidationUtils.isDouble("1.1111111.11111111"));
+        assertFalse(ValidationUtils.isDouble("1.1111111.111111a11"));
+        assertFalse(ValidationUtils.isDouble("a"));
+        assertFalse(ValidationUtils.isDouble(" "));
+        assertFalse(ValidationUtils.isDouble(null));
 
-        Assert.assertTrue(ValidationUtils.isInteger("1"));
-        Assert.assertTrue(ValidationUtils.isInteger("1121"));
-        Assert.assertFalse(ValidationUtils.isInteger("1.1111111.11111111"));
-        Assert.assertFalse(ValidationUtils.isInteger("1.1111111.111111a11"));
-        Assert.assertFalse(ValidationUtils.isInteger("a"));
-        Assert.assertFalse(ValidationUtils.isInteger(" "));
-        Assert.assertFalse(ValidationUtils.isInteger(null));
+        assertTrue(ValidationUtils.isInteger("1"));
+        assertTrue(ValidationUtils.isInteger("1121"));
+        assertFalse(ValidationUtils.isInteger("1.1111111.11111111"));
+        assertFalse(ValidationUtils.isInteger("1.1111111.111111a11"));
+        assertFalse(ValidationUtils.isInteger("a"));
+        assertFalse(ValidationUtils.isInteger(" "));
+        assertFalse(ValidationUtils.isInteger(null));
 
-        Assert.assertTrue(ValidationUtils.isIP("1.1.1.1"));
-        Assert.assertTrue(ValidationUtils.isIP("223.255.1.11"));
-        Assert.assertFalse(ValidationUtils.isIP("1.1.a.1"));
-        Assert.assertFalse(ValidationUtils.isIP("1.266.1.1"));
-        Assert.assertFalse(ValidationUtils.isIP(" "));
-        Assert.assertFalse(ValidationUtils.isIP(null));
+        assertTrue(ValidationUtils.isIP("1.1.1.1"));
+        assertTrue(ValidationUtils.isIP("223.255.1.11"));
+        assertFalse(ValidationUtils.isIP("1.1.a.1"));
+        assertFalse(ValidationUtils.isIP("1.266.1.1"));
+        assertFalse(ValidationUtils.isIP(" "));
+        assertFalse(ValidationUtils.isIP(null));
 
-        Assert.assertTrue(ValidationUtils.isPositiveDouble("1.1"));
-        Assert.assertTrue(ValidationUtils.isPositiveDouble("1.111111111111111"));
-        Assert.assertFalse(ValidationUtils.isPositiveDouble("-1.111111111111111"));
-        Assert.assertFalse(ValidationUtils.isPositiveDouble("1.1111111.11111111"));
-        Assert.assertFalse(ValidationUtils.isPositiveDouble("1.1111111.111111a11"));
-        Assert.assertFalse(ValidationUtils.isPositiveDouble("a"));
-        Assert.assertFalse(ValidationUtils.isPositiveDouble(" "));
-        Assert.assertFalse(ValidationUtils.isPositiveDouble(null));
+        assertTrue(ValidationUtils.isPositiveDouble("1.1"));
+        assertTrue(ValidationUtils.isPositiveDouble("1.111111111111111"));
+        assertFalse(ValidationUtils.isPositiveDouble("-1.111111111111111"));
+        assertFalse(ValidationUtils.isPositiveDouble("1.1111111.11111111"));
+        assertFalse(ValidationUtils.isPositiveDouble("1.1111111.111111a11"));
+        assertFalse(ValidationUtils.isPositiveDouble("a"));
+        assertFalse(ValidationUtils.isPositiveDouble(" "));
+        assertFalse(ValidationUtils.isPositiveDouble(null));
 
-        Assert.assertTrue(ValidationUtils.isSciDouble("1.1"));
-        Assert.assertTrue(ValidationUtils.isSciDouble("1.111111111111111"));
-        Assert.assertTrue(ValidationUtils.isSciDouble("-1.111111111111111"));
-        Assert.assertTrue(ValidationUtils.isSciDouble("1.111111111111111e+10"));
-        Assert.assertFalse(ValidationUtils.isSciDouble("1.1111111.111111a11"));
-        Assert.assertFalse(ValidationUtils.isSciDouble("a"));
-        Assert.assertFalse(ValidationUtils.isSciDouble(" "));
-        Assert.assertFalse(ValidationUtils.isSciDouble(null));
+        assertTrue(ValidationUtils.isSciDouble("1.1"));
+        assertTrue(ValidationUtils.isSciDouble("1.111111111111111"));
+        assertTrue(ValidationUtils.isSciDouble("-1.111111111111111"));
+        assertTrue(ValidationUtils.isSciDouble("1.111111111111111e+10"));
+        assertFalse(ValidationUtils.isSciDouble("1.1111111.111111a11"));
+        assertFalse(ValidationUtils.isSciDouble("a"));
+        assertFalse(ValidationUtils.isSciDouble(" "));
+        assertFalse(ValidationUtils.isSciDouble(null));
 
-        Assert.assertFalse(ValidationUtils.isValidDBName(""));
-        Assert.assertFalse(ValidationUtils.isValidDBName("a a"));
-        Assert.assertFalse(ValidationUtils.isValidDBName("#"));
-        Assert.assertFalse(ValidationUtils.isValidDBName("-"));
-        Assert.assertFalse(ValidationUtils.isValidDBName("."));
-        Assert.assertFalse(ValidationUtils.isValidDBName(".."));
-        Assert.assertTrue(ValidationUtils.isValidDBName("a-a"));
-        Assert.assertTrue(ValidationUtils.isValidDBName("A-Z-"));
+        assertFalse(ValidationUtils.isValidDBName(""));
+        assertFalse(ValidationUtils.isValidDBName("a a"));
+        assertFalse(ValidationUtils.isValidDBName("#"));
+        assertFalse(ValidationUtils.isValidDBName("-"));
+        assertFalse(ValidationUtils.isValidDBName("."));
+        assertFalse(ValidationUtils.isValidDBName(".."));
+        assertTrue(ValidationUtils.isValidDBName("a-a"));
+        assertTrue(ValidationUtils.isValidDBName("A-Z-"));
 
-        Assert.assertTrue(ValidationUtils.isValidDbNameLength("aaaaaaaaaaaaaaaaa"));
-        Assert.assertFalse(ValidationUtils.isValidDbNameLength("aaaaaaaaaaaaaaaaaa"));
+        assertTrue(ValidationUtils.isValidDbNameLength("aaaaaaaaaaaaaaaaa"));
+        assertFalse(ValidationUtils.isValidDbNameLength("aaaaaaaaaaaaaaaaaa"));
 
-        Assert.assertFalse(ValidationUtils.isValidPort("1023"));
-        Assert.assertTrue(ValidationUtils.isValidPort("1025"));
-        Assert.assertFalse(ValidationUtils.isValidPort("65536"));
-        Assert.assertTrue(ValidationUtils.isValidPort("65535"));
-        Assert.assertFalse(ValidationUtils.isValidPort("aaa"));
+        assertFalse(ValidationUtils.isValidPort("1023"));
+        assertTrue(ValidationUtils.isValidPort("1025"));
+        assertFalse(ValidationUtils.isValidPort("65536"));
+        assertTrue(ValidationUtils.isValidPort("65535"));
+        assertFalse(ValidationUtils.isValidPort("aaa"));
     }
 }

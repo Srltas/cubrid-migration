@@ -56,7 +56,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import junit.framework.TestCase;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class Oracle2CUBRIDTranformHelperTest extends TestCase {
     static ToCUBRIDDataConverterFacade convertFactory = ToCUBRIDDataConverterFacade.getIntance();
@@ -110,155 +110,155 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
 
         dtHelper.setColumnDataType("smallint", targetColumn);
         Object res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertNull(res);
+        assertNull(res);
 
         dtHelper.setColumnDataType("smallint", targetColumn);
         obj = Short.MAX_VALUE;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Short.MAX_VALUE, res);
+        assertEquals(Short.MAX_VALUE, res);
         obj = Short.MAX_VALUE;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Short.MAX_VALUE, res);
+        assertEquals(Short.MAX_VALUE, res);
 
         dtHelper.setColumnDataType("integer", targetColumn);
         obj = (Integer) 1;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals((Integer) 1, res);
+        assertEquals((Integer) 1, res);
         obj = 1;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals((Integer) 1, res);
+        assertEquals((Integer) 1, res);
 
         dtHelper.setColumnDataType("bigint", targetColumn);
         obj = (long) 1;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals((long) 1, res);
+        assertEquals((long) 1, res);
         obj = 1;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals((long) 1, res);
+        assertEquals((long) 1, res);
 
         dtHelper.setColumnDataType("numeric", targetColumn);
         targetColumn.setScale(0);
         obj = BigInteger.valueOf(1);
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(BigInteger.valueOf(1), res);
+        assertEquals(BigInteger.valueOf(1), res);
         obj = 1;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(BigInteger.valueOf(1), res);
+        assertEquals(BigInteger.valueOf(1), res);
 
         dtHelper.setColumnDataType("numeric", targetColumn);
         targetColumn.setScale(1);
         obj = BigDecimal.valueOf(1.3);
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(BigDecimal.valueOf(1.3), res);
+        assertEquals(BigDecimal.valueOf(1.3), res);
         targetColumn.setPrecision(1);
         obj = 1.3;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(BigDecimal.valueOf(1.3), res);
+        assertEquals(BigDecimal.valueOf(1.3), res);
 
         dtHelper.setColumnDataType("float", targetColumn);
         obj = Float.valueOf(1);
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Float.valueOf(1), res);
+        assertEquals(Float.valueOf(1), res);
         obj = 1;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Float.valueOf(1), res);
+        assertEquals(Float.valueOf(1), res);
 
         dtHelper.setColumnDataType("double", targetColumn);
         obj = Double.valueOf(1);
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Double.valueOf(1), res);
+        assertEquals(Double.valueOf(1), res);
         obj = 1;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Double.valueOf(1), res);
+        assertEquals(Double.valueOf(1), res);
 
         dtHelper.setColumnDataType("monetary", targetColumn);
         obj = Double.valueOf(1);
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Double.valueOf(1), res);
+        assertEquals(Double.valueOf(1), res);
         obj = 1;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Double.valueOf(1), res);
+        assertEquals(Double.valueOf(1), res);
 
         dtHelper.setColumnDataType("character", targetColumn);
         obj = Boolean.TRUE;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("y", res);
+        assertEquals("y", res);
         obj = "abc";
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("abc", res);
+        assertEquals("abc", res);
 
         dtHelper.setColumnDataType("character varying", targetColumn);
         obj = "abc";
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("abc", res);
+        assertEquals("abc", res);
 
         dtHelper.setColumnDataType("string", targetColumn);
         obj = "abc";
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("abc", res);
+        assertEquals("abc", res);
 
         dtHelper.setColumnDataType("string", targetColumn);
         obj = "abc".toCharArray();
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("abc", res);
+        assertEquals("abc", res);
 
         dtHelper.setColumnDataType("string", targetColumn);
         obj = "abc".getBytes();
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("abc", res);
+        assertEquals("abc", res);
 
         dtHelper.setColumnDataType("national character", targetColumn);
         obj = "abc".toCharArray();
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("abc", res);
+        assertEquals("abc", res);
 
         dtHelper.setColumnDataType("national character varying", targetColumn);
         obj = "abc".getBytes();
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("abc", res);
+        assertEquals("abc", res);
 
         dtHelper.setColumnDataType("national character varying", targetColumn);
         res = convertFactory.convert(1, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("1", res);
+        assertEquals("1", res);
 
         dtHelper.setColumnDataType("time", targetColumn);
         obj = Time.valueOf("10:09:08");
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Time.valueOf("10:09:08"), res);
+        assertEquals(Time.valueOf("10:09:08"), res);
 
         dtHelper.setColumnDataType("time", targetColumn);
         java.util.Date time = new java.util.Date();
         obj = time;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(time, res);
+        assertEquals(time, res);
 
         Calendar ca = Calendar.getInstance();
         obj = ca;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(new Time(((Calendar) obj).getTime().getTime()), res);
+        assertEquals(new Time(((Calendar) obj).getTime().getTime()), res);
 
         obj = "2010-02-24 18:00:46:968 CST";
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Time.valueOf("18:00:46").toString(), res.toString());
+        assertEquals(Time.valueOf("18:00:46").toString(), res.toString());
 
         obj = "10:09:08";
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(Time.valueOf("10:09:08"), res);
+        assertEquals(Time.valueOf("10:09:08"), res);
 
         dtHelper.setColumnDataType("date", targetColumn);
         java.util.Date date = new java.util.Date(System.currentTimeMillis());
         obj = date;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(date.getTime(), ((java.util.Date) res).getTime());
+        assertEquals(date.getTime(), ((java.util.Date) res).getTime());
 
         ca = Calendar.getInstance();
         obj = ca;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(ca.getTime().getTime(), ((java.util.Date) res).getTime());
+        assertEquals(ca.getTime().getTime(), ((java.util.Date) res).getTime());
 
         obj = "2010-02-24 18:00:46:968 CST";
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(1267005646968L, ((java.util.Date) res).getTime());
+        assertEquals(1267005646968L, ((java.util.Date) res).getTime());
 
         obj = "2010-02-24 18:00:46:968 GMT";
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS z");
@@ -267,8 +267,8 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         dtHelper.setColumnDataType("timestamp", targetColumn);
         obj = timeStamp;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(timeStamp.getTime(), ((Timestamp) res).getTime());
-        Assert.assertEquals(timeStamp.getNanos(), ((Timestamp) res).getNanos());
+        assertEquals(timeStamp.getTime(), ((Timestamp) res).getTime());
+        assertEquals(timeStamp.getNanos(), ((Timestamp) res).getNanos());
 
         dtHelper.setColumnDataType("datetime", targetColumn);
         obj = ca;
@@ -278,26 +278,26 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         byte[] bs = "abc".getBytes();
         obj = bs;
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(bs, res);
+        assertEquals(bs, res);
 
         dtHelper.setColumnDataType("bit varying", targetColumn);
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(obj, res);
+        assertEquals(obj, res);
 
         dtHelper.setColumnDataType("set_of(integer)", targetColumn);
         obj = "{1,2,3}";
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("{1,2,3}", res); // no colum type map to set_of
+        assertEquals("{1,2,3}", res); // no colum type map to set_of
 
         dtHelper.setColumnDataType("multiset_of(integer)", targetColumn);
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
 
-        Assert.assertEquals("{1,2,3}", res); // no colum type map to multiset_of
+        assertEquals("{1,2,3}", res); // no colum type map to multiset_of
 
         dtHelper.setColumnDataType("sequence_of(integer)", targetColumn);
         res = convertFactory.convert(obj, targetColumn.getDataTypeInstance(), config);
 
-        Assert.assertEquals("{1,2,3}", res); // no colum type map to sequence_of
+        assertEquals("{1,2,3}", res); // no colum type map to sequence_of
     }
 
     @Test
@@ -308,34 +308,34 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
 
         String str = "true";
         Object obj = convertFactory.convert(str, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("1", obj.toString());
+        assertEquals("1", obj.toString());
 
         str = "false";
         obj = convertFactory.convert(str, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("0", obj.toString());
+        assertEquals("0", obj.toString());
 
         str = "2";
         obj = convertFactory.convert(str, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals("2", obj.toString());
+        assertEquals("2", obj.toString());
 
         targetColumn = new Column();
         dtHelper.setColumnDataType("TIMESTAMP", targetColumn);
         str = "2009-11-12 23:00:00:000 GMT";
         obj = convertFactory.convert(str, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(1258066800000L, ((Timestamp) obj).getTime());
+        assertEquals(1258066800000L, ((Timestamp) obj).getTime());
 
         targetColumn = new Column();
         dtHelper.setColumnDataType("DATETIME", targetColumn);
         str = "2009-11-12 23:00:00:777 CST";
         obj = convertFactory.convert(str, targetColumn.getDataTypeInstance(), config);
-        Assert.assertEquals(1258038000777L, ((Timestamp) obj).getTime());
+        assertEquals(1258038000777L, ((Timestamp) obj).getTime());
 
         try {
             targetColumn = new Column();
             dtHelper.setColumnDataType("DATETIME", targetColumn);
             str = "2009-11-12 23:00:00,777 CST";
             obj = convertFactory.convert(str, targetColumn.getDataTypeInstance(), config);
-            Assert.assertEquals(1258038000777L, ((Time) obj).getTime());
+            assertEquals(1258038000777L, ((Time) obj).getTime());
         } catch (Exception e) {
 
         }
@@ -350,7 +350,7 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         for (Column sc : st.getColumns()) {
             Column tc = tt.getColumnByName(sc.getName().toLowerCase(Locale.US));
             VerifyInfo result = tranformHelper.verifyColumnDataType(sc, tc, config);
-            Assert.assertNotNull(result);
+            assertNotNull(result);
         }
         st = config.getSrcTableSchema(null, "TEST_NUMBER");
         tt = config.getTargetTableSchema("test_number");
@@ -358,7 +358,7 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         for (Column sc : st.getColumns()) {
             Column tc = tt.getColumnByName(sc.getName().toLowerCase(Locale.US));
             VerifyInfo result = tranformHelper.verifyColumnDataType(sc, tc, config);
-            Assert.assertNotNull(result);
+            assertNotNull(result);
         }
 
         Column sc = st.getColumnByName("F1");
@@ -372,7 +372,7 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         tc.setPrecision(39);
         tc.setScale(0);
         VerifyInfo result = tranformHelper.verifyColumnDataType(sc, tc, config);
-        Assert.assertEquals(VerifyInfo.TYPE_MATCH, result.getResult());
+        assertEquals(VerifyInfo.TYPE_MATCH, result.getResult());
 
         sc.setDataType("NUMBER");
         sc.setShownDataType("NUMBER(38,2)");
@@ -383,7 +383,7 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         tc.setPrecision(40);
         tc.setScale(0);
         result = tranformHelper.verifyColumnDataType(sc, tc, config);
-        Assert.assertEquals(VerifyInfo.TYPE_MATCH, result.getResult());
+        assertEquals(VerifyInfo.TYPE_MATCH, result.getResult());
 
         sc.setDataType("NUMBER");
         sc.setShownDataType("NUMBER(38,-2)");
@@ -394,7 +394,7 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         tc.setPrecision(41);
         tc.setScale(0);
         result = tranformHelper.verifyColumnDataType(sc, tc, config);
-        Assert.assertEquals(VerifyInfo.TYPE_MATCH, result.getResult());
+        assertEquals(VerifyInfo.TYPE_MATCH, result.getResult());
 
         sc.setDataType("NUMBER");
         sc.setShownDataType("NUMBER(38,40)");
@@ -405,21 +405,21 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         tc.setPrecision(43);
         tc.setScale(0);
         result = tranformHelper.verifyColumnDataType(sc, tc, config);
-        Assert.assertEquals(VerifyInfo.TYPE_MATCH, result.getResult());
+        assertEquals(VerifyInfo.TYPE_MATCH, result.getResult());
 
         tc.setDataType("varchar");
         tc.setShownDataType("varchar(42)");
         tc.setPrecision(42);
         tc.setScale(0);
         result = tranformHelper.verifyColumnDataType(sc, tc, config);
-        Assert.assertEquals(VerifyInfo.TYPE_NOENOUGH_LENGTH, result.getResult());
+        assertEquals(VerifyInfo.TYPE_NOENOUGH_LENGTH, result.getResult());
 
         tc.setDataType("blob");
         tc.setShownDataType("blob");
         tc.setPrecision(0);
         tc.setScale(0);
         result = tranformHelper.verifyColumnDataType(sc, tc, config);
-        Assert.assertEquals(VerifyInfo.TYPE_NO_MATCH, result.getResult());
+        assertEquals(VerifyInfo.TYPE_NO_MATCH, result.getResult());
     }
 
     @Test
@@ -429,7 +429,7 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         sourceView.setQuerySpec("Select * from game;");
 
         View targetView = tranformHelper.getCloneView(sourceView, config);
-        Assert.assertEquals(sourceView.getName(), targetView.getName());
+        assertEquals(sourceView.getName(), targetView.getName());
     }
 
     @Test
@@ -437,7 +437,7 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         String sql = "Select * from game;";
         String targetSql = tranformHelper.getFitTargetFormatSQL(sql);
 
-        Assert.assertEquals(sql, targetSql);
+        assertEquals(sql, targetSql);
     }
 
     @Test
@@ -458,7 +458,7 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         sourceColumn.setDefaultValue("default");
         sourceColumn.setCharUsed("B");
         Column targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(20), targetColumn.getPrecision());
+        assertEquals(new Integer(20), targetColumn.getPrecision());
         sourceColumn.setCharUsed("C");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
 
@@ -466,19 +466,19 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         sourceColumn.setPrecision(20);
         sourceColumn.setDefaultValue("default");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(20), targetColumn.getPrecision());
+        assertEquals(new Integer(20), targetColumn.getPrecision());
 
         sourceColumn.setDataType("NVARCHAR2");
         sourceColumn.setPrecision(20);
         sourceColumn.setDefaultValue("default");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(20), targetColumn.getPrecision());
+        assertEquals(new Integer(20), targetColumn.getPrecision());
 
         sourceColumn.setDataType("NCHAR");
         sourceColumn.setPrecision(20);
         sourceColumn.setDefaultValue("default");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(20), targetColumn.getPrecision());
+        assertEquals(new Integer(20), targetColumn.getPrecision());
 
         // NUMBER(10,5)
         sourceColumn.setDataType("NUMBER");
@@ -486,8 +486,8 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         sourceColumn.setScale(5);
         sourceColumn.setDefaultValue("0.0");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(10), targetColumn.getPrecision());
-        Assert.assertEquals(new Integer(5), targetColumn.getScale());
+        assertEquals(new Integer(10), targetColumn.getPrecision());
+        assertEquals(new Integer(5), targetColumn.getScale());
 
         // NUMBER(40,5)
         sourceColumn.setDataType("NUMBER");
@@ -495,89 +495,89 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         sourceColumn.setScale(5);
         sourceColumn.setDefaultValue("100");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(42), targetColumn.getPrecision());
-        Assert.assertEquals("varchar", targetColumn.getDataType());
-        // Assert.assertEquals(new Integer(5), targetColumn.getScale());
+        assertEquals(new Integer(42), targetColumn.getPrecision());
+        assertEquals("varchar", targetColumn.getDataType());
+        // assertEquals(new Integer(5), targetColumn.getScale());
 
         // NUMBER(40,-2)
         sourceColumn.setDataType("NUMBER");
         sourceColumn.setPrecision(40);
         sourceColumn.setScale(-2);
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(43), targetColumn.getPrecision());
-        Assert.assertEquals("varchar", targetColumn.getDataType());
+        assertEquals(new Integer(43), targetColumn.getPrecision());
+        assertEquals("varchar", targetColumn.getDataType());
 
         // NUMBER(12,-2)
         sourceColumn.setDataType("NUMBER");
         sourceColumn.setPrecision(12);
         sourceColumn.setScale(-2);
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(14), targetColumn.getPrecision());
-        Assert.assertEquals(new Integer(0), targetColumn.getScale());
+        assertEquals(new Integer(14), targetColumn.getPrecision());
+        assertEquals(new Integer(0), targetColumn.getScale());
 
         // NUMBER(38,39)
         sourceColumn.setDataType("NUMBER");
         sourceColumn.setPrecision(38);
         sourceColumn.setScale(39);
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(42), targetColumn.getPrecision());
-        Assert.assertEquals("varchar", targetColumn.getDataType());
+        assertEquals(new Integer(42), targetColumn.getPrecision());
+        assertEquals("varchar", targetColumn.getDataType());
 
         // NUMBER(8,10)
         sourceColumn.setDataType("NUMBER");
         sourceColumn.setPrecision(8);
         sourceColumn.setScale(10);
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(10), targetColumn.getPrecision());
-        Assert.assertEquals(new Integer(10), targetColumn.getScale());
+        assertEquals(new Integer(10), targetColumn.getPrecision());
+        assertEquals(new Integer(10), targetColumn.getScale());
         // BIT
         sourceColumn.setDataType("RAW");
         sourceColumn.setPrecision(2000);
         sourceColumn.setScale(null);
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(2000 * 8), targetColumn.getPrecision());
+        assertEquals(new Integer(2000 * 8), targetColumn.getPrecision());
 
         sourceColumn.setDataType("TIMESTAMP");
         sourceColumn.setPrecision(null);
         sourceColumn.setScale(null);
         sourceColumn.setDefaultValue("2012-01-01 01:01:01");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals("2012-01-01 01:01:01", targetColumn.getDefaultValue());
+        assertEquals("2012-01-01 01:01:01", targetColumn.getDefaultValue());
 
         sourceColumn.setDataType("DATE");
         sourceColumn.setPrecision(null);
         sourceColumn.setScale(null);
         sourceColumn.setDefaultValue("2012-01-01 01:01:01");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals("2012-01-01 01:01:01", targetColumn.getDefaultValue());
+        assertEquals("2012-01-01 01:01:01", targetColumn.getDefaultValue());
 
         sourceColumn.setDataType("TIMESTAMP");
         sourceColumn.setPrecision(null);
         sourceColumn.setScale(null);
         sourceColumn.setDefaultValue("sysdate");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals("CURRENT_TIMESTAMP", targetColumn.getDefaultValue());
+        assertEquals("CURRENT_TIMESTAMP", targetColumn.getDefaultValue());
 
         sourceColumn.setDataType("DATE");
         sourceColumn.setPrecision(null);
         sourceColumn.setScale(null);
         sourceColumn.setDefaultValue("sysdate");
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals("CURRENT_TIMESTAMP", targetColumn.getDefaultValue());
+        assertEquals("CURRENT_TIMESTAMP", targetColumn.getDefaultValue());
 
         sourceColumn.setDataType("RAW");
         sourceColumn.setPrecision(100);
         sourceColumn.setScale(null);
         sourceColumn.setDefaultValue(null);
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(new Integer(800), targetColumn.getPrecision());
+        assertEquals(new Integer(800), targetColumn.getPrecision());
 
         sourceColumn.setDataType("RAW");
         sourceColumn.setPrecision(DataTypeConstant.CUBRID_MAXSIZE);
         sourceColumn.setScale(null);
         sourceColumn.setDefaultValue(null);
         targetColumn = tranformHelper.getCUBRIDColumn(sourceColumn, config);
-        Assert.assertEquals(
+        assertEquals(
                 new Integer(DataTypeConstant.CUBRID_MAXSIZE), targetColumn.getPrecision());
 
         sourceColumn.setDataType("UROWID");
@@ -600,23 +600,23 @@ public class Oracle2CUBRIDTranformHelperTest extends TestCase {
         MigrationConfiguration cfg = TemplateParserTest.getOracleConfig();
         Column sourceColumn = cfg.getSrcColumnSchema(null, "CODE", "F_NAME");
         Column targetColumn = cfg.getTargetTableSchema("code").getColumnByName("f_name");
-        Assert.assertEquals(
+        assertEquals(
                 VerifyInfo.TYPE_NOENOUGH_LENGTH,
                 helper.validateChar(sourceColumn, targetColumn, config).getResult());
         targetColumn.setPrecision(targetColumn.getPrecision() * 3);
-        Assert.assertEquals(
+        assertEquals(
                 VerifyInfo.TYPE_MATCH,
                 helper.validateChar(sourceColumn, targetColumn, config).getResult());
 
         targetColumn.setJdbcIDOfDataType(DataTypeConstant.CUBRID_DT_NCHAR);
         targetColumn.setDataType("nchar");
         targetColumn.setPrecision(sourceColumn.getPrecision());
-        Assert.assertEquals(
+        assertEquals(
                 VerifyInfo.TYPE_MATCH,
                 helper.validateChar(sourceColumn, targetColumn, config).getResult());
 
         targetColumn.setPrecision(sourceColumn.getPrecision() - 1);
-        Assert.assertEquals(
+        assertEquals(
                 VerifyInfo.TYPE_NOENOUGH_LENGTH,
                 helper.validateChar(sourceColumn, targetColumn, config).getResult());
     }

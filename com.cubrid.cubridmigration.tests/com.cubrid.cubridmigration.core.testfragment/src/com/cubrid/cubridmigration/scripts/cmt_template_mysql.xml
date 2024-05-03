@@ -2,7 +2,7 @@
 <migration version="9.1.0">
 	<source db_type="mysql" online="yes">
 		<jdbc host="test-dbtool2" port="3306"
-			driver="mysql-connector-java-5.1.22-bin.jar" name="migtestforhudson"
+			driver="mysql-connector-j-8.0.31.jar" name="migtestforhudson"
 			user="migtestforhudson" password="cmt" charset="utf-8" timezone="GMT+08" />
 		<tables>
 			<table name="athlete" create="yes" replace="yes" migrate_data="yes"

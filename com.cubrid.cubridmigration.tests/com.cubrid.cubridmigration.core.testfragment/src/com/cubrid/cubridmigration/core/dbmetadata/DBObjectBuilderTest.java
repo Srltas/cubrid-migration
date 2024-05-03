@@ -38,8 +38,11 @@ import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 import com.cubrid.cubridmigration.cubrid.meta.CUBRIDSchemaFetcher;
 import java.sql.Connection;
 import java.sql.SQLException;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * DBObjectBuilderTest
@@ -60,11 +63,11 @@ public class DBObjectBuilderTest {
         Connection conn = TestUtil2.getMySQL5520Conn();
         try {
             Version version = DatabaseType.MYSQL.getMetaDataBuilder().getVersion(conn);
-            Assert.assertNotNull(version.getDbProductName());
-            Assert.assertNotNull(version.getDbProductVersion());
-            Assert.assertNotNull(version.getDriverName());
-            Assert.assertNotNull(version.getDriverVersion());
-            Assert.assertNotNull(version);
+            assertNotNull(version.getDbProductName());
+            assertNotNull(version.getDbProductVersion());
+            assertNotNull(version.getDriverName());
+            assertNotNull(version.getDriverVersion());
+            assertNotNull(version);
         } finally {
             Closer.close(conn);
         }
@@ -82,7 +85,7 @@ public class DBObjectBuilderTest {
         try {
             String charset = DatabaseType.MYSQL.getMetaDataBuilder().getCharSet(conn);
 
-            Assert.assertNull(charset);
+            assertNull(charset);
         } finally {
             Closer.close(conn);
         }
@@ -95,7 +98,7 @@ public class DBObjectBuilderTest {
     //			final AbstractJDBCSchemaFetcher dbObjectBuilder = new MYSQLSchemaFetcher();
     //			List<String> list = dbObjectBuilder.getSchemata(conn);
     //
-    //			Assert.assertNotNull(list);
+    //			assertNotNull(list);
     //		} finally {
     //			Closer.close(conn);
     //		}
@@ -107,7 +110,7 @@ public class DBObjectBuilderTest {
     //		try {
     //			List<String> list = new CUBRIDSchemaFetcher().getSchemata(conn);
     //
-    //			Assert.assertNotNull(list);
+    //			assertNotNull(list);
     //		} finally {
     //			Closer.close(conn);
     //		}
@@ -119,7 +122,7 @@ public class DBObjectBuilderTest {
     //		try {
     //			List<String> list = new MYSQLSchemaFetcher().getCatalogs(conn);
     //
-    //			Assert.assertNotNull(list);
+    //			assertNotNull(list);
     //		} finally {
     //			Closer.close(conn);
     //		}
@@ -131,7 +134,7 @@ public class DBObjectBuilderTest {
     //		try {
     //			List<String> list = new CUBRIDSchemaFetcher().getCatalogs(conn);
     //
-    //			Assert.assertNotNull(list);
+    //			assertNotNull(list);
     //		} finally {
     //			Closer.close(conn);
     //		}
@@ -169,13 +172,13 @@ public class DBObjectBuilderTest {
     //			//			}
     //			//System.out.println("column count:" + table.getColumns().size());
     //
-    //			Assert.assertTrue(table.getColumns().size() >= 0);
+    //			assertTrue(table.getColumns().size() >= 0);
     //			Schema schema2 = new Schema(catalog);
     //			schema2.setName("migtestforhudson");
-    //			Assert.assertEquals(schema2, schema);
+    //			assertEquals(schema2, schema);
     //
-    //			Assert.assertNull(dbObjectBuilder.getCatalogName(null));
-    //			Assert.assertNull(dbObjectBuilder.getSchemaName(null));
+    //			assertNull(dbObjectBuilder.getCatalogName(null));
+    //			assertNull(dbObjectBuilder.getSchemaName(null));
     //
     //		} finally {
     //			Closer.close(conn);
@@ -187,9 +190,9 @@ public class DBObjectBuilderTest {
         Table sourceTable = new Table();
         String ss = "PARTITION BY test partition";
         sourceTable.setDDL("create table test() " + ss);
-        Assert.assertEquals(ss, new CUBRIDSchemaFetcher().getSourcePartitionDDL(sourceTable));
+        assertEquals(ss, new CUBRIDSchemaFetcher().getSourcePartitionDDL(sourceTable));
 
         sourceTable.setDDL("create table test() ");
-        Assert.assertEquals("", new CUBRIDSchemaFetcher().getSourcePartitionDDL(sourceTable));
+        assertEquals("", new CUBRIDSchemaFetcher().getSourcePartitionDDL(sourceTable));
     }
 }

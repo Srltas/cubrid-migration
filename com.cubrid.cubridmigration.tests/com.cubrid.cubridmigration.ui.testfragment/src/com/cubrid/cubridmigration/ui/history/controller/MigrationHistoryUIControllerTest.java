@@ -30,10 +30,10 @@
  */
 package com.cubrid.cubridmigration.ui.history.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.assertEquals;
+import static org.junit.assertFalse;
+import static org.junit.assertNotNull;
+import static org.junit.assertTrue;
 
 import com.cubrid.common.ui.swt.EditorPartProviderMock;
 import com.cubrid.common.ui.swt.ProgressMonitorDialogRunnerMock;
@@ -48,8 +48,8 @@ import java.util.List;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /** @author Kevin Cao */
 public class MigrationHistoryUIControllerTest extends BaseUITestCase {

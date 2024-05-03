@@ -30,8 +30,10 @@
  */
 package com.cubrid.cubridmigration.core.dbobject;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * DbUtilTest
@@ -44,23 +46,23 @@ public class ViewTest {
     @Test
     public final void testEqual() {
         View view1 = new View();
-        Assert.assertTrue(view1.equals(view1));
-        Assert.assertFalse(view1.equals(12));
-        Assert.assertFalse(view1.equals(null));
-        Assert.assertTrue(view1.hashCode() == view1.hashCode());
+        assertTrue(view1.equals(view1));
+        assertFalse(view1.equals(12));
+        assertFalse(view1.equals(null));
+        assertTrue(view1.hashCode() == view1.hashCode());
 
         View view2 = new View();
-        Assert.assertTrue(view1.equals(view2));
-        Assert.assertTrue(view1.hashCode() == view2.hashCode());
+        assertTrue(view1.equals(view2));
+        assertTrue(view1.hashCode() == view2.hashCode());
 
         view1.setName("testview");
-        Assert.assertFalse(view2.equals(view1));
+        assertFalse(view2.equals(view1));
         view2.setName("testview");
-        Assert.assertTrue(view1.equals(view2));
-        Assert.assertTrue(view1.hashCode() == view2.hashCode());
+        assertTrue(view1.equals(view2));
+        assertTrue(view1.hashCode() == view2.hashCode());
 
         view2.setName("testview2");
-        Assert.assertFalse(view1.equals(view2));
-        Assert.assertTrue(view1.hashCode() != view2.hashCode());
+        assertFalse(view1.equals(view2));
+        assertTrue(view1.hashCode() != view2.hashCode());
     }
 }

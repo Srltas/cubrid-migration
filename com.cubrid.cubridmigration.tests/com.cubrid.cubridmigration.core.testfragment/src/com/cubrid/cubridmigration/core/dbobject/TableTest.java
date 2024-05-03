@@ -30,8 +30,12 @@
  */
 package com.cubrid.cubridmigration.core.dbobject;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * DbUtilTest
@@ -44,24 +48,24 @@ public class TableTest {
     //	@Test
     //	public void testEqualsObject() {
     //		Table table1 = new Table();
-    //		Assert.assertTrue(table1.equals(table1));
-    //		Assert.assertFalse(table1.equals(12));
-    //		Assert.assertFalse(table1.equals(null));
-    //		Assert.assertTrue(table1.hashCode() == table1.hashCode());
+    //		assertTrue(table1.equals(table1));
+    //		assertFalse(table1.equals(12));
+    //		assertFalse(table1.equals(null));
+    //		assertTrue(table1.hashCode() == table1.hashCode());
     //
     //		Table table2 = new Table();
-    //		//Assert.assertTrue(table1.equals(table2));
-    //		Assert.assertTrue(table1.hashCode() == table2.hashCode());
+    //		//assertTrue(table1.equals(table2));
+    //		assertTrue(table1.hashCode() == table2.hashCode());
     //
     //		table1.setName("testTable");
-    //		Assert.assertFalse(table2.equals(table1));
+    //		assertFalse(table2.equals(table1));
     //		table2.setName("testTable");
-    //		Assert.assertTrue(table1.equals(table2));
-    //		Assert.assertTrue(table1.hashCode() == table2.hashCode());
+    //		assertTrue(table1.equals(table2));
+    //		assertTrue(table1.hashCode() == table2.hashCode());
     //
     //		table2.setName("testTable2");
-    //		Assert.assertFalse(table1.equals(table2));
-    //		Assert.assertTrue(table1.hashCode() != table2.hashCode());
+    //		assertFalse(table1.equals(table2));
+    //		assertTrue(table1.hashCode() != table2.hashCode());
     //	}
 
     @Test
@@ -70,11 +74,11 @@ public class TableTest {
         Column col = new Column();
         col.setName("f1");
         tbl.addColumn(col);
-        Assert.assertFalse(tbl.getColumns().isEmpty());
+        assertFalse(tbl.getColumns().isEmpty());
 
         tbl.removeColumn(col);
         tbl.removeColumn(null);
-        Assert.assertTrue(tbl.getColumns().isEmpty());
+        assertTrue(tbl.getColumns().isEmpty());
 
         FK fk = new FK(tbl);
         fk.setName("fk");
@@ -83,10 +87,10 @@ public class TableTest {
 
         tbl.addFK(fk);
         tbl.addFK(fk);
-        Assert.assertNotNull(tbl.getFKByName("fk"));
+        assertNotNull(tbl.getFKByName("fk"));
 
         tbl.removeFK("fkno");
         tbl.removeFK("fk");
-        Assert.assertNull(tbl.getFKByName("fk"));
+        assertNull(tbl.getFKByName("fk"));
     }
 }

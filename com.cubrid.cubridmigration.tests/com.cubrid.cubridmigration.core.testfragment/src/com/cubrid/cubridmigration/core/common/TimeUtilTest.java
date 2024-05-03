@@ -31,8 +31,12 @@
 package com.cubrid.cubridmigration.core.common;
 
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TimeUtilTest {
     /** testGetAllTimeZones */
@@ -44,20 +48,20 @@ public class TimeUtilTest {
             System.out.println(s);
         }
 
-        Assert.assertTrue(list.size() > 0);
+        assertTrue(list.size() > 0);
     }
 
     @Test
     public final void testGetDisplayByGMT() {
         String gmtTz = "GMT+08:00";
         String displayTz = TimeZoneUtils.getDisplayByGMT(gmtTz);
-        Assert.assertNotNull(displayTz);
+        assertNotNull(displayTz);
     }
 
     @Test
     public final void testGetTimezoneGMT() {
         String tz = TimeZoneUtils.getGMTFormat("UTC");
-        Assert.assertEquals("GMT+00:00", tz);
+        assertEquals("GMT+00:00", tz);
     }
 
     /** testIsValidTimeZone */
@@ -65,7 +69,7 @@ public class TimeUtilTest {
     public final void testIsValidTimeZone() {
         final String timezone = "GMT+12:00";
         final boolean flag = TimeZoneUtils.isValidTimeZone(timezone);
-        Assert.assertTrue(flag);
+        assertTrue(flag);
     }
 
     @Test
@@ -73,8 +77,8 @@ public class TimeUtilTest {
         final String timezone = "GMT-12:00--Etc/GMT+12";
         String gmtFormat = TimeZoneUtils.getGMTByDisplay(timezone);
         String timezone2 = TimeZoneUtils.getDisplayByGMT(gmtFormat);
-        Assert.assertEquals(timezone, timezone2);
+        assertEquals(timezone, timezone2);
         System.out.println(TimeZoneUtils.getDefaultID2GMT());
-        Assert.assertNull(TimeZoneUtils.getDisplayByGMT(gmtFormat + "1"));
+        assertNull(TimeZoneUtils.getDisplayByGMT(gmtFormat + "1"));
     }
 }

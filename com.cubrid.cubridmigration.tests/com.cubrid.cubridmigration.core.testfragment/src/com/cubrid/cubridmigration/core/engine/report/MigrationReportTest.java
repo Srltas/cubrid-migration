@@ -38,14 +38,12 @@ import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import com.cubrid.cubridmigration.mysql.meta.MySQLSchemaFetcher;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Disabled;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MigrationReportTest {
 
     @Test
-    @Disabled
     public void testMigrationReport() throws Exception {
         MigrationConfiguration config = TemplateParserTest.getMySQLConfig();
         // get schema of source DB.

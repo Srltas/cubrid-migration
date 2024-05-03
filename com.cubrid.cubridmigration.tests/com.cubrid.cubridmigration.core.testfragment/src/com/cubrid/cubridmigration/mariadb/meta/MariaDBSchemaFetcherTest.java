@@ -47,8 +47,11 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * DbUtilTest
@@ -67,16 +70,16 @@ public class MariaDBSchemaFetcherTest {
         Version version = new Version();
         version.setDbMajorVersion(4);
         version.setDbMinorVersion(9);
-        Assert.assertFalse(builder.isSupportParitionVersion(version));
+        assertFalse(builder.isSupportParitionVersion(version));
         version.setDbMajorVersion(5);
         version.setDbMinorVersion(0);
-        Assert.assertFalse(builder.isSupportParitionVersion(version));
+        assertFalse(builder.isSupportParitionVersion(version));
         version.setDbMajorVersion(5);
         version.setDbMinorVersion(1);
-        Assert.assertTrue(builder.isSupportParitionVersion(version));
+        assertTrue(builder.isSupportParitionVersion(version));
         version.setDbMajorVersion(6);
         version.setDbMinorVersion(0);
-        Assert.assertTrue(builder.isSupportParitionVersion(version));
+        assertTrue(builder.isSupportParitionVersion(version));
     }
 
     /**
@@ -92,11 +95,11 @@ public class MariaDBSchemaFetcherTest {
                     new MariaDBSchemaFetcher()
                             .buildCatalog(conn, TestUtil2.getMariaDBConParam(), null);
             List<Procedure> procList = catalog.getSchemas().get(0).getProcedures();
-            Assert.assertEquals(1, procList.size());
+            assertEquals(1, procList.size());
             System.out.print(procList);
             List<Function> funcList = catalog.getSchemas().get(0).getFunctions();
             System.out.print(funcList.size());
-            Assert.assertTrue(funcList.size() > 0);
+            assertTrue(funcList.size() > 0);
         } finally {
             Closer.close(conn);
         }
@@ -138,7 +141,7 @@ public class MariaDBSchemaFetcherTest {
         try {
             String tableName = TEST_NUMBER;
             Long maxVal = new MariaDBSchemaFetcher().getAutoIncNextValByTableName(conn, tableName);
-            Assert.assertTrue(maxVal >= 0);
+            assertTrue(maxVal >= 0);
         } finally {
             Closer.close(conn);
         }
@@ -156,7 +159,7 @@ public class MariaDBSchemaFetcherTest {
         try {
             String timezone = new MariaDBSchemaFetcher().getTimezone(conn);
             System.out.println("timezone: " + timezone);
-            Assert.assertEquals("GMT+09:00", timezone);
+            assertEquals("GMT+09:00", timezone);
         } finally {
             Closer.close(conn);
         }
@@ -182,7 +185,7 @@ public class MariaDBSchemaFetcherTest {
                     TestUtil2.readStrFromFile(
                             "/com/cubrid/cubridmigration/mariadb/meta/schema.json");
 
-            Assert.assertEquals(
+            assertEquals(
                     json.replaceAll("\r\n", " ").replaceAll("\r", " ").replaceAll("\n", " "),
                     sb.replaceAll("\r\n", " ").replaceAll("\r", " ").replaceAll("\n", " "));
 
@@ -214,7 +217,7 @@ public class MariaDBSchemaFetcherTest {
             table.setName(TEST_NUMBER);
             new MariaDBSchemaFetcher().buildTableColumns(conn, catalog, schema, table);
             System.out.println("column count:" + table.getColumns().size());
-            Assert.assertTrue(table.getColumns().size() >= 0);
+            assertTrue(table.getColumns().size() >= 0);
             version.setDbMajorVersion(5);
             new MariaDBSchemaFetcher().buildTableColumns(conn, catalog, schema, table);
         } finally {
@@ -238,7 +241,7 @@ public class MariaDBSchemaFetcherTest {
             Table table = catalog.getSchemas().get(0).getTableByName("est_data_table");
 
             System.out.println("table.getIndexes().size()=" + table.getIndexes().size());
-            Assert.assertTrue(table.getIndexes().size() >= 0);
+            assertTrue(table.getIndexes().size() >= 0);
 
             // Test getSourcePartitionDLL
             table.setDDL("create table est_data_table () PARTITION BY f1 hash 4");
@@ -261,7 +264,7 @@ public class MariaDBSchemaFetcherTest {
         try {
             String ddl = new MariaDBSchemaFetcher().getTableDDL(conn, TEST_NUMBER);
             System.out.println(ddl);
-            Assert.assertTrue(ddl != null && ddl.trim().length() > 0);
+            assertTrue(ddl != null && ddl.trim().length() > 0);
 
         } finally {
             Closer.close(conn);
@@ -281,7 +284,7 @@ public class MariaDBSchemaFetcherTest {
         try {
             String ddl = new MariaDBSchemaFetcher().getViewDDL(conn, viewName);
             System.out.println(ddl);
-            Assert.assertTrue(ddl != null && ddl.trim().length() > 0);
+            assertTrue(ddl != null && ddl.trim().length() > 0);
         } finally {
             Closer.close(conn);
         }

@@ -33,8 +33,12 @@ package com.cubrid.cubridmigration.cubrid;
 import com.cubrid.cubridmigration.core.datatype.DataTypeInstance;
 import java.text.ParseException;
 import java.util.TimeZone;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class CUBRIDFormatorTest {
 
@@ -58,53 +62,53 @@ public class CUBRIDFormatorTest {
         attdeft = "1245";
         retattdeft = "TIME'00:00:01'";
 
-        Assert.assertEquals(
+        assertEquals(
                 "TIME'08:00:01'", CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "am 09:53:06";
         retattdeft = "TIME'09:53:06'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53:06 am";
         retattdeft = "TIME'09:53:06'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "19:53:06";
         retattdeft = "TIME'19:53:06'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "am 09:53";
         retattdeft = "TIME'09:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53 am";
         retattdeft = "TIME'09:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "19:53";
         retattdeft = "TIME'19:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "sysTime";
         retattdeft = "systime";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "currentTime";
         retattdeft = "current_time";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "";
         retattdeft = "";
 
-        Assert.assertEquals(null, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(null, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "ddd";
         retattdeft = "ddd";
@@ -112,12 +116,12 @@ public class CUBRIDFormatorTest {
         attdeft = "TIME'19:53:00'";
         retattdeft = "TIME'19:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "TIME'19:53:00";
         retattdeft = null;
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     @Test
@@ -127,51 +131,51 @@ public class CUBRIDFormatorTest {
         attdeft = "02/23/2009";
         retattdeft = "DATE'02/23/2009'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009/02/23";
         retattdeft = "DATE'02/23/2009'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009-02-23";
         retattdeft = "DATE'02/23/2009'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "02/23";
         retattdeft = "DATE'02/23'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "sysDate";
         retattdeft = "sysdate";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "currentdATe";
         retattdeft = "current_date";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "";
         retattdeft = "";
 
-        Assert.assertEquals(null, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(null, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "date'";
         retattdeft = null;
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "DATE'02/23'";
         retattdeft = "DATE'02/23'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "DAT02/23";
         retattdeft = null;
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     @Test
@@ -187,7 +191,7 @@ public class CUBRIDFormatorTest {
                         + "TIMESTAMP'02/23/2009 09:53:09',"
                         + "TIMESTAMP'02/23/2009 09:53:10'}";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         datatype = "set_of";
         subDataType = "datetime";
@@ -203,7 +207,7 @@ public class CUBRIDFormatorTest {
                         + "DATETIME'2009-02-23 09:53:09.333',"
                         + "DATETIME'2009-02-23 09:53:10.333'}";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     @Test
@@ -214,106 +218,106 @@ public class CUBRIDFormatorTest {
         attdeft = "2009/02/23 am 09:53:08";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:08'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009-02-23 am 09:53:08";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:08'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009/02/23 09:53:08";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:08'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009-02-23 09:53:08";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:08'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53:08 am 02/23/2009";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:08'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53:08 02/23/2009";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:08'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009/02/23 am 09:53";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009-02-23 am 09:53";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009/02/23 09:53";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009-02-23 09:53";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53 am 02/23/2009";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53 02/23/2009";
         retattdeft = "TIMESTAMP'02/23/2009 09:53:00'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "systImestamp";
         retattdeft = "systimestamp";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "currenttImestamp";
         retattdeft = "current_timestamp";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53:05 02/23";
         retattdeft = "TIMESTAMP'09:53:05 02/23'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53:05 pm 02/23";
         retattdeft = "TIMESTAMP'09:53:05 pm 02/23'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "02/23 09:53:05";
         retattdeft = "TIMESTAMP'02/23 09:53:05'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "02/23 09:53:05 am";
         retattdeft = "TIMESTAMP'02/23 09:53:05 am'";
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "";
         retattdeft = "";
 
-        Assert.assertEquals(null, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(null, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "timestamp";
         retattdeft = null;
 
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "TIMESTAMP'02/23 09:53:05 am'";
         retattdeft = "TIMESTAMP'02/23 09:53:05 am'";
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "100000000";
         retattdeft =
@@ -321,11 +325,11 @@ public class CUBRIDFormatorTest {
                         + CUBRIDTimeUtil.formatTimestampLong(
                                 100000000, "MM/dd/yyyy HH:mm:ss", TimeZone.getDefault())
                         + "'";
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "TIMESTAM02/23 09:53:05 am";
         retattdeft = null;
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     @Test
@@ -346,7 +350,7 @@ public class CUBRIDFormatorTest {
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "aa";
         retattdeft = null;
@@ -355,7 +359,7 @@ public class CUBRIDFormatorTest {
         dti.setScale(scale);
         //
         //
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "DATETIM2'2009-02-23 09:53:08.300'";
         datatype = "datetime";
@@ -363,7 +367,7 @@ public class CUBRIDFormatorTest {
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "10";
         datatype = "multiset_of";
@@ -375,7 +379,7 @@ public class CUBRIDFormatorTest {
         dti.setScale(scale);
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(subDataType);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "10";
         datatype = "sequence_of";
@@ -385,7 +389,7 @@ public class CUBRIDFormatorTest {
         dti.setScale(scale);
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(subDataType);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "10,11";
         datatype = "multiset_of";
@@ -395,35 +399,35 @@ public class CUBRIDFormatorTest {
         dti.setScale(scale);
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(subDataType);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "{10,11}";
         retattdeft = "{10,11}";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     @Test
     public void testFormatDatetime() {
         attdeft = "2009/02/23 am 09:53:08.0";
         retattdeft = "2009/02/23 AM 09:53:08.000";
-        Assert.assertEquals(
+        assertEquals(
                 retattdeft,
                 CUBRIDTimeUtil.formatDateTime(
                         attdeft, "yyyy/MM/dd a hh:mm:ss.SSS", TimeZone.getDefault()));
 
         attdeft = "2009/02/23 am 09:53:08.3";
         retattdeft = "2009/02/23 AM 09:53:08.300";
-        Assert.assertEquals(
+        assertEquals(
                 retattdeft,
                 CUBRIDTimeUtil.formatDateTime(
                         attdeft, "yyyy/MM/dd a hh:mm:ss.SSS", TimeZone.getDefault()));
 
         attdeft = "2009/02/23 am 09:53:08.33";
         retattdeft = "2009/02/23 AM 09:53:08.330";
-        Assert.assertEquals(
+        assertEquals(
                 retattdeft,
                 CUBRIDTimeUtil.formatDateTime(
                         attdeft, "yyyy/MM/dd a hh:mm:ss.SSS", TimeZone.getDefault()));
@@ -438,147 +442,147 @@ public class CUBRIDFormatorTest {
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009/02/23 am 09:53:08.333";
         retattdeft = "DATETIME'2009-02-23 09:53:08.333'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009-02-23 am 09:53:08.333";
         retattdeft = "DATETIME'2009-02-23 09:53:08.333'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009/02/23 09:53:08.333";
         retattdeft = "DATETIME'2009-02-23 09:53:08.333'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009-02-23 09:53:08.333";
         retattdeft = "DATETIME'2009-02-23 09:53:08.333'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53:08.333 am 02/23/2009";
         retattdeft = "DATETIME'2009-02-23 09:53:08.333'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53:08.333 02/23/2009";
         retattdeft = "DATETIME'2009-02-23 09:53:08.333'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009/02/23 am 09:53";
         retattdeft = "DATETIME'2009-02-23 09:53:00.000'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009-02-23 am 09:53";
         retattdeft = "DATETIME'2009-02-23 09:53:00.000'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009/02/23 09:53";
         retattdeft = "DATETIME'2009-02-23 09:53:00.000'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "2009-02-23 09:53";
         retattdeft = "DATETIME'2009-02-23 09:53:00.000'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53 am 02/23/2009";
         retattdeft = "DATETIME'2009-02-23 09:53:00.000'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53 02/23/2009";
         retattdeft = "DATETIME'2009-02-23 09:53:00.000'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "sysDatetime";
         retattdeft = "sysdatetime";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "sys_Datetime";
         retattdeft = "sysdatetime";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "current_Datetime";
         retattdeft = "current_datetime";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53:05 02/23";
         retattdeft = "DATETIME'09:53:05 02/23'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "09:53:05 pm 02/23";
         retattdeft = "DATETIME'09:53:05 pm 02/23'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "02/23 09:53:05";
         retattdeft = "DATETIME'02/23 09:53:05'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "02/23 09:53:05 am";
         retattdeft = "DATETIME'02/23 09:53:05 am'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "";
         retattdeft = "";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(null, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(null, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "DATETIME'";
         retattdeft = "";
@@ -591,14 +595,14 @@ public class CUBRIDFormatorTest {
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "DATETIME'02/23 09:53:05 am'";
         retattdeft = "DATETIME'02/23 09:53:05 am'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "100000000";
         retattdeft =
@@ -609,14 +613,14 @@ public class CUBRIDFormatorTest {
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "DATETIME'02/23 09:53:05 am";
         retattdeft = null;
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     @Test
@@ -628,42 +632,42 @@ public class CUBRIDFormatorTest {
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "'ab''c'";
         retattdeft = "'ab''c'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "abc";
         retattdeft = "'abc'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "abc ";
         retattdeft = "'abc '";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "ab'c";
         retattdeft = "'ab''c'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "";
         retattdeft = null;
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals("''", CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals("''", CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     @Test
@@ -675,42 +679,42 @@ public class CUBRIDFormatorTest {
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "'ab''c'";
         retattdeft = "'ab''c'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "abc";
         retattdeft = "'abc'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "abc ";
         retattdeft = "'abc '";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "ab'c";
         retattdeft = "'ab''c'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "";
         retattdeft = "''";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     //	@Test
@@ -721,7 +725,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = "'N''����bc'''";
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				retattdeft,
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -730,7 +734,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = "N'����b''c'";
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				retattdeft,
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -739,7 +743,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = "N'abc'";
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				retattdeft,
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -748,7 +752,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = "N'ab''c'";
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				retattdeft,
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -757,7 +761,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = null;
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				"",
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -771,7 +775,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = "N'����bc'";
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				retattdeft,
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -780,7 +784,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = "N'����b''c'";
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				retattdeft,
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -789,7 +793,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = "N'abc'";
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				retattdeft,
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -798,7 +802,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = "N'ab''c'";
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				retattdeft,
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -807,7 +811,7 @@ public class CUBRIDFormatorTest {
     //		retattdeft = null;
     //
     //
-    //		Assert.assertEquals(
+    //		assertEquals(
     //				"",
     //				CUBRIDFormator.format(datatype, subDataType, scale,
     //						attdeft).getFormatResult());
@@ -822,28 +826,28 @@ public class CUBRIDFormatorTest {
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "X'001'";
         retattdeft = "X'001'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "001";
         retattdeft = "X'001'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "";
         retattdeft = null;
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(B_0, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(B_0, CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     @Test
@@ -855,28 +859,28 @@ public class CUBRIDFormatorTest {
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "X'001'";
         retattdeft = "X'001'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "001";
         retattdeft = "X'001'";
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(retattdeft, CUBRIDFormator.format(dti, attdeft).getFormatResult());
 
         attdeft = "";
         retattdeft = null;
         dti.setName(datatype);
         dti.setPrecision(precision);
         dti.setScale(scale);
-        Assert.assertEquals(B_0, CUBRIDFormator.format(dti, attdeft).getFormatResult());
+        assertEquals(B_0, CUBRIDFormator.format(dti, attdeft).getFormatResult());
     }
 
     /**
@@ -896,7 +900,7 @@ public class CUBRIDFormatorTest {
         dti.getSubType().setName(type);
 
         Object[] obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 3);
+        assertTrue(obj.length == 3);
 
         type = "BIGINT";
         value = "{1,2,3}";
@@ -906,7 +910,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 3);
+        assertTrue(obj.length == 3);
 
         type = "NUMERIC";
         value = "{1.0,2.1,3}";
@@ -916,7 +920,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 3);
+        assertTrue(obj.length == 3);
 
         type = "FLOAT";
         value = "{1,2,3}";
@@ -926,7 +930,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 3);
+        assertTrue(obj.length == 3);
 
         type = "DOUBLE";
         value = "{1,2,3}";
@@ -936,7 +940,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 3);
+        assertTrue(obj.length == 3);
 
         type = "monetary";
         value = "{1,2,3}";
@@ -946,7 +950,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 3);
+        assertTrue(obj.length == 3);
 
         type = "CHARACTER";
         value = "{'A','B','C'}";
@@ -956,7 +960,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 3);
+        assertTrue(obj.length == 3);
 
         type = "char";
         value = "{\"A\",\"B\",\"C\"}";
@@ -966,7 +970,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 3);
+        assertTrue(obj.length == 3);
 
         type = "numeric";
         value = "{1.2,1.3}";
@@ -976,7 +980,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 2);
+        assertTrue(obj.length == 2);
 
         type = "numeric";
         value = "{10,2}";
@@ -986,7 +990,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 2);
+        assertTrue(obj.length == 2);
 
         type = "time";
         value = "{\"12:00:00\"}";
@@ -996,7 +1000,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 1);
+        assertTrue(obj.length == 1);
 
         type = "date";
         value = "{\"2012-01-01\",\"2012-01-01\"}";
@@ -1006,7 +1010,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 2);
+        assertTrue(obj.length == 2);
 
         type = "datetime";
         dti.setName("set");
@@ -1016,7 +1020,7 @@ public class CUBRIDFormatorTest {
         dti.getSubType().setName(type);
         value = "{\"2012-01-01 12:00:00.001\",\"2012-01-01 12:00:00.001\"}";
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 2);
+        assertTrue(obj.length == 2);
 
         type = "timestamp";
         value = "{\"2012-01-01 12:00:00\",\"2012-01-02 12:00:00\"}";
@@ -1026,7 +1030,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 2);
+        assertTrue(obj.length == 2);
         try {
             type = "date";
             value = "{\"12-12-2008\"}";
@@ -1036,7 +1040,7 @@ public class CUBRIDFormatorTest {
             dti.setSubType(new DataTypeInstance());
             dti.getSubType().setName(type);
             obj = CUBRIDFormator.getCollectionValues(dti, value);
-            Assert.assertTrue(obj.length == 1);
+            assertTrue(obj.length == 1);
 
             type = "timestamp";
             value = "{\"2008/12/13 13:00:00\"}";
@@ -1046,7 +1050,7 @@ public class CUBRIDFormatorTest {
             dti.setSubType(new DataTypeInstance());
             dti.getSubType().setName(type);
             obj = CUBRIDFormator.getCollectionValues(dti, value);
-            Assert.assertTrue(obj.length == 1);
+            assertTrue(obj.length == 1);
 
             type = "datetime";
             value = "{\"2008-12-12 12:00:00.333\"}";
@@ -1056,7 +1060,7 @@ public class CUBRIDFormatorTest {
             dti.setSubType(new DataTypeInstance());
             dti.getSubType().setName(type);
             obj = CUBRIDFormator.getCollectionValues(dti, value);
-            Assert.assertTrue(obj.length == 1);
+            assertTrue(obj.length == 1);
 
             type = "datetime";
             value = "{\"2008-12-12 12:00:222\",\"2008-12-12 12:00:223\"}";
@@ -1067,7 +1071,7 @@ public class CUBRIDFormatorTest {
             dti.getSubType().setName(type);
             obj = CUBRIDFormator.getCollectionValues(dti, value);
         } catch (Exception e) {
-            Assert.assertTrue(true);
+            assertTrue(true);
         }
 
         type = "bit varying";
@@ -1078,7 +1082,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 2);
+        assertTrue(obj.length == 2);
 
         type = "bit";
         value = "{0001,01000}";
@@ -1088,7 +1092,7 @@ public class CUBRIDFormatorTest {
         dti.setSubType(new DataTypeInstance());
         dti.getSubType().setName(type);
         obj = CUBRIDFormator.getCollectionValues(dti, value);
-        Assert.assertTrue(obj.length == 2);
+        assertTrue(obj.length == 2);
     }
 
     /** testFormatValue */
@@ -1101,7 +1105,7 @@ public class CUBRIDFormatorTest {
         dti.setPrecision(precision);
         dti.setScale(0);
         String obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("sysdate", obj);
+        assertEquals("sysdate", obj);
 
         type = "DATE";
         value = "sys_date";
@@ -1109,18 +1113,18 @@ public class CUBRIDFormatorTest {
         dti.setPrecision(precision);
         dti.setScale(0);
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("sysdate", obj);
+        assertEquals("sysdate", obj);
 
         value = "currentdate";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("current_date", obj);
+        assertEquals("current_date", obj);
 
         value = "current_date";
         dti.setName(type);
         dti.setPrecision(precision);
         dti.setScale(0);
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("current_date", obj);
+        assertEquals("current_date", obj);
 
         type = "DATE";
         value = "";
@@ -1128,7 +1132,7 @@ public class CUBRIDFormatorTest {
         dti.setPrecision(precision);
         dti.setScale(0);
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals(null, obj);
+        assertEquals(null, obj);
 
         type = "DATE";
         value = "2010-01-13";
@@ -1136,21 +1140,21 @@ public class CUBRIDFormatorTest {
         dti.setPrecision(precision);
         dti.setScale(0);
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("DATE'01/13/2010'", obj);
+        assertEquals("DATE'01/13/2010'", obj);
 
         value = "DATE'01/13/2010'";
         dti.setName(type);
         dti.setPrecision(precision);
         dti.setScale(0);
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("DATE'01/13/2010'", obj);
+        assertEquals("DATE'01/13/2010'", obj);
 
         value = "01/13";
         dti.setName(type);
         dti.setPrecision(precision);
         dti.setScale(0);
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("DATE'01/13'", obj);
+        assertEquals("DATE'01/13'", obj);
 
         type = "DATETIME";
         value = "current_datetime";
@@ -1158,19 +1162,19 @@ public class CUBRIDFormatorTest {
         dti.setPrecision(precision);
         dti.setScale(0);
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("current_datetime", obj);
+        assertEquals("current_datetime", obj);
 
         value = "DATETIME'2010-01-13 14:22:22.000'";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("DATETIME'2010-01-13 14:22:22.000'", obj);
+        assertEquals("DATETIME'2010-01-13 14:22:22.000'", obj);
 
         value = "2010-01-13 14:22:22";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("DATETIME'2010-01-13 14:22:22.000'", obj);
+        assertEquals("DATETIME'2010-01-13 14:22:22.000'", obj);
 
         value = "14:22:22 12/13";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("DATETIME'14:22:22 12/13'", obj);
+        assertEquals("DATETIME'14:22:22 12/13'", obj);
 
         type = "DATETIME";
         dti.setName(type);
@@ -1178,7 +1182,7 @@ public class CUBRIDFormatorTest {
         dti.setScale(0);
         value = "a2010-01-13 14:22:22";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertNull(obj);
+        assertNull(obj);
 
         type = "DATETIME";
         dti.setName(type);
@@ -1186,7 +1190,7 @@ public class CUBRIDFormatorTest {
         dti.setScale(0);
         value = String.valueOf(new java.util.Date().getTime());
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertNotNull(obj);
+        assertNotNull(obj);
 
         type = "DATETIME";
         dti.setName(type);
@@ -1202,7 +1206,7 @@ public class CUBRIDFormatorTest {
         value = "sysdatetime";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("sysdatetime", obj);
+        assertEquals("sysdatetime", obj);
 
         type = "timestamp";
         dti.setName(type);
@@ -1211,49 +1215,49 @@ public class CUBRIDFormatorTest {
         value = "systimestamp";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("systimestamp", obj);
+        assertEquals("systimestamp", obj);
 
         type = "timestamp";
         value = "sys_timestamp";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("systimestamp", obj);
+        assertEquals("systimestamp", obj);
 
         type = "timestamp";
         value = "currenttimestamp";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("current_timestamp", obj);
+        assertEquals("current_timestamp", obj);
 
         type = "timestamp";
         value = "current_timestamp";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("current_timestamp", obj);
+        assertEquals("current_timestamp", obj);
 
         type = "timestamp";
         value = "10:10:10 AM 01/01";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("TIMESTAMP'10:10:10 AM 01/01'", obj);
+        assertEquals("TIMESTAMP'10:10:10 AM 01/01'", obj);
 
         type = "timestamp";
         value = "12/15 09:10:11 PM";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("TIMESTAMP'12/15 09:10:11 PM'", obj);
+        assertEquals("TIMESTAMP'12/15 09:10:11 PM'", obj);
 
         value = "";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals(null, obj);
+        assertEquals(null, obj);
 
         value = "timestamp'2010-01-13 14:22:22'";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("TIMESTAMP'01/13/2010 14:22:22'", obj);
+        assertEquals("TIMESTAMP'01/13/2010 14:22:22'", obj);
 
         value = "10000000000";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals(
+        assertEquals(
                 "TIMESTAMP'"
                         + CUBRIDTimeUtil.formatTimestampLong(
                                 10000000000l, "MM/dd/yyyy HH:mm:ss", TimeZone.getDefault())
@@ -1262,11 +1266,11 @@ public class CUBRIDFormatorTest {
 
         value = "2010-01-13 14:22:22";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("TIMESTAMP'01/13/2010 14:22:22'", obj);
+        assertEquals("TIMESTAMP'01/13/2010 14:22:22'", obj);
 
         value = "01/13 14:22:22";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("TIMESTAMP'01/13 14:22:22'", obj);
+        assertEquals("TIMESTAMP'01/13 14:22:22'", obj);
 
         type = "time";
         dti.setName(type);
@@ -1275,37 +1279,37 @@ public class CUBRIDFormatorTest {
         value = "systime";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("systime", obj);
+        assertEquals("systime", obj);
 
         value = "";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals(null, obj);
+        assertEquals(null, obj);
 
         type = "time";
         value = "sys_time";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("systime", obj);
+        assertEquals("systime", obj);
 
         type = "time";
         value = "currenttime";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("current_time", obj);
+        assertEquals("current_time", obj);
 
         type = "time";
         value = "current_time";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("current_time", obj);
+        assertEquals("current_time", obj);
 
         value = "time'12:00:00'";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("TIME'12:00:00'", obj);
+        assertEquals("TIME'12:00:00'", obj);
 
         value = "1233";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals(
+        assertEquals(
                 "TIME'"
                         + CUBRIDTimeUtil.formatDateTime(1233, "HH:mm:ss", TimeZone.getDefault())
                         + "'",
@@ -1313,7 +1317,7 @@ public class CUBRIDFormatorTest {
 
         value = "12:33";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("TIME'12:33:00'", obj);
+        assertEquals("TIME'12:33:00'", obj);
 
         type = "character";
         dti.setName(type);
@@ -1322,13 +1326,13 @@ public class CUBRIDFormatorTest {
         value = "abc";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("'abc'", obj);
+        assertEquals("'abc'", obj);
 
         type = "varchar";
         value = "abc";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("'abc'", obj);
+        assertEquals("'abc'", obj);
 
         type = "varchar";
         dti.setName(type);
@@ -1337,7 +1341,7 @@ public class CUBRIDFormatorTest {
         value = "'abc'";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("'abc'", obj);
+        assertEquals("'abc'", obj);
 
         type = "integer";
         dti.setName(type);
@@ -1346,7 +1350,7 @@ public class CUBRIDFormatorTest {
         value = "2";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("2", obj);
+        assertEquals("2", obj);
 
         type = "smallint";
         dti.setName(type);
@@ -1355,7 +1359,7 @@ public class CUBRIDFormatorTest {
         value = "2";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("2", obj);
+        assertEquals("2", obj);
 
         type = "bigint";
         dti.setName(type);
@@ -1364,7 +1368,7 @@ public class CUBRIDFormatorTest {
         value = "2";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("2", obj);
+        assertEquals("2", obj);
 
         type = "numeric";
         dti.setName(type);
@@ -1373,7 +1377,7 @@ public class CUBRIDFormatorTest {
         value = "2";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("2", obj);
+        assertEquals("2", obj);
 
         type = "numeric";
         dti.setName(type);
@@ -1382,7 +1386,7 @@ public class CUBRIDFormatorTest {
         value = "2.1";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("2.1", obj);
+        assertEquals("2.1", obj);
 
         type = "float";
         dti.setName(type);
@@ -1391,7 +1395,7 @@ public class CUBRIDFormatorTest {
         value = "2.1";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("2.1", obj);
+        assertEquals("2.1", obj);
 
         type = "double";
         dti.setName(type);
@@ -1400,7 +1404,7 @@ public class CUBRIDFormatorTest {
         value = "2.1";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("2.1", obj);
+        assertEquals("2.1", obj);
 
         type = "monetary";
         dti.setName(type);
@@ -1409,31 +1413,31 @@ public class CUBRIDFormatorTest {
         value = "2.1";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("2.1", obj);
+        assertEquals("2.1", obj);
 
         //		type = "national character";
         //		value = "abc";
         //		obj = CUBRIDFormator.format(type, subType, 0, value).getFormatResult();
         //
-        //		Assert.assertEquals("N'abc'", obj);
+        //		assertEquals("N'abc'", obj);
         //
         //		type = "national character";
         //		value = "N'abc'";
         //		obj = CUBRIDFormator.format(type, subType, 0, value).getFormatResult();
         //
-        //		Assert.assertEquals("N'abc'", obj);
+        //		assertEquals("N'abc'", obj);
         //
         //		type = "national character varying";
         //		value = "abc";
         //		obj = CUBRIDFormator.format(type, subType, 0, value).getFormatResult();
         //
-        //		Assert.assertEquals("N'abc'", obj);
+        //		assertEquals("N'abc'", obj);
         //
         //		type = "national character varying";
         //		value = "N'abc'";
         //		obj = CUBRIDFormator.format(type, subType, 0, value).getFormatResult();
         //
-        //		Assert.assertEquals("N'abc'", obj);
+        //		assertEquals("N'abc'", obj);
 
         type = "bit";
         dti.setName(type);
@@ -1442,7 +1446,7 @@ public class CUBRIDFormatorTest {
         value = "B'1'";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("B'1'", obj);
+        assertEquals("B'1'", obj);
 
         type = "bit varying";
         dti.setName(type);
@@ -1451,7 +1455,7 @@ public class CUBRIDFormatorTest {
         value = "B'1'";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("B'1'", obj);
+        assertEquals("B'1'", obj);
 
         type = "bit";
         dti.setName(type);
@@ -1460,7 +1464,7 @@ public class CUBRIDFormatorTest {
         value = "X'1'";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("X'1'", obj);
+        assertEquals("X'1'", obj);
 
         type = "bit varying";
         dti.setName(type);
@@ -1469,7 +1473,7 @@ public class CUBRIDFormatorTest {
         value = "X'1'";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("X'1'", obj);
+        assertEquals("X'1'", obj);
 
         type = "bit";
         dti.setName(type);
@@ -1477,7 +1481,7 @@ public class CUBRIDFormatorTest {
         dti.setScale(0);
         value = "";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals(B_0, obj);
+        assertEquals(B_0, obj);
 
         type = "bit varying";
         dti.setName(type);
@@ -1486,7 +1490,7 @@ public class CUBRIDFormatorTest {
         value = "";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals(B_0, obj);
+        assertEquals(B_0, obj);
 
         type = "bit";
         dti.setName(type);
@@ -1494,7 +1498,7 @@ public class CUBRIDFormatorTest {
         dti.setScale(0);
         value = "abc";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
-        Assert.assertEquals("X'abc'", obj);
+        assertEquals("X'abc'", obj);
 
         type = "bit varying";
         dti.setName(type);
@@ -1503,7 +1507,7 @@ public class CUBRIDFormatorTest {
         value = "eee";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("X'eee'", obj);
+        assertEquals("X'eee'", obj);
 
         type = "set_of";
         subType = "integer";
@@ -1517,7 +1521,7 @@ public class CUBRIDFormatorTest {
         value = "{1,2,3}";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("{1,2,3}", obj);
+        assertEquals("{1,2,3}", obj);
 
         type = "multiset_of";
         subType = "integer";
@@ -1531,7 +1535,7 @@ public class CUBRIDFormatorTest {
         value = "{1,2,3}";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("{1,2,3}", obj);
+        assertEquals("{1,2,3}", obj);
 
         type = "sequence_of";
         subType = "integer";
@@ -1545,7 +1549,7 @@ public class CUBRIDFormatorTest {
         value = "{1,2,3}";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("{1,2,3}", obj);
+        assertEquals("{1,2,3}", obj);
 
         type = "sequence_of";
         subType = "integer";
@@ -1559,7 +1563,7 @@ public class CUBRIDFormatorTest {
         value = "";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals(null, obj);
+        assertEquals(null, obj);
 
         type = "sequence_of";
         subType = "integer";
@@ -1573,7 +1577,7 @@ public class CUBRIDFormatorTest {
         value = "1,2,3";
         obj = CUBRIDFormator.format(dti, value).getFormatResult();
 
-        Assert.assertEquals("{1,2,3}", obj);
+        assertEquals("{1,2,3}", obj);
 
         try {
             type = "varcharacter";
@@ -1585,7 +1589,7 @@ public class CUBRIDFormatorTest {
             value = "abc";
             obj = CUBRIDFormator.format(dti, value).getFormatResult();
         } catch (Exception e) {
-            Assert.assertEquals("Unsupported CUBRID data type:varcharacter", e.getMessage());
+            assertEquals("Unsupported CUBRID data type:varcharacter", e.getMessage());
         }
     }
 }

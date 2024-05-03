@@ -31,23 +31,23 @@
 package com.cubrid.cubridmigration.ui.common;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class UrlConnUtilsTest {
 
     @Test
     public void test_UrlConnUtils() {
         String localVersion = "100.3.0.4561";
-        Assert.assertTrue(UrlConnUtils.isCubridVersionString(localVersion));
-        Assert.assertFalse(UrlConnUtils.isCubridVersionString("aaaa"));
-        Assert.assertFalse(UrlConnUtils.isCubridVersionString(""));
+        assertTrue(UrlConnUtils.isCubridVersionString(localVersion));
+        assertFalse(UrlConnUtils.isCubridVersionString("aaaa"));
+        assertFalse(UrlConnUtils.isCubridVersionString(""));
 
-        Assert.assertTrue(UrlConnUtils.compareVersion("101.0.0.0001", localVersion));
-        Assert.assertFalse(UrlConnUtils.compareVersion("8.0.0.0001", localVersion));
-        Assert.assertFalse(UrlConnUtils.compareVersion("", localVersion));
-        Assert.assertFalse(UrlConnUtils.compareVersion("8.0.0.0001", ""));
+        assertTrue(UrlConnUtils.compareVersion("101.0.0.0001", localVersion));
+        assertFalse(UrlConnUtils.compareVersion("8.0.0.0001", localVersion));
+        assertFalse(UrlConnUtils.compareVersion("", localVersion));
+        assertFalse(UrlConnUtils.compareVersion("8.0.0.0001", ""));
 
-        Assert.assertFalse(UrlConnUtils.isUrlExist("http://111111"));
-        Assert.assertFalse(UrlConnUtils.isExistNewCubridVersion(localVersion, "CUBRID-MIGRATION"));
+        assertFalse(UrlConnUtils.isUrlExist("http://111111"));
+        assertFalse(UrlConnUtils.isExistNewCubridVersion(localVersion, "CUBRID-MIGRATION"));
     }
 }

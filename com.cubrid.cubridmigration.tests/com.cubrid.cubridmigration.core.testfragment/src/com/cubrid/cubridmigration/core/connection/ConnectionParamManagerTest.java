@@ -36,8 +36,13 @@ import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import java.io.File;
 import java.net.URL;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * ConnectionParamManager Test cases.
@@ -68,23 +73,23 @@ public class ConnectionParamManagerTest {
         // Add duplicated name connection
         sourceConParams2.setName("mysqltest");
         cpm.addConnection(sourceConParams2, false);
-        Assert.assertNotNull(cpm.getConnection("mysqltest"));
+        assertNotNull(cpm.getConnection("mysqltest"));
 
         // Add connection
         sourceConParams2.setName("mysqltest2");
         sourceConParams2.setConUser("test");
         cpm.addConnection(sourceConParams2, false);
-        Assert.assertNotNull(cpm.getConnection("mysqltest2"));
-        Assert.assertEquals(5, cpm.getConnections().size());
-        Assert.assertTrue(cpm.isConnectionExists(sourceConParams2));
-        Assert.assertTrue(cpm.isNameUsed("mysqltest2"));
+        assertNotNull(cpm.getConnection("mysqltest2"));
+        assertEquals(5, cpm.getConnections().size());
+        assertTrue(cpm.isConnectionExists(sourceConParams2));
+        assertTrue(cpm.isNameUsed("mysqltest2"));
 
         // Remove connection
         cpm.removeConnection("mysqltest2", false);
-        Assert.assertNull(cpm.getConnection("mysqltest2"));
-        Assert.assertEquals(4, cpm.getConnections().size());
-        Assert.assertFalse(cpm.isConnectionExists(sourceConParams2));
-        Assert.assertFalse(cpm.isNameUsed("mysqltest2"));
+        assertNull(cpm.getConnection("mysqltest2"));
+        assertEquals(4, cpm.getConnections().size());
+        assertFalse(cpm.isConnectionExists(sourceConParams2));
+        assertFalse(cpm.isNameUsed("mysqltest2"));
 
         // Update connection: old connection not found
         cpm.updateConnection("mysqltest2", sourceConParams, false);
@@ -92,19 +97,19 @@ public class ConnectionParamManagerTest {
         cpm.updateConnection("mysqltest", null, false);
         // Update connection: is same DB
         cpm.updateConnection("mysqltest", sourceConParams2, false);
-        Assert.assertNotNull(cpm.getConnection("mysqltest2"));
-        Assert.assertNull(cpm.getConnection("mysqltest"));
+        assertNotNull(cpm.getConnection("mysqltest2"));
+        assertNull(cpm.getConnection("mysqltest"));
         // Restore
         cpm.updateConnection("mysqltest2", sourceConParams, false);
-        Assert.assertNotNull(cpm.getConnection("mysqltest"));
-        Assert.assertNull(cpm.getConnection("mysqltest2"));
+        assertNotNull(cpm.getConnection("mysqltest"));
+        assertNull(cpm.getConnection("mysqltest2"));
 
         // Test catalogs
         Catalog catalog = TemplateParserTest.getMySQLCatalog(config);
-        Assert.assertNull(cpm.getCatalog("mysqltest"));
+        assertNull(cpm.getCatalog("mysqltest"));
         cpm.updateCatalog("mysqltest", catalog);
-        Assert.assertNotNull(cpm.getCatalog("mysqltest"));
+        assertNotNull(cpm.getCatalog("mysqltest"));
         cpm.updateCatalog("mysqltest", null);
-        Assert.assertNull(cpm.getCatalog("mysqltest"));
+        assertNull(cpm.getCatalog("mysqltest"));
     }
 }

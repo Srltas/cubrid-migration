@@ -33,8 +33,10 @@ package com.cubrid.cubridmigration.core.dbobject;
 import com.cubrid.cubridmigration.core.dbobject.Record.ColumnValue;
 import java.util.ArrayList;
 import java.util.List;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RecordTest {
 
@@ -50,8 +52,8 @@ public class RecordTest {
             rec.addColumnValue(column, new Integer(i).toString());
         }
 
-        Assert.assertNotNull(rec.toString());
-        Assert.assertEquals(columnValueList, rec.getColumnValueList());
+        assertNotNull(rec.toString());
+        assertEquals(columnValueList, rec.getColumnValueList());
 
         Column column = new Column();
         column.setName("ff");

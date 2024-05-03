@@ -31,8 +31,10 @@
 package com.cubrid.cubridmigration.mssql.dbobj;
 
 import java.util.ArrayList;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MSSQLPartitionSchemasTest {
 
@@ -40,20 +42,20 @@ public class MSSQLPartitionSchemasTest {
     public void testMSSQLPartitionSchemas() {
         MSSQLPartitionSchemas ps = new MSSQLPartitionSchemas();
         ps.setBoundaryValueOnRight(true);
-        Assert.assertTrue(ps.getBoundaryValueOnRight());
+        assertTrue(ps.getBoundaryValueOnRight());
         ps.setDataSpaceId(0L);
-        Assert.assertEquals(new Long(0L), ps.getDataSpaceId());
+        assertEquals(new Long(0L), ps.getDataSpaceId());
         ps.setFunctionId(1);
-        Assert.assertEquals(1, ps.getFunctionId());
+        assertEquals(1, ps.getFunctionId());
         ps.setName("name");
         ps.setParameterId(2);
-        Assert.assertEquals(2, ps.getParameterId());
+        assertEquals(2, ps.getParameterId());
         ps.setPartitionCount(3);
-        Assert.assertEquals(3, ps.getPartitionCount());
+        assertEquals(3, ps.getPartitionCount());
         ArrayList<String> partitionRangeValues = new ArrayList<String>();
         ps.setPartitionRangeValues(partitionRangeValues);
-        Assert.assertEquals(partitionRangeValues, ps.getPartitionRangeValues());
+        assertEquals(partitionRangeValues, ps.getPartitionRangeValues());
         ps.setSystemType("st");
-        Assert.assertEquals("st", ps.getSystemType());
+        assertEquals("st", ps.getSystemType());
     }
 }

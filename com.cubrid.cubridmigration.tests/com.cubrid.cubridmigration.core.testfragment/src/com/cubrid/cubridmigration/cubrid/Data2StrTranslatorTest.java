@@ -44,8 +44,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * CUBRIDDataTypeTest
@@ -87,7 +89,7 @@ public class Data2StrTranslatorTest {
         targetColumn1.setScale(0);
 
         String res = importHelper.stringValueOf(data1, targetColumn1, lobFiles);
-        Assert.assertEquals("'NULL'", res);
+        assertEquals("'NULL'", res);
 
         data1 = null;
         targetColumn1 = new Column();
@@ -96,7 +98,7 @@ public class Data2StrTranslatorTest {
         targetColumn1.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn1.getDataType()));
         res = importHelper.stringValueOf(data1, targetColumn1, lobFiles);
-        Assert.assertEquals("NULL", res);
+        assertEquals("NULL", res);
 
         String data2 = "2";
         Column targetColumn2 = new Column();
@@ -105,45 +107,45 @@ public class Data2StrTranslatorTest {
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("2", res);
+        assertEquals("2", res);
 
         targetColumn2.setDataType("integer");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("2", res);
+        assertEquals("2", res);
 
         targetColumn2.setDataType("smallint");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("2", res);
+        assertEquals("2", res);
 
         targetColumn2.setDataType("BIGINT");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("2", res);
+        assertEquals("2", res);
 
         targetColumn2.setDataType("FLOAT");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("2", res);
+        assertEquals("2", res);
 
         targetColumn2.setDataType("NUMERIC");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         targetColumn2.setScale(0);
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("2.", res);
+        assertEquals("2.", res);
 
         targetColumn2.setDataType("NUMERIC");
         targetColumn2.setScale(1);
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("2.", res);
+        assertEquals("2.", res);
 
         targetColumn2.setDataType("NUMERIC");
         targetColumn2.setPrecision(10);
@@ -151,7 +153,7 @@ public class Data2StrTranslatorTest {
         targetColumn1.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn1.getDataType()));
         res = importHelper.stringValueOf("2.0", targetColumn2, lobFiles);
-        Assert.assertEquals("2.", res);
+        assertEquals("2.", res);
 
         data2 = "23.3";
         targetColumn2.setDataType("NUMERIC");
@@ -159,7 +161,7 @@ public class Data2StrTranslatorTest {
         targetColumn1.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn1.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("23.3", res);
+        assertEquals("23.3", res);
 
         data2 = "23.3";
         targetColumn2.setDataType("DOUBLE");
@@ -167,55 +169,55 @@ public class Data2StrTranslatorTest {
         targetColumn1.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn1.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("23.3", res);
+        assertEquals("23.3", res);
 
         data2 = "-Infinity";
         targetColumn2.setDataType("DOUBLE");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("-1.7976931348623157e+308", res);
+        assertEquals("-1.7976931348623157e+308", res);
 
         data2 = "Infinity";
         targetColumn2.setDataType("DOUBLE");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("1.7976931348623157e+308", res);
+        assertEquals("1.7976931348623157e+308", res);
 
         byte[] data3 = "abc".getBytes();
         targetColumn2.setDataType("BIT");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data3, targetColumn2, lobFiles);
-        Assert.assertEquals("X'616263'", res);
+        assertEquals("X'616263'", res);
 
         targetColumn2.setDataType("BIT VARYING");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data3, targetColumn2, lobFiles);
-        Assert.assertEquals("X'616263'", res);
+        assertEquals("X'616263'", res);
 
         data2 = "23.3";
         targetColumn2.setDataType("NCHAR");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data2, targetColumn2, lobFiles);
-        Assert.assertEquals("'23.3'", res);
+        assertEquals("'23.3'", res);
 
         Time data4 = Time.valueOf("10:09:08");
         targetColumn2.setDataType("TIME");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data4, targetColumn2, lobFiles);
-        Assert.assertEquals("time'10:09:08'", res);
+        assertEquals("time'10:09:08'", res);
 
         Date data5 = Date.valueOf("2010-01-20");
         targetColumn2.setDataType("DATE");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data5, targetColumn2, lobFiles);
-        Assert.assertEquals("date'01/20/2010'", res);
+        assertEquals("date'01/20/2010'", res);
 
         DateFormat dateFormatter =
                 CUBRIDTimeUtil.getDateFormat(
@@ -226,13 +228,13 @@ public class Data2StrTranslatorTest {
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data6, targetColumn2, lobFiles);
-        Assert.assertEquals("timestamp'10:09:08 AM 01/20/2010'", res);
+        assertEquals("timestamp'10:09:08 AM 01/20/2010'", res);
 
         targetColumn2.setDataType("DATETIME");
         targetColumn2.setJdbcIDOfDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getDataType()));
         res = importHelper.stringValueOf(data6, targetColumn2, lobFiles);
-        Assert.assertEquals("datetime'2010-01-20 10:09:08.000'", res);
+        assertEquals("datetime'2010-01-20 10:09:08.000'", res);
 
         targetColumn2.setDataType("SET");
         targetColumn2.setSubDataType("INTEGER");
@@ -244,7 +246,7 @@ public class Data2StrTranslatorTest {
         list.add("1");
         list.add("2");
         res = importHelper.stringValueOf(list, targetColumn2, lobFiles);
-        Assert.assertEquals("{1,2}", res);
+        assertEquals("{1,2}", res);
 
         targetColumn2.setDataType("SET");
         targetColumn2.setSubDataType("INTEGER");
@@ -253,7 +255,7 @@ public class Data2StrTranslatorTest {
         targetColumn2.setJdbcIDOfSubDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getSubDataType()));
         res = importHelper.stringValueOf("1,2", targetColumn2, lobFiles);
-        Assert.assertEquals("{1,2}", res);
+        assertEquals("{1,2}", res);
 
         targetColumn2.setDataType("SET");
         targetColumn2.setSubDataType("INTEGER");
@@ -262,7 +264,7 @@ public class Data2StrTranslatorTest {
         targetColumn2.setJdbcIDOfSubDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getSubDataType()));
         res = importHelper.stringValueOf("1,2", targetColumn2, lobFiles);
-        Assert.assertEquals("{1,2}", res);
+        assertEquals("{1,2}", res);
 
         targetColumn2.setDataType("MULTISET");
         targetColumn2.setSubDataType("INTEGER");
@@ -271,7 +273,7 @@ public class Data2StrTranslatorTest {
         targetColumn2.setJdbcIDOfSubDataType(
                 dtHelper.getCUBRIDDataTypeID(targetColumn2.getSubDataType()));
         res = importHelper.stringValueOf(null, targetColumn2, lobFiles);
-        Assert.assertEquals("NULL", res);
+        assertEquals("NULL", res);
 
         try {
             targetColumn2.setDataType("SEQUENCE");
@@ -283,7 +285,7 @@ public class Data2StrTranslatorTest {
             res = importHelper.stringValueOf("ab", targetColumn2, lobFiles);
 
         } catch (Exception e) {
-            Assert.assertEquals(
+            assertEquals(
                     "Can not format data \"ab\" to data type \"SEQUENCE\"", e.getMessage());
         }
         try {
@@ -293,9 +295,9 @@ public class Data2StrTranslatorTest {
             targetColumn2.setJdbcIDOfSubDataType(
                     dtHelper.getCUBRIDDataTypeID(targetColumn2.getShownDataType()));
             res = importHelper.stringValueOf("123", targetColumn2, lobFiles);
-            Assert.assertEquals("NULL", res);
+            assertEquals("NULL", res);
         } catch (Exception e) {
-            Assert.assertEquals(
+            assertEquals(
                     "UnSupported CUBRID data type:SEQUENCE2".toLowerCase(),
                     e.getMessage().toLowerCase());
         }
@@ -355,6 +357,6 @@ public class Data2StrTranslatorTest {
 
         String res = importHelper.getRecordString(columnList, columnDataList);
 
-        Assert.assertNotNull(res);
+        assertNotNull(res);
     }
 }

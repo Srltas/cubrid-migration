@@ -32,8 +32,9 @@ package com.cubrid.cubridmigration.core.connection;
 
 import com.cubrid.cubridmigration.BaseTestCaseWithJDBC;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JDBCDriverManagerTest extends BaseTestCaseWithJDBC {
 
@@ -44,11 +45,11 @@ public class JDBCDriverManagerTest extends BaseTestCaseWithJDBC {
             JDBCDriverManager.getInstance().deleteDriver(data.getJdbcDriverPath(), true);
         }
         allJDBCData = JDBCUtil.getAllJDBCData();
-        Assert.assertTrue(allJDBCData.isEmpty());
+        assertTrue(allJDBCData.isEmpty());
         for (JDBCData data : allJDBCData) {
             JDBCDriverManager.getInstance().addDriver(data.getJdbcDriverPath(), true);
         }
         allJDBCData = JDBCUtil.getAllJDBCData();
-        Assert.assertTrue(allJDBCData.isEmpty());
+        assertTrue(allJDBCData.isEmpty());
     }
 }

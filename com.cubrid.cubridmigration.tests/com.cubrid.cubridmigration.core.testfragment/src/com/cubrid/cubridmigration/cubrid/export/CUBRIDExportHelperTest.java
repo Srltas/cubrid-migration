@@ -36,8 +36,10 @@ import com.cubrid.cubridmigration.core.engine.config.SourceEntryTableConfig;
 import com.cubrid.cubridmigration.core.engine.config.SourceSequenceConfig;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import java.math.BigInteger;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CUBRIDExportHelperTest {
 
@@ -46,20 +48,20 @@ public class CUBRIDExportHelperTest {
         CUBRIDExportHelper helper = new CUBRIDExportHelper();
         // helper.getTestSelectSQL("select * from code");
 
-        Assert.assertEquals(
+        assertEquals(
                 "select * from code WHERE ROWNUM  BETWEEN 1001 AND 2000",
                 helper.getPagedSelectSQL("select * from code", 1000, 1000, null));
-        Assert.assertEquals(
+        assertEquals(
                 "select * from code order by f1 FOR ORDERBY_NUM()  BETWEEN 1001 AND 2000",
                 helper.getPagedSelectSQL("select * from code order by f1", 1000, 1000, null));
-        Assert.assertEquals(
+        assertEquals(
                 "select * from code group by f1 HAVING  GROUPBY_NUM()  BETWEEN 1001 AND 2000",
                 helper.getPagedSelectSQL("select * from code group by f1", 1000, 1000, null));
-        Assert.assertEquals(
+        assertEquals(
                 "select * from code group by f1 having f1=1 AND  GROUPBY_NUM()  BETWEEN 1001 AND 2000",
                 helper.getPagedSelectSQL(
                         "select * from code group by f1 having f1=1", 1000, 1000, null));
-        Assert.assertEquals(
+        assertEquals(
                 "select * from code where 1=1 AND ROWNUM  BETWEEN 1001 AND 2000",
                 helper.getPagedSelectSQL("select * from code where 1=1 ", 1000, 1000, null));
     }
@@ -73,17 +75,17 @@ public class CUBRIDExportHelperTest {
         setc.setTarget("t1");
         setc.setOwner("o1");
         setc.setCondition("where f1=1");
-        Assert.assertEquals(
+        assertEquals(
                 helper.getSelectCountSQL(setc), "SELECT COUNT(1)  FROM \"t1\" where f1=1");
 
         setc.setOwner("");
         setc.setCondition("f1=1");
-        Assert.assertEquals(
+        assertEquals(
                 helper.getSelectCountSQL(setc), "SELECT COUNT(1)  FROM \"t1\" WHERE  f1=1");
 
         setc.setOwner("o1");
         setc.setCondition("where f1=1;");
-        Assert.assertEquals(
+        assertEquals(
                 helper.getSelectCountSQL(setc), "SELECT COUNT(1)  FROM \"t1\" where f1=1");
     }
 
@@ -94,10 +96,10 @@ public class CUBRIDExportHelperTest {
         config.setImplicitEstimate(true);
         helper.fillTablesRowCount(config);
         final Table table = config.getSrcCatalog().getSchemas().get(0).getTables().get(0);
-        Assert.assertTrue(table.getTableRowCount() == 0);
+        assertTrue(table.getTableRowCount() == 0);
         config.setImplicitEstimate(false);
         helper.fillTablesRowCount(config);
-        Assert.assertTrue(table.getTableRowCount() > 0);
+        assertTrue(table.getTableRowCount() > 0);
 
         config.setSourceType(MigrationConfiguration.SQL);
         helper.fillTablesRowCount(config);
@@ -108,7 +110,7 @@ public class CUBRIDExportHelperTest {
         MigrationConfiguration config = TemplateParserTest.getCubridConfig();
         CUBRIDExportHelper helper = new CUBRIDExportHelper();
         SourceSequenceConfig sq = config.getExpSerialCfg().get(0);
-        Assert.assertEquals(
+        assertEquals(
                 new BigInteger("1"), helper.getSerialStartValue(config.getSourceConParams(), sq));
     }
 }

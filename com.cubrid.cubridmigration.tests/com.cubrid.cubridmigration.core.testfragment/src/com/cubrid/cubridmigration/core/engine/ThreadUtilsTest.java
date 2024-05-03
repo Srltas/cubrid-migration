@@ -31,8 +31,9 @@
 package com.cubrid.cubridmigration.core.engine;
 
 import com.cubrid.cubridmigration.core.engine.event.MigrationEvent;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ThreadUtilsTest {
 
@@ -42,7 +43,7 @@ public class ThreadUtilsTest {
                 new IMigrationEventHandler() {
 
                     public void handleEvent(MigrationEvent event) {
-                        Assert.assertNotNull(event);
+                        assertNotNull(event);
                     }
 
                     public void dispose() {}

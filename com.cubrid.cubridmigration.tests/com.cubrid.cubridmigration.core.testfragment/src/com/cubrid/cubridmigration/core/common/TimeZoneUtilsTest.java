@@ -30,20 +30,22 @@
  */
 package com.cubrid.cubridmigration.core.common;
 
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TimeZoneUtilsTest {
 
     @Test
     public void testGetGMTFormat() {
-        Assert.assertNotNull(TimeZoneUtils.getGMTFormat("GMT+08"));
-        Assert.assertNotNull(TimeZoneUtils.getGMTFormat(null));
+        assertNotNull(TimeZoneUtils.getGMTFormat("GMT+08"));
+        assertNotNull(TimeZoneUtils.getGMTFormat(null));
 
-        Assert.assertEquals("GMT+01:00", TimeZoneUtils.getTZFromOffset(1));
-        Assert.assertEquals("GMT-01:00", TimeZoneUtils.getTZFromOffset(-1));
-        Assert.assertEquals("GMT+11:00", TimeZoneUtils.getTZFromOffset(11));
-        Assert.assertEquals("GMT-11:00", TimeZoneUtils.getTZFromOffset(-11));
+        assertEquals("GMT+01:00", TimeZoneUtils.getTZFromOffset(1));
+        assertEquals("GMT-01:00", TimeZoneUtils.getTZFromOffset(-1));
+        assertEquals("GMT+11:00", TimeZoneUtils.getTZFromOffset(11));
+        assertEquals("GMT-11:00", TimeZoneUtils.getTZFromOffset(-11));
     }
 
     @Test

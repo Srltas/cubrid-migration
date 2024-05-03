@@ -30,8 +30,11 @@
  */
 package com.cubrid.cubridmigration.core.engine.config;
 
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SourceEntryTableConfigTest {
 
@@ -50,13 +53,13 @@ public class SourceEntryTableConfigTest {
         setc.addIndexConfig("idx1", "idx1", false);
         setc.addIndexConfig("idx2", "idx2", false);
         setc.setCreateNewTable(true);
-        Assert.assertTrue(setc.getColumnConfig("f1").isCreate());
-        Assert.assertTrue(setc.getFKConfig("fk1").isCreate());
-        Assert.assertTrue(setc.getIndexConfig("idx2").isCreate());
+        assertTrue(setc.getColumnConfig("f1").isCreate());
+        assertTrue(setc.getFKConfig("fk1").isCreate());
+        assertTrue(setc.getIndexConfig("idx2").isCreate());
         setc.setCreateNewTable(false);
-        Assert.assertTrue(setc.getColumnConfig("f1").isCreate());
-        Assert.assertTrue(setc.getFKConfig("fk1").isCreate());
-        Assert.assertTrue(setc.getIndexConfig("idx2").isCreate());
+        assertTrue(setc.getColumnConfig("f1").isCreate());
+        assertTrue(setc.getFKConfig("fk1").isCreate());
+        assertTrue(setc.getIndexConfig("idx2").isCreate());
 
         setc = new SourceEntryTableConfig();
         setc.setCreateNewTable(false);
@@ -73,17 +76,17 @@ public class SourceEntryTableConfigTest {
         setc.addIndexConfig("idx2", "idx2", false);
         setc.addIndexConfig("idx2", "idx2", false);
         setc.setMigrateData(true);
-        Assert.assertTrue(setc.getColumnConfig("f1").isCreate());
-        Assert.assertFalse(setc.getFKConfig("fk1").isCreate());
-        Assert.assertFalse(setc.getIndexConfig("idx2").isCreate());
+        assertTrue(setc.getColumnConfig("f1").isCreate());
+        assertFalse(setc.getFKConfig("fk1").isCreate());
+        assertFalse(setc.getIndexConfig("idx2").isCreate());
         setc.setMigrateData(false);
-        Assert.assertTrue(setc.getColumnConfig("f1").isCreate());
-        Assert.assertFalse(setc.getFKConfig("fk1").isCreate());
-        Assert.assertFalse(setc.getIndexConfig("idx2").isCreate());
+        assertTrue(setc.getColumnConfig("f1").isCreate());
+        assertFalse(setc.getFKConfig("fk1").isCreate());
+        assertFalse(setc.getIndexConfig("idx2").isCreate());
 
         setc.setCondition("");
-        Assert.assertNotNull(setc.getCondition());
+        assertNotNull(setc.getCondition());
         setc.setCondition(null);
-        Assert.assertNotNull(setc.getCondition());
+        assertNotNull(setc.getCondition());
     }
 }

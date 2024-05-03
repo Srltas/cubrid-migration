@@ -47,8 +47,11 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * CUBRIDDBObjectBuilderTest
@@ -122,7 +125,7 @@ public class CUBRIDSchemaFetcherTest {
             String sb =
                     TestUtil2.readStrFromFile(
                             "/com/cubrid/cubridmigration/cubrid/meta/schema.json");
-            Assert.assertEquals(
+            assertEquals(
                     sb.replaceAll("\r\n", " ").replaceAll("\r", " ").replaceAll("\n", " "),
                     json.replaceAll("\r\n", " ").replaceAll("\r", " ").replaceAll("\n", " "));
         } finally {
@@ -147,14 +150,14 @@ public class CUBRIDSchemaFetcherTest {
             for (Procedure proc : procList) {
                 System.out.println(proc.getDDL());
             }
-            Assert.assertTrue(procList.size() >= 0);
+            assertTrue(procList.size() >= 0);
 
             List<Function> funcList = catalog.getSchemas().get(0).getFunctions();
 
             for (Function func : funcList) {
                 System.out.println(func.getDDL());
             }
-            Assert.assertTrue(funcList.size() >= 0);
+            assertTrue(funcList.size() >= 0);
         } finally {
             Closer.close(conn);
         }
@@ -178,7 +181,7 @@ public class CUBRIDSchemaFetcherTest {
                 System.out.println(trig.getDDL());
             }
 
-            Assert.assertTrue(list.size() >= 0);
+            assertTrue(list.size() >= 0);
         } finally {
             Closer.close(conn);
         }
@@ -199,7 +202,7 @@ public class CUBRIDSchemaFetcherTest {
                             .buildCatalog(conn, TestUtil2.getCUBRIDConnParam(), null);
             List<Table> list = catalog.getSchemas().get(0).getTables();
 
-            Assert.assertTrue(list.size() > 0);
+            assertTrue(list.size() > 0);
         } finally {
             Closer.close(conn);
         }
@@ -222,7 +225,7 @@ public class CUBRIDSchemaFetcherTest {
             new CUBRIDSchemaFetcher().buildViews(conn, catalog, schema, null);
             List<View> list = schema.getViews();
 
-            Assert.assertTrue(list.size() >= 0);
+            assertTrue(list.size() >= 0);
         } finally {
             Closer.close(conn);
         }
@@ -236,7 +239,7 @@ public class CUBRIDSchemaFetcherTest {
         Schema schema = new Schema(catalog);
         schema.setName("migtestforhudson");
         new CUBRIDSchemaFetcher().buildTables(conn, catalog, schema, null);
-        Assert.assertTrue(catalog != null);
+        assertTrue(catalog != null);
     }
 
     @Test
@@ -247,7 +250,7 @@ public class CUBRIDSchemaFetcherTest {
                         .getMetaDataBuilder()
                         .buildSQLTableSchema(
                                 config.getSourceConParams(), "select s_name from code");
-        Assert.assertNotNull(sqlTable);
-        Assert.assertEquals(1, sqlTable.getColumns().size());
+        assertNotNull(sqlTable);
+        assertEquals(1, sqlTable.getColumns().size());
     }
 }

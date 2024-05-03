@@ -33,8 +33,10 @@ package com.cubrid.cubridmigration.core.trans.converter;
 import com.cubrid.cubridmigration.core.datatype.DataTypeInstance;
 import com.cubrid.cubridmigration.cubrid.trans.converter.ClobConverter;
 import java.io.StringReader;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ClobConverterTest {
 
@@ -43,7 +45,7 @@ public class ClobConverterTest {
         ClobConverter converter = new ClobConverter();
         DataTypeInstance dti = new DataTypeInstance();
         dti.setName("clob");
-        Assert.assertNotNull(converter.convert(new StringReader("test"), dti, null));
-        Assert.assertEquals("test", converter.convert("test", dti, null));
+        assertNotNull(converter.convert(new StringReader("test"), dti, null));
+        assertEquals("test", converter.convert("test", dti, null));
     }
 }

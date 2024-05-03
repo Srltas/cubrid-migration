@@ -47,7 +47,7 @@ import com.cubrid.cubridmigration.core.engine.event.MigrationEvent;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import com.cubrid.cubridmigration.ui.BaseUITestCase;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /** @author Kevin Cao */
 public class MigrationProgressUIControllerTest extends BaseUITestCase {
@@ -63,24 +63,24 @@ public class MigrationProgressUIControllerTest extends BaseUITestCase {
         // To be tested
         controller.updateTableRowCount();
         String[][] tvInput = controller.getProgressTableInput();
-        Assert.assertNotNull(tvInput);
-        Assert.assertTrue(tvInput.length > 0);
+        assertNotNull(tvInput);
+        assertTrue(tvInput.length > 0);
 
         Table codeTable = config.getSrcTableSchema(null, "code");
         String[] item =
                 controller.updateTableExpData(codeTable.getName(), codeTable.getTableRowCount());
-        Assert.assertEquals(codeTable.getName(), item[0]);
-        Assert.assertEquals(String.valueOf(codeTable.getTableRowCount()), item[1]);
-        Assert.assertEquals(String.valueOf(codeTable.getTableRowCount()), item[2]);
-        Assert.assertEquals("0", item[3]);
-        Assert.assertEquals("50%", item[4]);
+        assertEquals(codeTable.getName(), item[0]);
+        assertEquals(String.valueOf(codeTable.getTableRowCount()), item[1]);
+        assertEquals(String.valueOf(codeTable.getTableRowCount()), item[2]);
+        assertEquals("0", item[3]);
+        assertEquals("50%", item[4]);
 
         item = controller.updateTableImpData(codeTable.getName(), codeTable.getTableRowCount());
-        Assert.assertEquals(codeTable.getName(), item[0]);
-        Assert.assertEquals(String.valueOf(codeTable.getTableRowCount()), item[1]);
-        Assert.assertEquals(String.valueOf(codeTable.getTableRowCount()), item[2]);
-        Assert.assertEquals(String.valueOf(codeTable.getTableRowCount()), item[3]);
-        Assert.assertEquals("100%", item[4]);
+        assertEquals(codeTable.getName(), item[0]);
+        assertEquals(String.valueOf(codeTable.getTableRowCount()), item[1]);
+        assertEquals(String.valueOf(codeTable.getTableRowCount()), item[2]);
+        assertEquals(String.valueOf(codeTable.getTableRowCount()), item[3]);
+        assertEquals("100%", item[4]);
     }
 
     @Test
@@ -95,26 +95,26 @@ public class MigrationProgressUIControllerTest extends BaseUITestCase {
         // To be tested
         controller.updateTableRowCount();
         String[][] tvInput = controller.getProgressTableInput();
-        Assert.assertNotNull(tvInput);
-        Assert.assertTrue(tvInput.length > 0);
+        assertNotNull(tvInput);
+        assertTrue(tvInput.length > 0);
 
         Table codeTable = config.getSrcTableSchema(null, "code");
         long tableRowCount = 10;
         String[] item = controller.updateTableExpData(codeTable.getName(), 0);
-        Assert.assertTrue(item.length == 0);
+        assertTrue(item.length == 0);
         item = controller.updateTableExpData(codeTable.getName(), tableRowCount);
-        Assert.assertEquals(codeTable.getName(), item[0]);
-        Assert.assertEquals(MigrationProgressUIController.NA_STRING, item[1]);
-        Assert.assertEquals(String.valueOf(tableRowCount), item[2]);
-        Assert.assertEquals(MigrationProgressUIController.NA_STRING, item[3]);
-        Assert.assertEquals(MigrationProgressUIController.NA_STRING, item[4]);
+        assertEquals(codeTable.getName(), item[0]);
+        assertEquals(MigrationProgressUIController.NA_STRING, item[1]);
+        assertEquals(String.valueOf(tableRowCount), item[2]);
+        assertEquals(MigrationProgressUIController.NA_STRING, item[3]);
+        assertEquals(MigrationProgressUIController.NA_STRING, item[4]);
 
         item = controller.updateTableImpData(codeTable.getName(), tableRowCount);
-        Assert.assertEquals(codeTable.getName(), item[0]);
-        Assert.assertEquals(MigrationProgressUIController.NA_STRING, item[1]);
-        Assert.assertEquals(String.valueOf(tableRowCount), item[2]);
-        Assert.assertEquals(String.valueOf(tableRowCount), item[3]);
-        Assert.assertEquals(MigrationProgressUIController.NA_STRING, item[4]);
+        assertEquals(codeTable.getName(), item[0]);
+        assertEquals(MigrationProgressUIController.NA_STRING, item[1]);
+        assertEquals(String.valueOf(tableRowCount), item[2]);
+        assertEquals(String.valueOf(tableRowCount), item[3]);
+        assertEquals(MigrationProgressUIController.NA_STRING, item[4]);
     }
 
     @Test
@@ -122,7 +122,7 @@ public class MigrationProgressUIControllerTest extends BaseUITestCase {
         MigrationProgressUIController controller = new MigrationProgressUIController();
         controller.setProgressMonitorDialogRunner(new ProgressMonitorDialogRunnerMock());
         controller.setReportEditorPartId("test");
-        Assert.assertFalse(controller.isMigrationRunning());
+        assertFalse(controller.isMigrationRunning());
     }
 
     @Test
@@ -131,65 +131,65 @@ public class MigrationProgressUIControllerTest extends BaseUITestCase {
         MigrationEvent event = new MigrationErrorEvent(null);
 
         event = new CreateObjectEvent(null); // Create an CreateObjectEvent with success flag
-        Assert.assertFalse(controller.ifEventHasError(event));
-        Assert.assertFalse(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertFalse(controller.ifShouldUpdateImportStatus(event));
+        assertFalse(controller.ifEventHasError(event));
+        assertFalse(controller.ifShouldUpdateExportStatus(event));
+        assertFalse(controller.ifShouldUpdateImportStatus(event));
 
         event = new CreateObjectEvent(null, null); // Create an CreateObjectEvent with failed flag
-        Assert.assertTrue(controller.ifEventHasError(event));
-        Assert.assertFalse(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertFalse(controller.ifShouldUpdateImportStatus(event));
+        assertTrue(controller.ifEventHasError(event));
+        assertFalse(controller.ifShouldUpdateExportStatus(event));
+        assertFalse(controller.ifShouldUpdateImportStatus(event));
 
         event = new MigrationErrorEvent(null);
-        Assert.assertTrue(controller.ifEventHasError(event));
-        Assert.assertFalse(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertFalse(controller.ifShouldUpdateImportStatus(event));
+        assertTrue(controller.ifEventHasError(event));
+        assertFalse(controller.ifShouldUpdateExportStatus(event));
+        assertFalse(controller.ifShouldUpdateImportStatus(event));
 
         event = new ImportRecordsEvent(new SourceTableConfig(), 10);
-        Assert.assertFalse(controller.ifEventHasError(event));
-        Assert.assertFalse(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertTrue(controller.ifShouldUpdateImportStatus(event));
+        assertFalse(controller.ifEventHasError(event));
+        assertFalse(controller.ifShouldUpdateExportStatus(event));
+        assertTrue(controller.ifShouldUpdateImportStatus(event));
 
         event =
                 new ImportRecordsEvent(
                         new SourceTableConfig(), 10, new RuntimeException("test"), "");
-        Assert.assertTrue(controller.ifEventHasError(event));
-        Assert.assertFalse(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertFalse(controller.ifShouldUpdateImportStatus(event));
+        assertTrue(controller.ifEventHasError(event));
+        assertFalse(controller.ifShouldUpdateExportStatus(event));
+        assertFalse(controller.ifShouldUpdateImportStatus(event));
 
         event = new ExportRecordsEvent(new SourceTableConfig(), 1);
-        Assert.assertFalse(controller.ifEventHasError(event));
-        Assert.assertTrue(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertFalse(controller.ifShouldUpdateImportStatus(event));
+        assertFalse(controller.ifEventHasError(event));
+        assertTrue(controller.ifShouldUpdateExportStatus(event));
+        assertFalse(controller.ifShouldUpdateImportStatus(event));
 
         event = new ExportCSVEvent(new SourceCSVConfig(), 1);
-        Assert.assertFalse(controller.ifEventHasError(event));
-        Assert.assertTrue(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertFalse(controller.ifShouldUpdateImportStatus(event));
+        assertFalse(controller.ifEventHasError(event));
+        assertTrue(controller.ifShouldUpdateExportStatus(event));
+        assertFalse(controller.ifShouldUpdateImportStatus(event));
 
         event = new ExportSQLEvent("", 1);
-        Assert.assertFalse(controller.ifEventHasError(event));
-        Assert.assertTrue(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertFalse(controller.ifShouldUpdateImportStatus(event));
+        assertFalse(controller.ifEventHasError(event));
+        assertTrue(controller.ifShouldUpdateExportStatus(event));
+        assertFalse(controller.ifShouldUpdateImportStatus(event));
 
         event = new ImportCSVEvent(new SourceCSVConfig(), 1, 1);
-        Assert.assertFalse(controller.ifEventHasError(event));
-        Assert.assertFalse(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertTrue(controller.ifShouldUpdateImportStatus(event));
+        assertFalse(controller.ifEventHasError(event));
+        assertFalse(controller.ifShouldUpdateExportStatus(event));
+        assertTrue(controller.ifShouldUpdateImportStatus(event));
 
         event = new ImportCSVEvent(new SourceCSVConfig(), 1, 1, new RuntimeException(), "");
-        Assert.assertTrue(controller.ifEventHasError(event));
-        Assert.assertFalse(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertFalse(controller.ifShouldUpdateImportStatus(event));
+        assertTrue(controller.ifEventHasError(event));
+        assertFalse(controller.ifShouldUpdateExportStatus(event));
+        assertFalse(controller.ifShouldUpdateImportStatus(event));
 
         event = new ImportSQLsEvent("", 1, 1);
-        Assert.assertFalse(controller.ifEventHasError(event));
-        Assert.assertFalse(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertTrue(controller.ifShouldUpdateImportStatus(event));
+        assertFalse(controller.ifEventHasError(event));
+        assertFalse(controller.ifShouldUpdateExportStatus(event));
+        assertTrue(controller.ifShouldUpdateImportStatus(event));
 
         event = new ImportSQLsEvent("", 1, 1, new RuntimeException(), "");
-        Assert.assertTrue(controller.ifEventHasError(event));
-        Assert.assertFalse(controller.ifShouldUpdateExportStatus(event));
-        Assert.assertFalse(controller.ifShouldUpdateImportStatus(event));
+        assertTrue(controller.ifEventHasError(event));
+        assertFalse(controller.ifShouldUpdateExportStatus(event));
+        assertFalse(controller.ifShouldUpdateImportStatus(event));
     }
 }

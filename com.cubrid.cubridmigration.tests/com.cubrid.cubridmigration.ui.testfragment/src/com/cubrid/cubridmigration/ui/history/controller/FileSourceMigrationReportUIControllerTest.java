@@ -39,8 +39,8 @@ import java.io.File;
 import java.io.IOException;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /** @author Kevin Cao */
 public class FileSourceMigrationReportUIControllerTest extends BaseUITestCase {
@@ -72,7 +72,7 @@ public class FileSourceMigrationReportUIControllerTest extends BaseUITestCase {
         String dir = PathUtils.getBaseTempDir();
         MigrationReporter reporter = new MigrationReporter(new File(reportFileFullName));
         reporter.loadMigrationHistory();
-        Assert.assertNotNull(reporter.getReport());
+        assertNotNull(reporter.getReport());
 
         controller.saveReportToDirectory(reporter, dir);
         final StringBuffer sb = new StringBuffer();
@@ -84,8 +84,8 @@ public class FileSourceMigrationReportUIControllerTest extends BaseUITestCase {
                     }
                 };
         controller.loadLogText(reporter, textAppender);
-        Assert.assertTrue(sb.length() > 0);
+        assertTrue(sb.length() > 0);
         sb.delete(0, sb.length() - 1);
-        Assert.assertTrue(sb.toString().trim().length() == 0);
+        assertTrue(sb.toString().trim().length() == 0);
     }
 }

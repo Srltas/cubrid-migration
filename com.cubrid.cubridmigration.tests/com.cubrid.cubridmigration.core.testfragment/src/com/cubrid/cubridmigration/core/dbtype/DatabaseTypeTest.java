@@ -32,26 +32,30 @@ package com.cubrid.cubridmigration.core.dbtype;
 
 import com.cubrid.cubridmigration.core.TestUtil2;
 import com.cubrid.cubridmigration.core.connection.JDBCUtil;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DatabaseTypeTest {
 
     @Test
     public void testDatabaseType() {
 
-        Assert.assertEquals(DatabaseType.CUBRID, DatabaseType.getDatabaseTypeIDByDBName("cubrid"));
-        Assert.assertEquals(DatabaseType.MYSQL, DatabaseType.getDatabaseTypeIDByDBName("mysql"));
-        Assert.assertEquals(DatabaseType.ORACLE, DatabaseType.getDatabaseTypeIDByDBName("oracle"));
+        assertEquals(DatabaseType.CUBRID, DatabaseType.getDatabaseTypeIDByDBName("cubrid"));
+        assertEquals(DatabaseType.MYSQL, DatabaseType.getDatabaseTypeIDByDBName("mysql"));
+        assertEquals(DatabaseType.ORACLE, DatabaseType.getDatabaseTypeIDByDBName("oracle"));
         try {
             DatabaseType.getDatabaseTypeIDByDBName("sqlserver");
-            Assert.assertTrue(false);
+            assertTrue(false);
         } catch (RuntimeException ex) {
-            Assert.assertTrue(true);
+            assertTrue(true);
         }
 
         JDBCUtil.initialJdbcByPath(TestUtil2.getJdbcPath());
-        Assert.assertNull(DatabaseType.MYSQL.getJDBCData("test.jar"));
-        Assert.assertNotNull(DatabaseType.MYSQL.getJDBCData("mysql-connector-java-5.1.22-bin.jar"));
+        assertNull(DatabaseType.MYSQL.getJDBCData("test.jar"));
+        assertNotNull(DatabaseType.MYSQL.getJDBCData("mysql-connector-j-8.0.31.jar"));
     }
 }

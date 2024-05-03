@@ -41,8 +41,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /** @author Kevin Cao */
 public class MigrationScriptExplorerControllerTest extends BaseUITestCase {
@@ -77,9 +77,9 @@ public class MigrationScriptExplorerControllerTest extends BaseUITestCase {
         MigrationScriptExplorerController controller = new MigrationScriptExplorerController();
 
         controller.setShowGroupPreference(true);
-        Assert.assertTrue(controller.getShowGroupPreference());
+        assertTrue(controller.getShowGroupPreference());
         controller.setShowGroupPreference(false);
-        Assert.assertFalse(controller.getShowGroupPreference());
+        assertFalse(controller.getShowGroupPreference());
     }
 
     @Test
@@ -88,11 +88,11 @@ public class MigrationScriptExplorerControllerTest extends BaseUITestCase {
 
         controller.setShowGroupPreference(true);
         List<? extends ICUBRIDNode> treeInput = controller.getTreeInput();
-        Assert.assertEquals(1, treeInput.size());
+        assertEquals(1, treeInput.size());
 
         controller.setShowGroupPreference(false);
         treeInput = controller.getTreeInput();
-        Assert.assertEquals(3, treeInput.size());
+        assertEquals(3, treeInput.size());
     }
 
     @Test
@@ -110,7 +110,7 @@ public class MigrationScriptExplorerControllerTest extends BaseUITestCase {
         // Verify results
         controller.reloadGroups();
         treeInput = controller.getTreeInput();
-        Assert.assertEquals(selectedNode.getLabel(), treeInput.get(1).getLabel());
+        assertEquals(selectedNode.getLabel(), treeInput.get(1).getLabel());
     }
 
     @Test
@@ -129,7 +129,7 @@ public class MigrationScriptExplorerControllerTest extends BaseUITestCase {
         // Verify results
         controller.reloadGroups();
         treeInput = controller.getTreeInput();
-        Assert.assertEquals(selectedNode.getId(), treeInput.get(1).getId());
+        assertEquals(selectedNode.getId(), treeInput.get(1).getId());
     }
 
     @Test
@@ -150,7 +150,7 @@ public class MigrationScriptExplorerControllerTest extends BaseUITestCase {
         treeInput = controller.getTreeInput();
         groupNode = treeInput.get(0);
         children = groupNode.getChildren();
-        Assert.assertEquals(selectedNode.getId(), children.get(1).getId());
+        assertEquals(selectedNode.getId(), children.get(1).getId());
     }
 
     @Test
@@ -172,7 +172,7 @@ public class MigrationScriptExplorerControllerTest extends BaseUITestCase {
         treeInput = controller.getTreeInput();
         groupNode = treeInput.get(0);
         children = groupNode.getChildren();
-        Assert.assertEquals(selectedNode.getId(), children.get(1).getId());
+        assertEquals(selectedNode.getId(), children.get(1).getId());
     }
 
     @Test
@@ -195,7 +195,7 @@ public class MigrationScriptExplorerControllerTest extends BaseUITestCase {
 
             // Verify results
             treeInput = controller.getTreeInput();
-            Assert.assertEquals(selectedNode.getId(), group.getChildren().get(0).getId());
+            assertEquals(selectedNode.getId(), group.getChildren().get(0).getId());
         } finally {
             controller.getGgroupNodeManager().removeGroup(group.getId());
         }

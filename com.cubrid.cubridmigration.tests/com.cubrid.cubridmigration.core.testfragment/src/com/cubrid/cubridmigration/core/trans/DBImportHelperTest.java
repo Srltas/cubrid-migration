@@ -38,8 +38,11 @@ import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.config.SourceEntryTableConfig;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import com.cubrid.cubridmigration.core.mapping.model.MapObject;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class DBImportHelperTest {
 
@@ -53,8 +56,8 @@ public class DBImportHelperTest {
                                 config.getTargetTableSchema("code"),
                                 config);
 
-        Assert.assertNotNull(result);
-        Assert.assertEquals("f_name", result.getName());
+        assertNotNull(result);
+        assertEquals("f_name", result.getName());
     }
 
     @Test
@@ -70,14 +73,14 @@ public class DBImportHelperTest {
         sourceColumn.setScale(10);
         targetColumn.setPrecision(38);
         targetColumn.setScale(9);
-        Assert.assertNotNull(
+        assertNotNull(
                 transformHelper.checkScale(targetMappingItem, sourceColumn, targetColumn));
 
         sourceColumn.setPrecision(38);
         sourceColumn.setScale(9);
         targetColumn.setPrecision(38);
         targetColumn.setScale(10);
-        Assert.assertNull(
+        assertNull(
                 transformHelper.checkScale(targetMappingItem, sourceColumn, targetColumn));
         // 2
         targetMappingItem.setScale("s");
@@ -85,21 +88,21 @@ public class DBImportHelperTest {
         sourceColumn.setScale(10);
         targetColumn.setPrecision(38);
         targetColumn.setScale(9);
-        Assert.assertNotNull(
+        assertNotNull(
                 transformHelper.checkScale(targetMappingItem, sourceColumn, targetColumn));
 
         sourceColumn.setPrecision(38);
         sourceColumn.setScale(9);
         targetColumn.setPrecision(38);
         targetColumn.setScale(10);
-        Assert.assertNotNull(
+        assertNotNull(
                 transformHelper.checkScale(targetMappingItem, sourceColumn, targetColumn));
 
         sourceColumn.setPrecision(37);
         sourceColumn.setScale(9);
         targetColumn.setPrecision(38);
         targetColumn.setScale(10);
-        Assert.assertNull(
+        assertNull(
                 transformHelper.checkScale(targetMappingItem, sourceColumn, targetColumn));
         // 3
         targetMappingItem.setScale("11");
@@ -107,14 +110,14 @@ public class DBImportHelperTest {
         sourceColumn.setScale(9);
         targetColumn.setPrecision(38);
         targetColumn.setScale(10);
-        Assert.assertNotNull(
+        assertNotNull(
                 transformHelper.checkScale(targetMappingItem, sourceColumn, targetColumn));
 
         sourceColumn.setPrecision(37);
         sourceColumn.setScale(9);
         targetColumn.setPrecision(38);
         targetColumn.setScale(12);
-        Assert.assertNull(
+        assertNull(
                 transformHelper.checkScale(targetMappingItem, sourceColumn, targetColumn));
         // 4
         targetMappingItem.setScale(null);
@@ -123,7 +126,7 @@ public class DBImportHelperTest {
         sourceColumn.setScale(9);
         targetColumn.setPrecision(38);
         targetColumn.setScale(12);
-        Assert.assertNull(
+        assertNull(
                 transformHelper.checkScale(targetMappingItem, sourceColumn, targetColumn));
     }
 
@@ -138,6 +141,6 @@ public class DBImportHelperTest {
         Table tt =
                 MigrationTransFactory.getTransformHelper(DatabaseType.MYSQL, DatabaseType.CUBRID)
                         .createCUBRIDTable(new SourceEntryTableConfig(), st, config);
-        Assert.assertNotNull(tt.getPartitionInfo());
+        assertNotNull(tt.getPartitionInfo());
     }
 }

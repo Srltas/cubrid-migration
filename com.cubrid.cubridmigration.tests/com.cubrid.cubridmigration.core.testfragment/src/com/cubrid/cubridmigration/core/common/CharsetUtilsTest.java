@@ -35,11 +35,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 public class CharsetUtilsTest {
     @Test
@@ -99,7 +97,7 @@ public class CharsetUtilsTest {
     }
     //	@Test
     //	public void testcharSizeChange() {
-    //		Assert.assertTrue(CharsetUtils.charSizeChange("utf-8", "utf-8"));
-    //		Assert.assertFalse(CharsetUtils.charSizeChange("utf-8", "gbk"));
+    //		assertTrue(CharsetUtils.charSizeChange("utf-8", "utf-8"));
+    //		assertFalse(CharsetUtils.charSizeChange("utf-8", "gbk"));
     //	}
 }

@@ -35,8 +35,10 @@ import com.cubrid.cubridmigration.core.datatype.DataTypeInstance;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 import com.cubrid.cubridmigration.core.trans.MigrationTransFactory;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MSSQL2CUBRIDTranformHelperTest extends BaseTestCaseWithJDBC {
 
@@ -62,34 +64,34 @@ public class MSSQL2CUBRIDTranformHelperTest extends BaseTestCaseWithJDBC {
 
         srcColumn.setDefaultValue(null);
         transformHelper.adjustDefaultValue(srcColumn, cubridColumn);
-        Assert.assertNull(cubridColumn.getDefaultValue());
+        assertNull(cubridColumn.getDefaultValue());
 
         srcColumn.setDefaultValue("NULL");
         transformHelper.adjustDefaultValue(srcColumn, cubridColumn);
-        Assert.assertNull(cubridColumn.getDefaultValue());
+        assertNull(cubridColumn.getDefaultValue());
 
         srcColumn.setDefaultValue("(NULL)");
         transformHelper.adjustDefaultValue(srcColumn, cubridColumn);
-        Assert.assertNull(cubridColumn.getDefaultValue());
+        assertNull(cubridColumn.getDefaultValue());
 
         srcColumn.setDefaultValue(" (NULL) ");
         transformHelper.adjustDefaultValue(srcColumn, cubridColumn);
-        Assert.assertNull(cubridColumn.getDefaultValue());
+        assertNull(cubridColumn.getDefaultValue());
 
         srcColumn.setDefaultValue("(1)");
         transformHelper.adjustDefaultValue(srcColumn, cubridColumn);
-        Assert.assertEquals("1", cubridColumn.getDefaultValue());
+        assertEquals("1", cubridColumn.getDefaultValue());
 
         srcColumn.setDefaultValue("((1))");
         transformHelper.adjustDefaultValue(srcColumn, cubridColumn);
-        Assert.assertEquals("1", cubridColumn.getDefaultValue());
+        assertEquals("1", cubridColumn.getDefaultValue());
 
         srcColumn.setDefaultValue("((N))");
         transformHelper.adjustDefaultValue(srcColumn, cubridColumn);
-        Assert.assertNull(cubridColumn.getDefaultValue());
+        assertNull(cubridColumn.getDefaultValue());
 
         srcColumn.setDefaultValue("'1'");
         transformHelper.adjustDefaultValue(srcColumn, cubridColumn);
-        Assert.assertEquals("1", cubridColumn.getDefaultValue());
+        assertEquals("1", cubridColumn.getDefaultValue());
     }
 }

@@ -31,7 +31,7 @@
 package com.cubrid.cubridmigration.ui.common;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class StatusTest {
 
@@ -40,16 +40,16 @@ public class StatusTest {
         Status status = new Status();
 
         status.setOK();
-        Assert.assertTrue(status.isOK());
-        Assert.assertEquals("StatusInfo OK: null", status.toString());
+        assertTrue(status.isOK());
+        assertEquals("StatusInfo OK: null", status.toString());
         status.setError("Error test");
-        Assert.assertTrue(status.isError());
-        Assert.assertEquals("StatusInfo ERROR: Error test", status.toString());
+        assertTrue(status.isError());
+        assertEquals("StatusInfo ERROR: Error test", status.toString());
         status.setInfo("Information");
-        Assert.assertTrue(status.isInfo());
-        Assert.assertEquals("StatusInfo INFO: Information", status.toString());
+        assertTrue(status.isInfo());
+        assertEquals("StatusInfo INFO: Information", status.toString());
         status.setWarning("Warning");
-        Assert.assertTrue(status.isWarning());
-        Assert.assertEquals("StatusInfo WARNING: Warning", status.toString());
+        assertTrue(status.isWarning());
+        assertEquals("StatusInfo WARNING: Warning", status.toString());
     }
 }

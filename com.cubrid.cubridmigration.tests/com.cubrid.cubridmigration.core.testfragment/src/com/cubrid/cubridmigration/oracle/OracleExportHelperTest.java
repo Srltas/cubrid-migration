@@ -35,8 +35,9 @@ import com.cubrid.cubridmigration.core.engine.config.SourceSequenceConfig;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import com.cubrid.cubridmigration.core.export.DBExportHelper;
 import java.math.BigInteger;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OracleExportHelperTest {
 
@@ -52,7 +53,7 @@ public class OracleExportHelperTest {
         MigrationConfiguration config = TemplateParserTest.get_OL_Oracle2CUBRIDConfig();
         DBExportHelper exportHelper = config.getSourceDBType().getExportHelper();
         SourceSequenceConfig sq = config.getExpSerialCfg().get(0);
-        Assert.assertEquals(
+        assertEquals(
                 new BigInteger("1"),
                 exportHelper.getSerialStartValue(config.getSourceConParams(), sq));
     }

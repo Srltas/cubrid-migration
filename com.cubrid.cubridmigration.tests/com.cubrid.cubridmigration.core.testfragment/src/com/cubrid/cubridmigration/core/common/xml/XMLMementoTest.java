@@ -37,9 +37,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import javax.xml.parsers.ParserConfigurationException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * CUBRIDUtil
@@ -55,7 +60,7 @@ public class XMLMementoTest {
      *
      * @throws IOException e
      */
-    @Before
+    @BeforeEach
     public final void init() throws IOException {
         StringBuffer buf = new StringBuffer();
         buf.append("<MySQL2CUBRID>");
@@ -91,21 +96,21 @@ public class XMLMementoTest {
     @Test
     public final void testCreateChild() {
         xml.createChild("abc");
-        Assert.assertNotNull(xml.getChild("abc"));
+        assertNotNull(xml.getChild("abc"));
     }
 
     /** testGetChild */
     @Test
     public final void testGetChild() {
         IXMLMemento child = xml.getChild("DataTypeMapping");
-        Assert.assertNotNull(child);
+        assertNotNull(child);
     }
 
     /** testGetChildren */
     @Test
     public final void testGetChildren() {
         IXMLMemento[] children = xml.getChildren("DataTypeMapping");
-        Assert.assertTrue(children.length > 0);
+        assertTrue(children.length > 0);
     }
 
     /** testGetFloat */
@@ -113,8 +118,8 @@ public class XMLMementoTest {
     public final void testGetFloat() {
         xml.putFloat("num", 1.23f);
         float res = xml.getFloat("num");
-        Assert.assertTrue(1.23f == res);
-        Assert.assertNull(xml.getFloat("noexistsattribute"));
+        assertTrue(1.23f == res);
+        assertNull(xml.getFloat("noexistsattribute"));
     }
 
     /** testGetBoolean */
@@ -123,8 +128,8 @@ public class XMLMementoTest {
         xml.putBoolean("bool", Boolean.FALSE);
         xml.putBoolean("bool", Boolean.TRUE);
         boolean res = xml.getBoolean("bool");
-        Assert.assertTrue(res);
-        Assert.assertFalse(xml.getBoolean("noexistsattribute"));
+        assertTrue(res);
+        assertFalse(xml.getBoolean("noexistsattribute"));
     }
 
     /** testGetInteger */
@@ -132,8 +137,8 @@ public class XMLMementoTest {
     public final void testGetInteger() {
         xml.putInteger("int", 1);
         int res = xml.getInteger("int");
-        Assert.assertTrue(res == 1);
-        Assert.assertNull(xml.getInteger("noexistsattribute"));
+        assertTrue(res == 1);
+        assertNull(xml.getInteger("noexistsattribute"));
     }
 
     /** testGetString */
@@ -141,22 +146,22 @@ public class XMLMementoTest {
     public final void testGetString() {
         xml.putString("str", "abc");
         String res = xml.getString("str");
-        Assert.assertEquals("abc", res);
-        Assert.assertNull(xml.getString("noexistsattribute"));
+        assertEquals("abc", res);
+        assertNull(xml.getString("noexistsattribute"));
     }
 
     /** testGetTextData */
     @Test
     public final void testGetTextData() {
         xml.putTextData("aaaaaaaaaa");
-        Assert.assertNotNull(xml.getTextData());
+        assertNotNull(xml.getTextData());
     }
 
     /** testGetAttributeNames */
     @Test
     public final void testGetAttributeNames() {
         xml.putString("str", "abc");
-        Assert.assertTrue(xml.getAttributeNames().size() > 0);
+        assertTrue(xml.getAttributeNames().size() > 0);
     }
 
     /**
@@ -167,7 +172,7 @@ public class XMLMementoTest {
     @Test
     public final void testGetContents() throws IOException {
         byte[] bs = xml.getContents();
-        Assert.assertNotNull(bs);
+        assertNotNull(bs);
     }
 
     /**
@@ -178,7 +183,7 @@ public class XMLMementoTest {
     @Test
     public final void testGetInputStream() throws IOException {
         InputStream input = xml.getInputStream();
-        Assert.assertNotNull(input);
+        assertNotNull(input);
     }
 
     /**
@@ -189,7 +194,7 @@ public class XMLMementoTest {
     @Test
     public final void testSaveToString() throws IOException {
         String str = xml.saveToString();
-        Assert.assertNotNull(str);
+        assertNotNull(str);
     }
 
     /**
@@ -205,11 +210,11 @@ public class XMLMementoTest {
         xml.saveToFile(fileName);
 
         XMLMemento newXml = (XMLMemento) XMLMemento.loadMemento(fileName);
-        Assert.assertNotNull(newXml);
+        assertNotNull(newXml);
 
         File file = new File(fileName);
         boolean flag = file.delete();
-        Assert.assertTrue(flag);
+        assertTrue(flag);
     }
 
     /**
@@ -220,6 +225,6 @@ public class XMLMementoTest {
     @Test
     public final void testCreateWriteRoot() throws ParserConfigurationException {
         XMLMemento newXml = XMLMemento.createWriteRoot("test");
-        Assert.assertNotNull(newXml.getChildren("test"));
+        assertNotNull(newXml.getChildren("test"));
     }
 }

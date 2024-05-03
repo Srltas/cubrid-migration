@@ -30,8 +30,9 @@
  */
 package com.cubrid.cubridmigration.core.engine.config;
 
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * SourceColumnConfigTest Description
@@ -45,13 +46,13 @@ public class SourceColumnConfigTest {
     public void testSourceColumnConfig() {
         SourceColumnConfig scc = new SourceColumnConfig();
         scc.setReplaceExpression(null);
-        Assert.assertEquals("", scc.getReplaceExp());
+        assertEquals("", scc.getReplaceExp());
 
         scc.setReplaceExpression("a;b:c;d:a:;d:;");
-        Assert.assertEquals("b:c;d:", scc.getReplaceExp());
-        Assert.assertEquals("a", scc.getReplaceValue("a"));
-        Assert.assertEquals("c", scc.getReplaceValue("b"));
-        Assert.assertEquals("", scc.getReplaceValue("d"));
+        assertEquals("b:c;d:", scc.getReplaceExp());
+        assertEquals("a", scc.getReplaceValue("a"));
+        assertEquals("c", scc.getReplaceValue("b"));
+        assertEquals("", scc.getReplaceValue("d"));
         scc.getParent();
     }
 }

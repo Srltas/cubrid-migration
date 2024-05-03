@@ -32,7 +32,7 @@ package com.cubrid.cubridmigration.ui.wizard.page;
 
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CSVImportConfirmPageTest {
 
@@ -40,7 +40,7 @@ public class CSVImportConfirmPageTest {
     public void test_getConfigSummary() throws Exception {
         MigrationConfiguration migration = TemplateParserTest.get_LF_CSV2CUBRIDConfig();
         String result = CSVImportConfirmPage.getConfigSummary(migration);
-        // Assert.assertEquals(2360, result.length());
+        // assertEquals(2360, result.length());
         System.out.println(result);
     }
 }

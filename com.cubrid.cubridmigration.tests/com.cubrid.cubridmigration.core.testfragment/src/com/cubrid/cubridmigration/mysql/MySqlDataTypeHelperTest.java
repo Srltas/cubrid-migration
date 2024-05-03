@@ -33,8 +33,12 @@ package com.cubrid.cubridmigration.mysql;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * MySQLDataTypeTest
@@ -60,47 +64,47 @@ public class MySqlDataTypeHelperTest {
         Integer precision = 0;
         Integer scale = 2;
 
-        Assert.assertEquals("tinyblob", getDataTypeStr("tinyblob", precision, scale));
-        Assert.assertEquals("tinytext", getDataTypeStr("tinytext", precision, scale));
-        Assert.assertEquals("blob", getDataTypeStr("blob", precision, scale));
-        Assert.assertEquals("text", getDataTypeStr("text", precision, scale));
-        Assert.assertEquals("mediumblob", getDataTypeStr("mediumblob", precision, scale));
-        Assert.assertEquals("mediumtext", getDataTypeStr("mediumtext", precision, scale));
-        Assert.assertEquals("longblob", getDataTypeStr("longblob", precision, scale));
-        Assert.assertEquals("longtext", getDataTypeStr("longtext", precision, scale));
+        assertEquals("tinyblob", getDataTypeStr("tinyblob", precision, scale));
+        assertEquals("tinytext", getDataTypeStr("tinytext", precision, scale));
+        assertEquals("blob", getDataTypeStr("blob", precision, scale));
+        assertEquals("text", getDataTypeStr("text", precision, scale));
+        assertEquals("mediumblob", getDataTypeStr("mediumblob", precision, scale));
+        assertEquals("mediumtext", getDataTypeStr("mediumtext", precision, scale));
+        assertEquals("longblob", getDataTypeStr("longblob", precision, scale));
+        assertEquals("longtext", getDataTypeStr("longtext", precision, scale));
 
         precision = 10;
-        Assert.assertEquals("char(10)", getDataTypeStr("char", precision, scale));
-        Assert.assertEquals("varchar(10)", getDataTypeStr("varchar", precision, scale));
-        Assert.assertEquals("tinyint(10)", getDataTypeStr("tinyint", precision, scale));
-        Assert.assertEquals("smallint(10)", getDataTypeStr("smallint", precision, scale));
-        Assert.assertEquals("mediumint(10)", getDataTypeStr("mediumint", precision, scale));
-        Assert.assertEquals("int(10)", getDataTypeStr("int", precision, scale));
+        assertEquals("char(10)", getDataTypeStr("char", precision, scale));
+        assertEquals("varchar(10)", getDataTypeStr("varchar", precision, scale));
+        assertEquals("tinyint(10)", getDataTypeStr("tinyint", precision, scale));
+        assertEquals("smallint(10)", getDataTypeStr("smallint", precision, scale));
+        assertEquals("mediumint(10)", getDataTypeStr("mediumint", precision, scale));
+        assertEquals("int(10)", getDataTypeStr("int", precision, scale));
 
-        Assert.assertEquals("bigint(10)", getDataTypeStr("bigint", precision, scale));
-        Assert.assertEquals("bit(10)", getDataTypeStr("bit", precision, scale));
-        Assert.assertEquals("binary(10)", getDataTypeStr("binary", precision, scale));
-        Assert.assertEquals("varbinary(10)", getDataTypeStr("varbinary", precision, scale));
+        assertEquals("bigint(10)", getDataTypeStr("bigint", precision, scale));
+        assertEquals("bit(10)", getDataTypeStr("bit", precision, scale));
+        assertEquals("binary(10)", getDataTypeStr("binary", precision, scale));
+        assertEquals("varbinary(10)", getDataTypeStr("varbinary", precision, scale));
 
-        Assert.assertEquals("float(10,2)", getDataTypeStr("float", precision, scale));
-        Assert.assertEquals("double(10,2)", getDataTypeStr("double", precision, scale));
-        Assert.assertEquals("decimal(10,2)", getDataTypeStr("decimal", precision, scale));
+        assertEquals("float(10,2)", getDataTypeStr("float", precision, scale));
+        assertEquals("double(10,2)", getDataTypeStr("double", precision, scale));
+        assertEquals("decimal(10,2)", getDataTypeStr("decimal", precision, scale));
 
         String colType = "float";
         String res = getDataTypeStr(colType, precision, scale);
-        Assert.assertNotNull(res);
+        assertNotNull(res);
 
         colType = "float unsigned";
         res = getDataTypeStr(colType, precision, scale);
-        Assert.assertNotNull(res);
+        assertNotNull(res);
 
         colType = "enum";
         res = getDataTypeStr(colType, precision, scale);
-        Assert.assertNotNull(res);
+        assertNotNull(res);
 
         colType = "character(10)";
         res = getDataTypeStr(colType, precision, scale);
-        Assert.assertNotNull(res);
+        assertNotNull(res);
     }
 
     /** testGetScale */
@@ -108,15 +112,15 @@ public class MySqlDataTypeHelperTest {
     public final void testGetScale() {
         String jdbcType = "decimal(5,2)";
         Integer res = helper.parseScale(jdbcType);
-        Assert.assertEquals(res, new Integer(2));
+        assertEquals(res, new Integer(2));
 
         jdbcType = "char(10)";
         res = helper.parseScale(jdbcType);
-        Assert.assertEquals(null, res);
+        assertEquals(null, res);
 
         jdbcType = "enum";
         res = helper.parseScale(jdbcType);
-        Assert.assertEquals(null, res);
+        assertEquals(null, res);
 
         helper.parseScale("integer");
         helper.parseScale("varchar(200)");
@@ -130,15 +134,15 @@ public class MySqlDataTypeHelperTest {
     public final void testGetPrecision() {
         String jdbcType = "decimal(5,2)";
         int res = helper.parsePrecision(jdbcType);
-        Assert.assertEquals(5, res);
+        assertEquals(5, res);
 
         jdbcType = "char(10)";
         res = helper.parsePrecision(jdbcType);
-        Assert.assertEquals(10, res);
+        assertEquals(10, res);
 
         jdbcType = "enum";
         res = helper.parsePrecision(jdbcType);
-        Assert.assertEquals(-1, res);
+        assertEquals(-1, res);
     }
 
     /** testIsValidDatatype */
@@ -146,11 +150,11 @@ public class MySqlDataTypeHelperTest {
     public final void testGetTypePart() {
         String type = "decimal(5,2)";
         String typePart = helper.parseMainType(type);
-        Assert.assertEquals("decimal", typePart);
+        assertEquals("decimal", typePart);
 
         type = "enum";
         typePart = helper.parseMainType(type);
-        Assert.assertEquals("enum", typePart);
+        assertEquals("enum", typePart);
     }
 
     /** testGetTypeRemain */
@@ -160,12 +164,12 @@ public class MySqlDataTypeHelperTest {
         String typeRemain = helper.parseTypeRemain(type);
 
         System.out.println(typeRemain);
-        Assert.assertEquals("5", typeRemain);
+        assertEquals("5", typeRemain);
     }
 
     @Test
     public final void testMySQLColumn() {
-        Assert.assertFalse(new Column().equals(12));
+        assertFalse(new Column().equals(12));
     }
 
     @Test
@@ -177,7 +181,7 @@ public class MySqlDataTypeHelperTest {
         try {
             helper.getJdbcDataTypeID(config.getSrcCatalog(), "testnotype", null, null);
         } catch (Exception ex) {
-            Assert.assertTrue(ex.getMessage().startsWith("Not supported MySQL data type"));
+            assertTrue(ex.getMessage().startsWith("Not supported MySQL data type"));
         }
     }
 
@@ -185,16 +189,16 @@ public class MySqlDataTypeHelperTest {
     public final void testIsBinaryType() {
         Column col = new Column();
         col.setDataType("blob");
-        Assert.assertTrue(helper.isBinary(col.getDataType()));
+        assertTrue(helper.isBinary(col.getDataType()));
         col.setDataType("tinyblob");
-        Assert.assertTrue(helper.isBinary(col.getDataType()));
+        assertTrue(helper.isBinary(col.getDataType()));
         col.setDataType("mediumblob");
-        Assert.assertTrue(helper.isBinary(col.getDataType()));
+        assertTrue(helper.isBinary(col.getDataType()));
         col.setDataType("longblob");
-        Assert.assertTrue(helper.isBinary(col.getDataType()));
+        assertTrue(helper.isBinary(col.getDataType()));
         col.setDataType("bit");
-        Assert.assertTrue(helper.isBinary(col.getDataType()));
+        assertTrue(helper.isBinary(col.getDataType()));
         col.setDataType("int");
-        Assert.assertFalse(helper.isBinary(col.getDataType()));
+        assertFalse(helper.isBinary(col.getDataType()));
     }
 }

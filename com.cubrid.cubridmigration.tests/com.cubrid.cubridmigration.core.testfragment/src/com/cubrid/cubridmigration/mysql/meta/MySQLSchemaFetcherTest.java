@@ -48,8 +48,11 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * DbUtilTest
@@ -76,16 +79,16 @@ public class MySQLSchemaFetcherTest {
         Version version = new Version();
         version.setDbMajorVersion(4);
         version.setDbMinorVersion(9);
-        Assert.assertFalse(builder.isSupportParitionVersion(version));
+        assertFalse(builder.isSupportParitionVersion(version));
         version.setDbMajorVersion(5);
         version.setDbMinorVersion(0);
-        Assert.assertFalse(builder.isSupportParitionVersion(version));
+        assertFalse(builder.isSupportParitionVersion(version));
         version.setDbMajorVersion(5);
         version.setDbMinorVersion(1);
-        Assert.assertTrue(builder.isSupportParitionVersion(version));
+        assertTrue(builder.isSupportParitionVersion(version));
         version.setDbMajorVersion(6);
         version.setDbMinorVersion(0);
-        Assert.assertTrue(builder.isSupportParitionVersion(version));
+        assertTrue(builder.isSupportParitionVersion(version));
     }
 
     //	/**
@@ -100,7 +103,7 @@ public class MySQLSchemaFetcherTest {
     //		try {
     //			List<String> list = new MYSQLSchemaFetcher().getSchemata(conn);
     //			System.out.println(list);
-    //			Assert.assertTrue(list.size() > 0);
+    //			assertTrue(list.size() > 0);
     //		} finally {
     //			Closer.close(conn);
     //		}
@@ -118,7 +121,7 @@ public class MySQLSchemaFetcherTest {
     //		try {
     //			String dbName = MIGTESTFORHUDSON;
     //			String charSet = new MysqlDBObjectBuilder().getCharSet(conn, dbName);
-    //			Assert.assertEquals("latin1", charSet);
+    //			assertEquals("latin1", charSet);
     //		} finally {
     //			Closer.close(conn);
     //		}
@@ -137,10 +140,10 @@ public class MySQLSchemaFetcherTest {
             Catalog catalog =
                     new MySQLSchemaFetcher().buildCatalog(conn, TestUtil2.getMySQLConParam(), null);
             List<Procedure> procList = catalog.getSchemas().get(0).getProcedures();
-            Assert.assertEquals(1, procList.size());
+            assertEquals(1, procList.size());
 
             List<Function> funcList = catalog.getSchemas().get(0).getFunctions();
-            Assert.assertTrue(funcList.size() > 0);
+            assertTrue(funcList.size() > 0);
         } finally {
             Closer.close(conn);
         }
@@ -181,7 +184,7 @@ public class MySQLSchemaFetcherTest {
         try {
             String tableName = TEST_NUMBER;
             Long maxVal = new MySQLSchemaFetcher().getAutoIncNextValByTableName(conn, tableName);
-            Assert.assertTrue(maxVal >= 0);
+            assertTrue(maxVal >= 0);
         } finally {
             Closer.close(conn);
         }
@@ -199,7 +202,7 @@ public class MySQLSchemaFetcherTest {
         try {
             String timezone = new MySQLSchemaFetcher().getTimezone(conn);
             System.out.println("timezone: " + timezone);
-            Assert.assertEquals("GMT+09:00", timezone);
+            assertEquals("GMT+09:00", timezone);
         } finally {
             Closer.close(conn);
         }
@@ -222,7 +225,7 @@ public class MySQLSchemaFetcherTest {
 
             String sb =
                     TestUtil2.readStrFromFile("/com/cubrid/cubridmigration/mysql/meta/schema.json");
-            Assert.assertEquals(
+            assertEquals(
                     sb.replaceAll("\r\n", " ").replaceAll("\r", " ").replaceAll("\n", " "),
                     json.replaceAll("\r\n", " ").replaceAll("\r", " ").replaceAll("\n", " "));
         } catch (Exception e) {
@@ -253,7 +256,7 @@ public class MySQLSchemaFetcherTest {
             table.setName(TEST_NUMBER);
             new MySQLSchemaFetcher().buildTableColumns(conn, catalog, schema, table);
             System.out.println("column count:" + table.getColumns().size());
-            Assert.assertTrue(table.getColumns().size() >= 0);
+            assertTrue(table.getColumns().size() >= 0);
             version.setDbMajorVersion(5);
             new MySQLSchemaFetcher().buildTableColumns(conn, catalog, schema, table);
         } finally {
@@ -279,7 +282,7 @@ public class MySQLSchemaFetcherTest {
     //			Schema schema = new Schema(catalog);
     //			new MYSQLSchemaFetcher().buildViews(conn, catalog, schema, null);
     //			List<View> list = schema.getViews();
-    //			Assert.assertTrue(list.size() >= 0);
+    //			assertTrue(list.size() >= 0);
     //		} finally {
     //			Closer.close(conn);
     //		}
@@ -301,7 +304,7 @@ public class MySQLSchemaFetcherTest {
             Table table = catalog.getSchemas().get(0).getTableByName("participant");
 
             System.out.println("table.getIndexes().size()=" + table.getIndexes().size());
-            Assert.assertTrue(table.getIndexes().size() >= 0);
+            assertTrue(table.getIndexes().size() >= 0);
 
             // Test getSourcePartitionDLL
             table.setDDL("create table participant () PARTITION BY f1 hash 4");
@@ -324,7 +327,7 @@ public class MySQLSchemaFetcherTest {
         try {
             String ddl = new MySQLSchemaFetcher().getTableDDL(conn, TEST_NUMBER);
             System.out.println(ddl);
-            Assert.assertTrue(ddl != null && ddl.trim().length() > 0);
+            assertTrue(ddl != null && ddl.trim().length() > 0);
 
         } finally {
             Closer.close(conn);
@@ -344,7 +347,7 @@ public class MySQLSchemaFetcherTest {
         try {
             String ddl = new MySQLSchemaFetcher().getViewDDL(conn, viewName);
             System.out.println(ddl);
-            Assert.assertTrue(ddl != null && ddl.trim().length() > 0);
+            assertTrue(ddl != null && ddl.trim().length() > 0);
         } finally {
             Closer.close(conn);
         }
@@ -578,7 +581,7 @@ public class MySQLSchemaFetcherTest {
     //			Map<String, String> map = new MYSQLSchemaFetcher().getTableRowCntBySchemaName(
     //					conn, MIGTESTFORHUDSON);
     //
-    //			Assert.assertNotNull(map);
+    //			assertNotNull(map);
     //		} finally {
     //			Closer.close(conn);
     //		}
@@ -598,7 +601,7 @@ public class MySQLSchemaFetcherTest {
     //			String sqlStr = "select * from " + TEST_NUMBER;
     //			rst = conn.prepareStatement(sqlStr);
     //			SourceTable table = new MysqlDBObjectBuilder().buildSQLTableSchema(rst.getMetaData());
-    //			Assert.assertEquals(sqlStr, table.getSql());
+    //			assertEquals(sqlStr, table.getSql());
     //		} catch (SQLException ex) {
     //			ex.printStackTrace();
     //		} finally {
@@ -614,7 +617,7 @@ public class MySQLSchemaFetcherTest {
     //				+ "select `tgt`.`d` AS `d`,`tgt`.`gsdf` AS `gsdf`,`tgt`.`ff` AS `ff`,`tgt`.`aa` AS
     // `aa`,`tgt`.`t1` AS `t1` from `tgt`";
     //		String charset = MysqlDBObjectBuilder.getCharset(ddl);
-    //		Assert.assertNull(charset);
+    //		assertNull(charset);
     //	}
 
     //	//@Test

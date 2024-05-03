@@ -30,8 +30,10 @@
  */
 package com.cubrid.cubridmigration.core.engine.config;
 
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SourceTableConfigTest {
 
@@ -44,13 +46,13 @@ public class SourceTableConfigTest {
         stc.setCreateNewTable(true);
 
         stc.removeColumnConfig("f1");
-        Assert.assertEquals(2, stc.getColumnConfigList().size());
+        assertEquals(2, stc.getColumnConfigList().size());
         stc.removeColumnConfig("f");
-        Assert.assertEquals(2, stc.getColumnConfigList().size());
+        assertEquals(2, stc.getColumnConfigList().size());
         stc.removeColumnConfig(null);
-        Assert.assertEquals(2, stc.getColumnConfigList().size());
+        assertEquals(2, stc.getColumnConfigList().size());
         stc.clearColumnList();
-        Assert.assertEquals(0, stc.getColumnConfigList().size());
+        assertEquals(0, stc.getColumnConfigList().size());
 
         stc.setCreateNewTable(false);
         stc.addColumnConfig("f1", "f1", false);
@@ -64,6 +66,6 @@ public class SourceTableConfigTest {
         stc.addColumnConfig("f3", "f4", false);
         stc.setMigrateData(false);
         SourceColumnConfig scc = stc.getColumnConfig("f3");
-        Assert.assertNotNull(scc);
+        assertNotNull(scc);
     }
 }

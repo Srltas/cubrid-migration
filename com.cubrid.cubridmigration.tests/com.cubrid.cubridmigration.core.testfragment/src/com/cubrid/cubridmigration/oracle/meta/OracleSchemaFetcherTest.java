@@ -42,8 +42,10 @@ import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class OracleSchemaFetcherTest {
 
@@ -252,7 +254,7 @@ public class OracleSchemaFetcherTest {
             String sb =
                     TestUtil2.readStrFromFile(
                             "/com/cubrid/cubridmigration/oracle/meta/schema.json");
-            Assert.assertEquals(
+            assertEquals(
                     sb.replaceAll("\r\n", " ").replaceAll("\r", " ").replaceAll("\n", " "),
                     json.replaceAll("\r\n", " ").replaceAll("\r", " ").replaceAll("\n", " "));
         } catch (Exception ex) {
@@ -291,104 +293,104 @@ public class OracleSchemaFetcherTest {
                 System.out.println(getSQLColumn(col1));
             }
             Column col1 = table.getColumnByName("ID");
-            Assert.assertEquals("VARCHAR2", col1.getDataType());
-            Assert.assertEquals(new Integer(12), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(128, col1.getByteLength());
-            Assert.assertEquals(false, col1.isNullable());
-            Assert.assertEquals(new Integer(128), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals("B", col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("VARCHAR2", col1.getDataType());
+            assertEquals(new Integer(12), col1.getJdbcIDOfDataType());
+            assertEquals(128, col1.getByteLength());
+            assertEquals(false, col1.isNullable());
+            assertEquals(new Integer(128), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals("B", col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F1");
-            Assert.assertEquals("CHAR", col1.getDataType());
-            Assert.assertEquals(new Integer(1), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(1, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(1), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals("B", col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("CHAR", col1.getDataType());
+            assertEquals(new Integer(1), col1.getJdbcIDOfDataType());
+            assertEquals(1, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(1), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals("B", col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F2");
-            Assert.assertEquals("CHAR", col1.getDataType());
-            Assert.assertEquals(new Integer(1), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(2, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(2), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals("B", col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("CHAR", col1.getDataType());
+            assertEquals(new Integer(1), col1.getJdbcIDOfDataType());
+            assertEquals(2, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(2), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals("B", col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F3");
-            Assert.assertEquals("CHAR", col1.getDataType());
-            Assert.assertEquals(new Integer(1), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(255, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(255), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals("B", col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("CHAR", col1.getDataType());
+            assertEquals(new Integer(1), col1.getJdbcIDOfDataType());
+            assertEquals(255, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(255), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals("B", col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F4");
-            Assert.assertEquals("VARCHAR2", col1.getDataType());
-            Assert.assertEquals(new Integer(12), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(1, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(1), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals("B", col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("VARCHAR2", col1.getDataType());
+            assertEquals(new Integer(12), col1.getJdbcIDOfDataType());
+            assertEquals(1, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(1), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals("B", col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F5");
-            Assert.assertEquals("VARCHAR2", col1.getDataType());
-            Assert.assertEquals(new Integer(12), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(2, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(2), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals("B", col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("VARCHAR2", col1.getDataType());
+            assertEquals(new Integer(12), col1.getJdbcIDOfDataType());
+            assertEquals(2, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(2), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals("B", col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F6");
-            Assert.assertEquals("VARCHAR2", col1.getDataType());
-            Assert.assertEquals(new Integer(12), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(4000, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(4000), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals("B", col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("VARCHAR2", col1.getDataType());
+            assertEquals(new Integer(12), col1.getJdbcIDOfDataType());
+            assertEquals(4000, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(4000), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals("B", col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F7");
-            Assert.assertEquals("CLOB", col1.getDataType());
-            Assert.assertEquals(new Integer(2005), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(4000, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(0), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("CLOB", col1.getDataType());
+            assertEquals(new Integer(2005), col1.getJdbcIDOfDataType());
+            assertEquals(4000, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(0), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F8");
-            Assert.assertEquals("NCLOB", col1.getDataType());
-            Assert.assertEquals(new Integer(2005), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(4000, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(0), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("NCLOB", col1.getDataType());
+            assertEquals(new Integer(2005), col1.getJdbcIDOfDataType());
+            assertEquals(4000, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(0), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F9");
-            Assert.assertEquals("LONG", col1.getDataType());
-            Assert.assertEquals(new Integer(2005), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(0, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(0), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("LONG", col1.getDataType());
+            assertEquals(new Integer(2005), col1.getJdbcIDOfDataType());
+            assertEquals(0, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(0), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
         } finally {
             Closer.close(conn);
@@ -435,74 +437,74 @@ public class OracleSchemaFetcherTest {
             builder.buildTableColumns(conn, catalog, schema, table);
 
             Column col1 = table.getColumnByName("F1");
-            Assert.assertEquals("INTEGER", col1.getDataType());
-            Assert.assertEquals(new Integer(4), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(22, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(0), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("INTEGER", col1.getDataType());
+            assertEquals(new Integer(4), col1.getJdbcIDOfDataType());
+            assertEquals(22, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(0), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F2");
-            Assert.assertEquals("FLOAT", col1.getDataType());
-            Assert.assertEquals(new Integer(6), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(22, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(65), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("FLOAT", col1.getDataType());
+            assertEquals(new Integer(6), col1.getJdbcIDOfDataType());
+            assertEquals(22, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(65), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F3");
-            Assert.assertEquals("NUMBER", col1.getDataType());
-            Assert.assertEquals(new Integer(-5), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(22, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(38), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("NUMBER", col1.getDataType());
+            assertEquals(new Integer(-5), col1.getJdbcIDOfDataType());
+            assertEquals(22, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(38), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F4");
-            Assert.assertEquals("NUMBER", col1.getDataType());
-            Assert.assertEquals(new Integer(2), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(22, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(38), col1.getPrecision());
-            Assert.assertEquals(new Integer(2), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("NUMBER", col1.getDataType());
+            assertEquals(new Integer(2), col1.getJdbcIDOfDataType());
+            assertEquals(22, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(38), col1.getPrecision());
+            assertEquals(new Integer(2), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F5");
-            Assert.assertEquals("NUMBER", col1.getDataType());
-            Assert.assertEquals(new Integer(-5), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(22, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(38), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("NUMBER", col1.getDataType());
+            assertEquals(new Integer(-5), col1.getJdbcIDOfDataType());
+            assertEquals(22, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(38), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F6");
-            Assert.assertEquals("NUMBER", col1.getDataType());
-            Assert.assertEquals(new Integer(4), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(22, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(0), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("NUMBER", col1.getDataType());
+            assertEquals(new Integer(4), col1.getJdbcIDOfDataType());
+            assertEquals(22, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(0), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
             col1 = table.getColumnByName("F7");
-            Assert.assertEquals("FLOAT", col1.getDataType());
-            Assert.assertEquals(new Integer(6), col1.getJdbcIDOfDataType());
-            Assert.assertEquals(22, col1.getByteLength());
-            Assert.assertEquals(true, col1.isNullable());
-            Assert.assertEquals(new Integer(63), col1.getPrecision());
-            Assert.assertEquals(new Integer(0), col1.getScale());
-            Assert.assertEquals(null, col1.getCharUsed());
-            Assert.assertEquals(null, col1.getDefaultValue());
+            assertEquals("FLOAT", col1.getDataType());
+            assertEquals(new Integer(6), col1.getJdbcIDOfDataType());
+            assertEquals(22, col1.getByteLength());
+            assertEquals(true, col1.isNullable());
+            assertEquals(new Integer(63), col1.getPrecision());
+            assertEquals(new Integer(0), col1.getScale());
+            assertEquals(null, col1.getCharUsed());
+            assertEquals(null, col1.getDefaultValue());
 
         } finally {
             Closer.close(conn);
@@ -633,12 +635,12 @@ public class OracleSchemaFetcherTest {
     //			Table table = sourceTable.getTable();
     //
     //			Column col1 = table.getColumnByName("F2");
-    //			Assert.assertEquals("BFILE", col1.getDataType());
-    //			Assert.assertEquals(true, col1.isNullable());
-    //			Assert.assertEquals(new Integer(0), col1.getPrecision());
-    //			Assert.assertEquals(new Integer(0), col1.getScale());
-    //			Assert.assertEquals(null, col1.getAddtionalInfo());
-    //			Assert.assertEquals(null, col1.getDefaultValue());
+    //			assertEquals("BFILE", col1.getDataType());
+    //			assertEquals(true, col1.isNullable());
+    //			assertEquals(new Integer(0), col1.getPrecision());
+    //			assertEquals(new Integer(0), col1.getScale());
+    //			assertEquals(null, col1.getAddtionalInfo());
+    //			assertEquals(null, col1.getDefaultValue());
     //		} finally {
     //			Closer.close(rs);
     //			Closer.close(stmt);
@@ -654,7 +656,7 @@ public class OracleSchemaFetcherTest {
         MigrationConfiguration config = TemplateParserTest.getOracleConfig();
         Connection con = config.getSourceConParams().createConnection();
         try {
-            Assert.assertNotNull(
+            assertNotNull(
                     builder.buildSQLTable(
                             con.createStatement()
                                     .executeQuery("select * from code")

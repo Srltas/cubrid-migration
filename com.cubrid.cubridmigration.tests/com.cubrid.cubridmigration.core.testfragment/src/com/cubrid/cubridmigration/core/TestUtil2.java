@@ -345,11 +345,11 @@ public class TestUtil2 {
     }
 
     //	public void equalSourceTable(SourceTable table1, SourceTable table2) {
-    //		Assert.assertEquals(table1.getSql(), table2.getSql());
-    //		Assert.assertEquals(table1.getTableType(), table2.getTableType());
-    //		Assert.assertEquals(table1.isExportRecordsFlag(),
+    //		assertEquals(table1.getSql(), table2.getSql());
+    //		assertEquals(table1.getTableType(), table2.getTableType());
+    //		assertEquals(table1.isExportRecordsFlag(),
     //				table2.isExportRecordsFlag());
-    //		Assert.assertEquals(table1.getFilter(), table2.getFilter());
+    //		assertEquals(table1.getFilter(), table2.getFilter());
     //
     //		equalTable(table1.getTable(), table2.getTable());
     //
@@ -437,7 +437,7 @@ public class TestUtil2 {
 
     public void equalFK(FK fk1, FK fk2) {
         assertEquals(fk1.getName(), fk2.getName());
-        // Assert.assertEquals(fk1.getDeferability(), fk2.getDeferability());
+        // assertEquals(fk1.getDeferability(), fk2.getDeferability());
         assertEquals(fk1.getName(), fk2.getName());
         assertEquals(fk1.getReferencedTableName(), fk2.getReferencedTableName());
         assertEquals(fk1.getUpdateRule(), fk2.getUpdateRule());

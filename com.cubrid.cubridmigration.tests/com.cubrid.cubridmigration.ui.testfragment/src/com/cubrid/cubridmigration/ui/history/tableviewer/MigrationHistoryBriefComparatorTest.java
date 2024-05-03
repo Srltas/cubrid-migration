@@ -33,7 +33,7 @@ package com.cubrid.cubridmigration.ui.history.tableviewer;
 import com.cubrid.cubridmigration.core.engine.report.MigrationBriefReport;
 import org.eclipse.swt.SWT;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /** @author Kevin Cao */
 public class MigrationHistoryBriefComparatorTest {
@@ -50,29 +50,29 @@ public class MigrationHistoryBriefComparatorTest {
 
         comparator.setColumnIndex(0);
         comparator.setSortMode(SWT.UP);
-        Assert.assertTrue(comparator.compare(mbf1, mbf2) < 0);
-        Assert.assertTrue(comparator.compare(mbf2, mbf1) > 0);
+        assertTrue(comparator.compare(mbf1, mbf2) < 0);
+        assertTrue(comparator.compare(mbf2, mbf1) > 0);
 
         comparator.setColumnIndex(0);
         comparator.setSortMode(SWT.DOWN);
-        Assert.assertTrue(comparator.compare(mbf1, mbf2) > 0);
-        Assert.assertTrue(comparator.compare(mbf2, mbf1) < 0);
+        assertTrue(comparator.compare(mbf1, mbf2) > 0);
+        assertTrue(comparator.compare(mbf2, mbf1) < 0);
 
         comparator.setColumnIndex(1);
         comparator.setSortMode(SWT.UP);
-        Assert.assertTrue(comparator.compare(mbf1, mbf2) < 0);
-        Assert.assertTrue(comparator.compare(mbf2, mbf1) > 0);
+        assertTrue(comparator.compare(mbf1, mbf2) < 0);
+        assertTrue(comparator.compare(mbf2, mbf1) > 0);
 
         comparator.setColumnIndex(1);
         comparator.setSortMode(SWT.DOWN);
-        Assert.assertTrue(comparator.compare(mbf1, mbf2) > 0);
-        Assert.assertTrue(comparator.compare(mbf2, mbf1) < 0);
+        assertTrue(comparator.compare(mbf1, mbf2) > 0);
+        assertTrue(comparator.compare(mbf2, mbf1) < 0);
 
         mbf1.setStartTime(mbf2.getStartTime());
-        Assert.assertTrue(comparator.compare(mbf1, mbf2) == 0);
+        assertTrue(comparator.compare(mbf1, mbf2) == 0);
 
         comparator.setColumnIndex(2);
         comparator.setSortMode(SWT.UP);
-        Assert.assertTrue(comparator.compare(mbf1, mbf2) == 0);
+        assertTrue(comparator.compare(mbf1, mbf2) == 0);
     }
 }

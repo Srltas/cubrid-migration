@@ -32,8 +32,10 @@ package com.cubrid.cubridmigration.core.common;
 
 import com.cubrid.cubridmigration.BaseTestCaseWithPath;
 import java.io.File;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class PathUtilsTest extends BaseTestCaseWithPath {
 
@@ -51,10 +53,10 @@ public class PathUtilsTest extends BaseTestCaseWithPath {
         System.out.println(PathUtils.getDefaultKrbConfigFile());
         System.out.println(PathUtils.getDefaultTicketFile());
 
-        Assert.assertEquals("test", PathUtils.extracFileExt("test.t.test"));
-        Assert.assertEquals("10,000 KB", PathUtils.getFileKBSize(10000000));
-        Assert.assertEquals("10,001 KB", PathUtils.getFileKBSize(10000100));
-        Assert.assertEquals("a_b_c", PathUtils.transStr2FileName("a:b c"));
+        assertEquals("test", PathUtils.extracFileExt("test.t.test"));
+        assertEquals("10,000 KB", PathUtils.getFileKBSize(10000000));
+        assertEquals("10,001 KB", PathUtils.getFileKBSize(10000100));
+        assertEquals("a_b_c", PathUtils.transStr2FileName("a:b c"));
     }
 
     @Test
@@ -66,7 +68,7 @@ public class PathUtilsTest extends BaseTestCaseWithPath {
 
     @Test
     public void testGetMonitorHistoryDir() {
-        Assert.assertNotNull(PathUtils.getMonitorHistoryDir());
+        assertNotNull(PathUtils.getMonitorHistoryDir());
     }
 
     @Test
@@ -85,7 +87,7 @@ public class PathUtilsTest extends BaseTestCaseWithPath {
     //	public void testSetInstallLocation() {
     //		URL installLocation = ClassLoader.getSystemResource("");
     //		PathUtils.setInstallLocation(installLocation);
-    //		Assert.assertNotNull(PathUtils.getInstallPath());
+    //		assertNotNull(PathUtils.getInstallPath());
     //	}
     //
     //	@Test
@@ -105,14 +107,14 @@ public class PathUtilsTest extends BaseTestCaseWithPath {
 
     @Test
     public void testGetFileNameWithoutExtendName() {
-        Assert.assertEquals(
+        assertEquals(
                 "/home/xxx/file", PathUtils.getFileNameWithoutExtendName("/home/xxx/file.xml"));
-        Assert.assertEquals(
+        assertEquals(
                 "c:\\home\\xxx\\file",
                 PathUtils.getFileNameWithoutExtendName("c:\\home\\xxx\\file.xml"));
-        Assert.assertEquals("file", PathUtils.getFileNameWithoutExtendName("file.xml"));
-        Assert.assertEquals("", PathUtils.getFileNameWithoutExtendName(".xml"));
-        Assert.assertEquals("/", PathUtils.getFileNameWithoutExtendName("/.xml"));
-        Assert.assertEquals("file", PathUtils.getFileNameWithoutExtendName("file"));
+        assertEquals("file", PathUtils.getFileNameWithoutExtendName("file.xml"));
+        assertEquals("", PathUtils.getFileNameWithoutExtendName(".xml"));
+        assertEquals("/", PathUtils.getFileNameWithoutExtendName("/.xml"));
+        assertEquals("file", PathUtils.getFileNameWithoutExtendName("file"));
     }
 }

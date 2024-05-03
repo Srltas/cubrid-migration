@@ -39,8 +39,12 @@ import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.dbobject.Trigger;
 import com.cubrid.cubridmigration.core.engine.config.SourceTableConfig;
 import com.cubrid.cubridmigration.core.engine.exception.NormalMigrationException;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MigrationEventsTest {
 
@@ -61,11 +65,11 @@ public class MigrationEventsTest {
     @Test
     public void testCreateObjectFailEvent() {
         CreateObjectEvent event = new CreateObjectEvent(table, new RuntimeException("error"));
-        Assert.assertNotNull(event.getError());
+        assertNotNull(event.getError());
         event.toString();
 
         event = new CreateObjectEvent(table);
-        Assert.assertNull(event.getError());
+        assertNull(event.getError());
         event.toString();
     }
 
@@ -90,7 +94,7 @@ public class MigrationEventsTest {
     @Test
     public void testMigrationErrorEvent() {
         MigrationErrorEvent event = new MigrationErrorEvent(new RuntimeException("exception"));
-        Assert.assertTrue(event.isFatalError());
+        assertTrue(event.isFatalError());
         event.getError();
         event.toString();
     }
@@ -101,10 +105,10 @@ public class MigrationEventsTest {
         sourceTable.setName("test");
         ExportRecordsEvent event = new ExportRecordsEvent(sourceTable, 0);
         System.out.println(event.toString());
-        Assert.assertNotNull(event.getSourceTable());
+        assertNotNull(event.getSourceTable());
         event = new ExportRecordsEvent(sourceTable, 100);
         System.out.println(event.toString());
-        Assert.assertEquals(100, event.getRecordCount());
+        assertEquals(100, event.getRecordCount());
     }
 
     @Test
@@ -112,22 +116,22 @@ public class MigrationEventsTest {
         Trigger obj = new Trigger();
         obj.setName("testtrigger");
         CreateObjectEvent event = new CreateObjectEvent(obj);
-        Assert.assertEquals("Create trigger[testtrigger] successfully.", event.toString());
+        assertEquals("Create trigger[testtrigger] successfully.", event.toString());
 
         Function fun = new Function();
         fun.setName("testfunction");
         event = new CreateObjectEvent(fun);
-        Assert.assertEquals("Create function[testfunction] successfully.", event.toString());
+        assertEquals("Create function[testfunction] successfully.", event.toString());
 
         Procedure pro = new Procedure();
         pro.setName("testprocedure");
         event = new CreateObjectEvent(pro);
-        Assert.assertEquals("Create procedure[testprocedure] successfully.", event.toString());
+        assertEquals("Create procedure[testprocedure] successfully.", event.toString());
 
         Sequence seq = new Sequence();
         seq.setName("testsequence");
         event = new CreateObjectEvent(seq);
-        Assert.assertEquals("Create sequence[testsequence] successfully.", event.toString());
+        assertEquals("Create sequence[testsequence] successfully.", event.toString());
     }
 
     @Test
@@ -136,28 +140,28 @@ public class MigrationEventsTest {
         sourceTable.setName("test");
         sourceTable.setTarget("target");
         ImportRecordsEvent event = new ImportRecordsEvent(sourceTable, 100);
-        Assert.assertTrue(event.toString().length() > 0);
+        assertTrue(event.toString().length() > 0);
         event =
                 new ImportRecordsEvent(
                         sourceTable, 100, new NormalMigrationException("test error"), null);
-        Assert.assertTrue(event.toString().length() > 0);
+        assertTrue(event.toString().length() > 0);
         event = new ImportRecordsEvent(sourceTable, 0);
-        Assert.assertTrue(event.toString().length() > 0);
+        assertTrue(event.toString().length() > 0);
     }
 
     @Test
     public void testMigrationNoSupportEvent() {
         MigrationNoSupportEvent event = new MigrationNoSupportEvent(null);
-        Assert.assertEquals("NULL", event.toString());
+        assertEquals("NULL", event.toString());
         event = new MigrationNoSupportEvent(new Table());
-        Assert.assertTrue(event.toString().length() > 0);
+        assertTrue(event.toString().length() > 0);
     }
 
     @Test
     public void testMigrationFinishedEvent() {
         MigrationFinishedEvent event = new MigrationFinishedEvent(true);
-        Assert.assertTrue(event.toString().length() > 0);
+        assertTrue(event.toString().length() > 0);
         event = new MigrationFinishedEvent(false);
-        Assert.assertTrue(event.toString().length() > 0);
+        assertTrue(event.toString().length() > 0);
     }
 }

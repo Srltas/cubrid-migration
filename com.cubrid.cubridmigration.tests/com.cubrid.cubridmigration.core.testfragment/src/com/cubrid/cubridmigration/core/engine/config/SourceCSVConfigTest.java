@@ -32,7 +32,7 @@ package com.cubrid.cubridmigration.core.engine.config;
 
 import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SourceCSVConfigTest {
 

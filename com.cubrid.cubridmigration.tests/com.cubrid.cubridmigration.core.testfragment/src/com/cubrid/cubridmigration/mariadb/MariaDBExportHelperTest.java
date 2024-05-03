@@ -33,35 +33,36 @@ import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import com.cubrid.cubridmigration.mariadb.export.MariaDBExportHelper;
 import java.util.Locale;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MariaDBExportHelperTest {
 
     @Test
     public void testMatchMariaDBLimit() {
         MariaDBExportHelper r = new MariaDBExportHelper();
-        Assert.assertEquals(true, r.matchMariaDBLimit(" LIMIT 10 "));
-        Assert.assertEquals(true, r.matchMariaDBLimit(" LIMIT 10 , 12"));
-        Assert.assertEquals(false, r.matchMariaDBLimit(" LIMIT 10 12"));
-        Assert.assertEquals(true, r.matchMariaDBLimit(" LIMIT 10 OFFSET 12"));
+        assertEquals(true, r.matchMariaDBLimit(" LIMIT 10 "));
+        assertEquals(true, r.matchMariaDBLimit(" LIMIT 10 , 12"));
+        assertEquals(false, r.matchMariaDBLimit(" LIMIT 10 12"));
+        assertEquals(true, r.matchMariaDBLimit(" LIMIT 10 OFFSET 12"));
     }
 
     @Test
     public void testReplaceWithMariaDBLimit0() {
         MariaDBExportHelper r = new MariaDBExportHelper();
-        Assert.assertEquals(" LIMIT 0 ss", r.replaceWithMariaDBLimit0(" LIMIT 10 ss"));
-        Assert.assertEquals(" LIMIT 0 dd", r.replaceWithMariaDBLimit0(" LIMIT 10 , 12 dd"));
-        Assert.assertEquals(" LIMIT 10 12", r.replaceWithMariaDBLimit0(" LIMIT 10 12"));
-        Assert.assertEquals(" LIMIT 0 ", r.replaceWithMariaDBLimit0(" LIMIT 10 OFFSET 12"));
-        Assert.assertEquals(" LIMIT ", r.replaceWithMariaDBLimit0(" LIMIT "));
+        assertEquals(" LIMIT 0 ss", r.replaceWithMariaDBLimit0(" LIMIT 10 ss"));
+        assertEquals(" LIMIT 0 dd", r.replaceWithMariaDBLimit0(" LIMIT 10 , 12 dd"));
+        assertEquals(" LIMIT 10 12", r.replaceWithMariaDBLimit0(" LIMIT 10 12"));
+        assertEquals(" LIMIT 0 ", r.replaceWithMariaDBLimit0(" LIMIT 10 OFFSET 12"));
+        assertEquals(" LIMIT ", r.replaceWithMariaDBLimit0(" LIMIT "));
     }
 
     @Test
     public void testLimit() {
         String sqlFilterPart = " limit";
         boolean match = sqlFilterPart.toLowerCase(Locale.ENGLISH).matches(".*?\\s+limit\\s*.*");
-        Assert.assertEquals(true, match);
+        assertEquals(true, match);
     }
 
     @Test

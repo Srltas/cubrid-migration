@@ -34,8 +34,9 @@ import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import com.cubrid.cubridmigration.mysql.export.MySQLExportHelper;
 import java.util.Locale;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MySQLExportHelperTest {
 
@@ -43,35 +44,35 @@ public class MySQLExportHelperTest {
     //	public void testIsWhereNeeded() {
     //		String whereCnd = "limit 0";
     //		boolean isNeeded = new MySQLExportHelper().isWhereNeeded(whereCnd);
-    //		Assert.assertEquals(false, isNeeded);
+    //		assertEquals(false, isNeeded);
     //
     //		whereCnd = "where 1=1";
     //		isNeeded = new MySQLExportHelper().isWhereNeeded(whereCnd);
-    //		Assert.assertEquals(false, isNeeded);
+    //		assertEquals(false, isNeeded);
     //
     //		whereCnd = "for 1=1";
     //		isNeeded = new MySQLExportHelper().isWhereNeeded(whereCnd);
-    //		Assert.assertEquals(false, isNeeded);
+    //		assertEquals(false, isNeeded);
     //
     //		whereCnd = "having 1=1";
     //		isNeeded = new MySQLExportHelper().isWhereNeeded(whereCnd);
-    //		Assert.assertEquals(false, isNeeded);
+    //		assertEquals(false, isNeeded);
     //
     //		whereCnd = "group by";
     //		isNeeded = new MySQLExportHelper().isWhereNeeded(whereCnd);
-    //		Assert.assertEquals(false, isNeeded);
+    //		assertEquals(false, isNeeded);
     //
     //		whereCnd = "order by";
     //		isNeeded = new MySQLExportHelper().isWhereNeeded(whereCnd);
-    //		Assert.assertEquals(false, isNeeded);
+    //		assertEquals(false, isNeeded);
     //
     //		whereCnd = "PROCEDURE 1-2";
     //		isNeeded = new MySQLExportHelper().isWhereNeeded(whereCnd);
-    //		Assert.assertEquals(false, isNeeded);
+    //		assertEquals(false, isNeeded);
     //
     //		whereCnd = "1=1 ";
     //		isNeeded = new MySQLExportHelper().isWhereNeeded(whereCnd);
-    //		Assert.assertEquals(true, isNeeded);
+    //		assertEquals(true, isNeeded);
     //	}
 
     @Test
@@ -79,38 +80,38 @@ public class MySQLExportHelperTest {
         // String sql = "select * from test limit 100;";
         // String expected = "select * from test LIMIT 1";
         // String returnSql = new MySQLExportHelper().getTestSelectSQL(sql);
-        // Assert.assertEquals(expected, returnSql);
+        // assertEquals(expected, returnSql);
 
         // sql = "select * from test";
         // expected = "select * from test LIMIT 1";
         // returnSql = new MySQLExportHelper().getTestSelectSQL(sql);
-        // Assert.assertEquals(expected, returnSql);
+        // assertEquals(expected, returnSql);
     }
 
     @Test
     public void testMatchMySQLLimit() {
         MySQLExportHelper r = new MySQLExportHelper();
-        Assert.assertEquals(true, r.matchMySQLLimit(" LIMIT 10 "));
-        Assert.assertEquals(true, r.matchMySQLLimit(" LIMIT 10 , 12"));
-        Assert.assertEquals(false, r.matchMySQLLimit(" LIMIT 10 12"));
-        Assert.assertEquals(true, r.matchMySQLLimit(" LIMIT 10 OFFSET 12"));
+        assertEquals(true, r.matchMySQLLimit(" LIMIT 10 "));
+        assertEquals(true, r.matchMySQLLimit(" LIMIT 10 , 12"));
+        assertEquals(false, r.matchMySQLLimit(" LIMIT 10 12"));
+        assertEquals(true, r.matchMySQLLimit(" LIMIT 10 OFFSET 12"));
     }
 
     @Test
     public void testReplaceWithMySQLLimit0() {
         MySQLExportHelper r = new MySQLExportHelper();
-        Assert.assertEquals(" LIMIT 0 ss", r.replaceWithMySQLLimit0(" LIMIT 10 ss"));
-        Assert.assertEquals(" LIMIT 0 dd", r.replaceWithMySQLLimit0(" LIMIT 10 , 12 dd"));
-        Assert.assertEquals(" LIMIT 10 12", r.replaceWithMySQLLimit0(" LIMIT 10 12"));
-        Assert.assertEquals(" LIMIT 0 ", r.replaceWithMySQLLimit0(" LIMIT 10 OFFSET 12"));
-        Assert.assertEquals(" LIMIT ", r.replaceWithMySQLLimit0(" LIMIT "));
+        assertEquals(" LIMIT 0 ss", r.replaceWithMySQLLimit0(" LIMIT 10 ss"));
+        assertEquals(" LIMIT 0 dd", r.replaceWithMySQLLimit0(" LIMIT 10 , 12 dd"));
+        assertEquals(" LIMIT 10 12", r.replaceWithMySQLLimit0(" LIMIT 10 12"));
+        assertEquals(" LIMIT 0 ", r.replaceWithMySQLLimit0(" LIMIT 10 OFFSET 12"));
+        assertEquals(" LIMIT ", r.replaceWithMySQLLimit0(" LIMIT "));
     }
 
     @Test
     public void testLimit() {
         String sqlFilterPart = " limit";
         boolean match = sqlFilterPart.toLowerCase(Locale.ENGLISH).matches(".*?\\s+limit\\s*.*");
-        Assert.assertEquals(true, match);
+        assertEquals(true, match);
     }
 
     @Test

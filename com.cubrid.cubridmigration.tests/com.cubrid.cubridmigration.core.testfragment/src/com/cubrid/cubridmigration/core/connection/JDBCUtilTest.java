@@ -34,8 +34,10 @@ import com.cubrid.cubridmigration.BaseTestCaseWithPath;
 import com.cubrid.cubridmigration.core.common.PathUtils;
 import java.io.File;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JDBCUtilTest extends BaseTestCaseWithPath {
 
@@ -44,16 +46,16 @@ public class JDBCUtilTest extends BaseTestCaseWithPath {
         File url = new File(PathUtils.getJDBCLibDir());
         JDBCUtil.initialJdbcByPath(url.getCanonicalPath());
         List<JDBCData> allJDBCData = JDBCUtil.getAllJDBCData();
-        Assert.assertEquals(allJDBCData.size(), url.listFiles().length);
+        assertEquals(allJDBCData.size(), url.listFiles().length);
         for (JDBCData data : allJDBCData) {
-            Assert.assertNotNull(data.getDatabaseType());
-            Assert.assertNotNull(data.getDesc());
-            Assert.assertNotNull(data.getDriver());
-            Assert.assertNotNull(data.getDriverClassName());
-            Assert.assertNotNull(data.getJdbcClassLoader());
-            Assert.assertNotNull(data.getJdbcDriverName());
-            Assert.assertNotNull(data.getJdbcDriverPath());
-            Assert.assertNotNull(data.getVersion());
+            assertNotNull(data.getDatabaseType());
+            assertNotNull(data.getDesc());
+            assertNotNull(data.getDriver());
+            assertNotNull(data.getDriverClassName());
+            assertNotNull(data.getJdbcClassLoader());
+            assertNotNull(data.getJdbcDriverName());
+            assertNotNull(data.getJdbcDriverPath());
+            assertNotNull(data.getVersion());
         }
     }
 }

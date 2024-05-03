@@ -30,7 +30,7 @@
  */
 package com.cubrid.cubridmigration.core.dbobject;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class IndexTest {
 
@@ -39,14 +39,14 @@ public class IndexTest {
         //		final Index index = new Index(new Table());
         //		try {
         //			index.setColumns(null);
-        //			Assert.assertFalse(true);
+        //			assertFalse(true);
         //		} catch (IllegalArgumentException ex) {
         //
         //		}
         //		final Map<String, String> stringList = new TreeMap<String, String>();
         //		try {
         //			index.setColumns(stringList);
-        //			Assert.assertFalse(true);
+        //			assertFalse(true);
         //		} catch (IllegalArgumentException ex) {
         //
         //		}
@@ -54,7 +54,7 @@ public class IndexTest {
         //		try {
         //			stringList.add("f1",);
         //			index.setColumnNames(stringList);
-        //			Assert.assertFalse(true);
+        //			assertFalse(true);
         //		} catch (IllegalArgumentException ex) {
         //
         //		}
@@ -64,10 +64,10 @@ public class IndexTest {
         //		index.getTable().addColumn(col);
         //		index.addColumn(col);
         //		index.addColumn(col);
-        //		Assert.assertTrue(index.getColumns().size() == 1);
+        //		assertTrue(index.getColumns().size() == 1);
         //
         //		index.setColumns(null);
-        //		Assert.assertTrue(index.getColumns().isEmpty());
+        //		assertTrue(index.getColumns().isEmpty());
         //
         //		index.addOrderRule("ASC");
         //		index.addOrderRule("DEC");
@@ -81,14 +81,14 @@ public class IndexTest {
         //		index.addOrderRule("a");
         //		index.addOrderRule("d");
         //
-        //		Assert.assertEquals("A", index.getColumnOrderRules().get(0));
-        //		Assert.assertEquals("D", index.getColumnOrderRules().get(1));
-        //		Assert.assertEquals("A", index.getColumnOrderRules().get(2));
-        //		Assert.assertEquals("D", index.getColumnOrderRules().get(3));
-        //		Assert.assertEquals("A", index.getColumnOrderRules().get(4));
-        //		Assert.assertEquals("D", index.getColumnOrderRules().get(5));
-        //		Assert.assertEquals("A", index.getColumnOrderRules().get(6));
-        //		Assert.assertEquals("D", index.getColumnOrderRules().get(7));
+        //		assertEquals("A", index.getColumnOrderRules().get(0));
+        //		assertEquals("D", index.getColumnOrderRules().get(1));
+        //		assertEquals("A", index.getColumnOrderRules().get(2));
+        //		assertEquals("D", index.getColumnOrderRules().get(3));
+        //		assertEquals("A", index.getColumnOrderRules().get(4));
+        //		assertEquals("D", index.getColumnOrderRules().get(5));
+        //		assertEquals("A", index.getColumnOrderRules().get(6));
+        //		assertEquals("D", index.getColumnOrderRules().get(7));
         //
         //		index.addOrderRule(null);
 

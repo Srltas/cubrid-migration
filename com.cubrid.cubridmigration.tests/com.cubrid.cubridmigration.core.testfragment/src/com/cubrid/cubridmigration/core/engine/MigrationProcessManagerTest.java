@@ -37,8 +37,11 @@ import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.Statement;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * MigrationProcessManagerTester
@@ -161,16 +164,16 @@ public class MigrationProcessManagerTest extends BaseMigrationEngineTester {
         try {
             mpm.startMigration();
         } catch (RuntimeException ex) {
-            Assert.assertNotNull(ex);
+            assertNotNull(ex);
         }
         ThreadUtils.threadSleep(2000, null);
-        Assert.assertTrue(MigrationProcessManager.isRunning());
+        assertTrue(MigrationProcessManager.isRunning());
         while (MigrationProcessManager.isRunning()) {
             ThreadUtils.threadSleep(2000, null);
         }
         ThreadUtils.threadSleep(1000, null);
-        Assert.assertFalse(MigrationProcessManager.isRunning());
-        // Assert.assertFalse(reporter.hasError());
+        assertFalse(MigrationProcessManager.isRunning());
+        // assertFalse(reporter.hasError());
     }
 
     @Test

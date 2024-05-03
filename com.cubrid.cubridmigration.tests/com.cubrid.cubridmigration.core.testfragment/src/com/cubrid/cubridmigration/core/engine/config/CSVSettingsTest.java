@@ -31,46 +31,48 @@
 package com.cubrid.cubridmigration.core.engine.config;
 
 import java.util.ArrayList;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class CSVSettingsTest {
 
     @Test
     public void testCSVSettings() {
         CSVSettings settings = new CSVSettings();
-        Assert.assertFalse(settings.equals(null));
+        assertFalse(settings.equals(null));
 
         CSVSettings settings2 = new CSVSettings();
-        Assert.assertTrue(settings.equals(settings2));
+        assertTrue(settings.equals(settings2));
 
         final ArrayList<String> ns = new ArrayList<String>();
         ns.add("NULL");
         settings.setNullStrings(ns);
-        Assert.assertFalse(settings.equals(settings2));
+        assertFalse(settings.equals(settings2));
 
         ns.clear();
         ns.add("\\N");
         ns.add("NULL");
         ns.add("(NULL)");
         settings.setNullStrings(ns);
-        Assert.assertTrue(settings.equals(settings2));
+        assertTrue(settings.equals(settings2));
         settings.setSeparateChar(';');
-        Assert.assertFalse(settings.equals(settings2));
+        assertFalse(settings.equals(settings2));
 
         settings.setSeparateChar(',');
-        Assert.assertTrue(settings.equals(settings2));
+        assertTrue(settings.equals(settings2));
         settings.setEscapeChar('|');
-        Assert.assertFalse(settings.equals(settings2));
+        assertFalse(settings.equals(settings2));
 
         settings.setEscapeChar('\0');
-        Assert.assertTrue(settings.equals(settings2));
+        assertTrue(settings.equals(settings2));
         settings.setQuoteChar('\'');
-        Assert.assertFalse(settings.equals(settings2));
+        assertFalse(settings.equals(settings2));
 
         settings.setQuoteChar('\"');
-        Assert.assertTrue(settings.equals(settings2));
+        assertTrue(settings.equals(settings2));
         settings.setCharset("utf8");
-        Assert.assertFalse(settings.equals(settings2));
+        assertFalse(settings.equals(settings2));
     }
 }

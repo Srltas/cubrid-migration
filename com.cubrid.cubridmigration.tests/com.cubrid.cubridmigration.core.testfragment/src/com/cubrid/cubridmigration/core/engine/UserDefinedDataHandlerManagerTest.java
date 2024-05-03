@@ -33,8 +33,9 @@ package com.cubrid.cubridmigration.core.engine;
 import com.cubrid.cubridmigration.core.common.PathUtils;
 import java.util.HashMap;
 import java.util.Map;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class UserDefinedDataHandlerManagerTest {
     static {
@@ -48,11 +49,11 @@ public class UserDefinedDataHandlerManagerTest {
         instance.putColumnDataHandler(dataHandler, true);
         instance.putColumnDataHandler(dataHandler, false);
         Object handler = instance.getColumnDataHandler(dataHandler);
-        Assert.assertNotNull(handler);
+        assertNotNull(handler);
         String columnName = "col1";
         Map<String, Object> recordMap = new HashMap<String, Object>();
         recordMap.put(columnName, "test");
         Object result = instance.handleColumnData(handler, recordMap, columnName);
-        Assert.assertNotNull(result);
+        assertNotNull(result);
     }
 }

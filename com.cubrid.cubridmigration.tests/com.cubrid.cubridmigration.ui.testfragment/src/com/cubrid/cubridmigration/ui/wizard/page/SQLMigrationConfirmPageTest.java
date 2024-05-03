@@ -32,7 +32,7 @@ package com.cubrid.cubridmigration.ui.wizard.page;
 
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.TemplateParserTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SQLMigrationConfirmPageTest {
 
@@ -41,7 +41,7 @@ public class SQLMigrationConfirmPageTest {
 
         MigrationConfiguration migration = TemplateParserTest.get_LF_SQL2CUBRIDConfig();
         String result = SQLMigrationConfirmPage.getConfigSummary(migration);
-        // Assert.assertEquals(2159, result.length());
+        // assertEquals(2159, result.length());
         System.out.println(result);
     }
 }

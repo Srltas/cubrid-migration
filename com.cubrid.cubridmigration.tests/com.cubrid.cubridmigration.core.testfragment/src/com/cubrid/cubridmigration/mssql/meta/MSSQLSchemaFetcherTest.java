@@ -34,8 +34,9 @@ import com.cubrid.cubridmigration.core.TestUtil2;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import java.sql.Connection;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * MSSQLSchemaFetcherTest Description
@@ -55,7 +56,7 @@ public class MSSQLSchemaFetcherTest {
         String json = TestUtil2.getCatalogJson(catalog);
         // System.out.println(json);
         String sb = TestUtil2.readStrFromFile("/com/cubrid/cubridmigration/mssql/meta/schema.json");
-        Assert.assertEquals(
+        assertEquals(
                 sb.replaceAll("\r\n", "").replaceAll("\r", "").replaceAll("\n", ""),
                 json.replaceAll("\r\n", "").replaceAll("\r", "").replaceAll("\n", ""));
     }

@@ -30,41 +30,43 @@
  */
 package com.cubrid.cubridmigration.core.dbobject;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class SchemaTest {
 
     @Test
     public void testEqualsObject() {
         Schema schema1 = new Schema();
-        Assert.assertTrue(schema1.equals(schema1));
-        Assert.assertFalse(schema1.equals(12));
-        Assert.assertFalse(schema1.equals(null));
-        Assert.assertTrue(schema1.hashCode() == schema1.hashCode());
+        assertTrue(schema1.equals(schema1));
+        assertFalse(schema1.equals(12));
+        assertFalse(schema1.equals(null));
+        assertTrue(schema1.hashCode() == schema1.hashCode());
 
         Schema schema2 = new Schema();
-        Assert.assertTrue(schema1.equals(schema2));
-        Assert.assertTrue(schema1.hashCode() == schema2.hashCode());
+        assertTrue(schema1.equals(schema2));
+        assertTrue(schema1.hashCode() == schema2.hashCode());
 
         schema1.setName("testSchema");
-        Assert.assertFalse(schema2.equals(schema1));
+        assertFalse(schema2.equals(schema1));
         schema2.setName("testSchema");
-        Assert.assertTrue(schema1.equals(schema2));
-        Assert.assertTrue(schema1.hashCode() == schema2.hashCode());
+        assertTrue(schema1.equals(schema2));
+        assertTrue(schema1.hashCode() == schema2.hashCode());
 
         Catalog catalog1 = new Catalog();
         schema1.setCatalog(catalog1);
-        Assert.assertFalse(schema2.equals(schema1));
+        assertFalse(schema2.equals(schema1));
 
         schema2.setCatalog(catalog1);
         schema2.setName("testSchema2");
-        Assert.assertFalse(schema1.equals(schema2));
-        Assert.assertTrue(schema1.hashCode() != schema2.hashCode());
+        assertFalse(schema1.equals(schema2));
+        assertTrue(schema1.hashCode() != schema2.hashCode());
 
         catalog1.setName("catalog1");
         schema2.setCatalog(new Catalog());
         schema2.setName("testSchema");
-        Assert.assertFalse(schema1.equals(schema2));
+        assertFalse(schema1.equals(schema2));
     }
 }

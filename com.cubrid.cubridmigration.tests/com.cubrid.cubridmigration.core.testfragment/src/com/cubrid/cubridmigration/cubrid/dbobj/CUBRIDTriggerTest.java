@@ -30,8 +30,9 @@
  */
 package com.cubrid.cubridmigration.cubrid.dbobj;
 
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CUBRIDTriggerTest {
 
@@ -75,61 +76,61 @@ public class CUBRIDTriggerTest {
         CUBRIDTrigger trigger = new CUBRIDTrigger();
         trigger.setPriority("aa");
         String ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("<trigger_name>") != -1);
+        assertEquals(true, ddl.indexOf("<trigger_name>") != -1);
 
         trigger.setName("test_trigger");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("test_trigger") != -1);
+        assertEquals(true, ddl.indexOf("test_trigger") != -1);
 
         trigger.setStatus("INACTIVE");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("STATUS INACTIVE") != -1);
+        assertEquals(true, ddl.indexOf("STATUS INACTIVE") != -1);
 
         trigger.setCondition(null);
         trigger.setActionTime("2");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("AFTER") != -1);
+        assertEquals(true, ddl.indexOf("AFTER") != -1);
 
         trigger.setActionTime("1");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("BEFORE") != -1);
+        assertEquals(true, ddl.indexOf("BEFORE") != -1);
 
         trigger.setActionTime("3");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("DEFERRED") != -1);
+        assertEquals(true, ddl.indexOf("DEFERRED") != -1);
 
         trigger.setCondition("AFTER");
         trigger.setActionTime("3");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("DEFERRED") != -1);
+        assertEquals(true, ddl.indexOf("DEFERRED") != -1);
 
         trigger.setActionType("2");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("REJECT") != -1);
+        assertEquals(true, ddl.indexOf("REJECT") != -1);
 
         trigger.setActionType("3");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("INVALIDATE TRANSACTION") != -1);
+        assertEquals(true, ddl.indexOf("INVALIDATE TRANSACTION") != -1);
 
         trigger.setPriority("0.10");
         trigger.setTargetClass("table");
         trigger.setEventType("COMMIT");
         trigger.setTargetAttribute("column");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("ON \"table\"(\"column\")") != -1);
+        assertEquals(true, ddl.indexOf("ON \"table\"(\"column\")") != -1);
 
         trigger.setEventType("ROLLBACK");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("ON \"table\"(\"column\")") != -1);
+        assertEquals(true, ddl.indexOf("ON \"table\"(\"column\")") != -1);
 
         trigger.setTargetClass("");
         trigger.setEventType("OTHER");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("<event_target>") != -1);
+        assertEquals(true, ddl.indexOf("<event_target>") != -1);
 
         trigger.setActionType("10");
         trigger.setActionDefintion("test");
         ddl = trigger.getDDL();
-        Assert.assertEquals(true, ddl.indexOf("test") != -1);
+        assertEquals(true, ddl.indexOf("test") != -1);
     }
 }

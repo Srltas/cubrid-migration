@@ -32,8 +32,10 @@ package com.cubrid.cubridmigration.core.trans.converter;
 
 import com.cubrid.cubridmigration.core.datatype.DataTypeInstance;
 import com.cubrid.cubridmigration.cubrid.trans.converter.BitConverter;
-import junit.framework.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BitConverterTest {
 
@@ -45,9 +47,9 @@ public class BitConverterTest {
         DataTypeInstance dti = new DataTypeInstance();
         dti.setName("bit");
         dti.setPrecision(10);
-        Assert.assertEquals(obj, cvt.convert(obj, dti, null));
-        Assert.assertTrue(cvt.convert(new char[] {'a', 'b'}, dti, null) instanceof byte[]);
-        Assert.assertTrue(cvt.convert("test", dti, null) instanceof byte[]);
-        Assert.assertTrue(cvt.convert(new byte[] {'a', 'b'}, dti, null) instanceof byte[]);
+        assertEquals(obj, cvt.convert(obj, dti, null));
+        assertTrue(cvt.convert(new char[] {'a', 'b'}, dti, null) instanceof byte[]);
+        assertTrue(cvt.convert("test", dti, null) instanceof byte[]);
+        assertTrue(cvt.convert(new byte[] {'a', 'b'}, dti, null) instanceof byte[]);
     }
 }

@@ -41,9 +41,12 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.dom4j.DocumentException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * DbUtilTest
@@ -59,7 +62,7 @@ public class DataTypeMappingTest {
      *
      * @throws Exception e
      */
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {}
 
     /**
@@ -83,289 +86,289 @@ public class DataTypeMappingTest {
                 MigrationTransFactory.getTransformHelper(DatabaseType.MYSQL, DatabaseType.CUBRID)
                         .getDataTypeMappingHelper();
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("short", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("short", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "bit";
         precision = 2;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("bit", target.getDatatype());
-        Assert.assertEquals("n", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("bit", target.getDatatype());
+        assertEquals("n", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "date";
         precision = 10;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("date", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("date", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "datetime";
         precision = 19;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("datetime", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("datetime", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "timestamp";
         precision = 19;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("timestamp", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("timestamp", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "time";
         precision = 8;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("time", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("time", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "year";
         precision = 4;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("char", target.getDatatype());
-        Assert.assertEquals("4", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("char", target.getDatatype());
+        assertEquals("4", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "year";
         precision = 2;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("char", target.getDatatype());
-        Assert.assertEquals("4", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("char", target.getDatatype());
+        assertEquals("4", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "char";
         precision = 2;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("char", target.getDatatype());
-        Assert.assertEquals("n", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("char", target.getDatatype());
+        assertEquals("n", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "varchar";
         precision = 4;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("varchar", target.getDatatype());
-        Assert.assertEquals("n", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("varchar", target.getDatatype());
+        assertEquals("n", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "binary";
         precision = 1;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("bit", target.getDatatype());
-        Assert.assertEquals("n", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("bit", target.getDatatype());
+        assertEquals("n", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "binary";
         precision = 4;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("bit", target.getDatatype());
-        Assert.assertEquals("n", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("bit", target.getDatatype());
+        assertEquals("n", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "bool";
         precision = 1;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("short", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("short", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "boolean";
         precision = 1;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("short", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("short", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "tinyint";
         precision = 1;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("short", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("short", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "smallint";
         precision = 3;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("short", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("short", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "smallint unsigned";
         precision = 5;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("int", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("int", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "mediumint";
         precision = 9;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("int", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("int", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "mediumint unsigned";
         precision = 9;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("int", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("int", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "int";
         precision = 11;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("int", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("int", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "int unsigned";
         precision = 11;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("bigint", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("bigint", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "bigint";
         precision = 20;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("bigint", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("bigint", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "bigint unsigned";
         precision = 20;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("numeric", target.getDatatype());
-        Assert.assertEquals("20", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("numeric", target.getDatatype());
+        assertEquals("20", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "float";
         precision = 10;
         scale = 1;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("float", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("float", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "double";
         precision = 10;
         scale = 1;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("double", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("double", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "decimal";
         precision = 10;
         scale = 1;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("numeric", target.getDatatype());
-        Assert.assertEquals("p", target.getPrecision());
-        Assert.assertEquals("s", target.getScale());
+        assertEquals("numeric", target.getDatatype());
+        assertEquals("p", target.getPrecision());
+        assertEquals("s", target.getScale());
 
         datatype = "tinyblob";
         precision = 255;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("bit varying", target.getDatatype());
-        Assert.assertEquals("2040", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("bit varying", target.getDatatype());
+        assertEquals("2040", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "blob";
         precision = 65535;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("blob", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("blob", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "mediumblob";
         precision = 16277215;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("blob", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("blob", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "longblob";
         precision = 2147483647;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("blob", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("blob", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "tinytext";
         precision = 255;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("varchar", target.getDatatype());
-        Assert.assertEquals("255", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("varchar", target.getDatatype());
+        assertEquals("255", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "text";
         precision = 65535;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("varchar", target.getDatatype());
-        Assert.assertEquals("65535", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("varchar", target.getDatatype());
+        assertEquals("65535", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "mediumtext";
         precision = 16277215;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("varchar", target.getDatatype());
-        Assert.assertEquals("16277215", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("varchar", target.getDatatype());
+        assertEquals("16277215", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "longtext";
         precision = 2147483647;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("varchar", target.getDatatype());
-        Assert.assertEquals("1073741823", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("varchar", target.getDatatype());
+        assertEquals("1073741823", target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "enum";
         precision = 2;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("enum", target.getDatatype());
-        Assert.assertEquals(null, target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("enum", target.getDatatype());
+        assertEquals(null, target.getPrecision());
+        assertEquals(null, target.getScale());
 
         datatype = "set";
         precision = 2;
         scale = 0;
         target = dataTypeMappingHelper.getTargetFromPreference(datatype, precision, scale);
-        Assert.assertEquals("set(varchar)", target.getDatatype());
-        Assert.assertEquals("255", target.getPrecision());
-        Assert.assertEquals(null, target.getScale());
+        assertEquals("set(varchar)", target.getDatatype());
+        assertEquals("255", target.getPrecision());
+        assertEquals(null, target.getScale());
     }
 
     //	/**
@@ -436,18 +439,18 @@ public class DataTypeMappingTest {
                         .getDataTypeMappingHelper();
         for (MapItem mi : dataTypeMappingHelper.getPreferenceConfigMap().values()) {
             MapItem mc = mi.clone();
-            Assert.assertEquals(mc.getSource().getDatatype(), mi.getSource().getDatatype());
+            assertEquals(mc.getSource().getDatatype(), mi.getSource().getDatatype());
         }
 
         MapItem mi = new MapItem(dataTypeMappingHelper);
-        Assert.assertNull(mi.getFirstTarget());
+        assertNull(mi.getFirstTarget());
         List<MapObject> targetItems = new ArrayList<MapObject>();
         targetItems.add(new MapObject());
         mi.setAvailableTargetList(targetItems);
-        Assert.assertNotNull(mi.getFirstTarget());
+        assertNotNull(mi.getFirstTarget());
 
         mi.setSource(new MapObject());
         mi.setTarget(new MapObject());
-        Assert.assertNotNull(mi.clone());
+        assertNotNull(mi.clone());
     }
 }

@@ -30,7 +30,7 @@
  */
 package com.cubrid.cubridmigration.core.common;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SSHUtilsTest {
 
@@ -58,7 +58,7 @@ public class SSHUtilsTest {
         	SSHUtils.scpTo(session, lfile, rfile);
         	PathUtils.deleteFile(file);
         	SSHUtils.scpFrom(session, rfile, lfile);
-        	Assert.assertTrue(file.exists());
+        	assertTrue(file.exists());
         } finally {
         	PathUtils.deleteFile(file);
         }*/
