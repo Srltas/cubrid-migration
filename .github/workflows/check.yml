@@ -102,4 +102,4 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
-      - run: mvn package -Pdesktop
+      - run: mvn build -Pdesktop
