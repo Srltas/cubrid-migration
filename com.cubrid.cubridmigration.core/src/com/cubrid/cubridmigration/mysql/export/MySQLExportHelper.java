@@ -34,6 +34,7 @@ import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.PK;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
+import com.cubrid.cubridmigration.core.engine.config.SourceEntryTableConfig;
 import com.cubrid.cubridmigration.core.export.DBExportHelper;
 import com.cubrid.cubridmigration.core.export.IExportDataHandler;
 import com.cubrid.cubridmigration.core.export.handler.DateTypeHandler;
@@ -45,8 +46,11 @@ import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -192,6 +196,20 @@ public class MySQLExportHelper extends DBExportHelper {
     //
     //		return buf.toString();
     //	}
+    
+    /**
+     * to return SELECT SQL
+     *
+     * @param setc SourceEntryTableConfig
+     * @return String
+     */
+    public String getSelectCountSQL(final SourceEntryTableConfig setc) {
+        StringBuffer buf = new StringBuffer(256);
+        buf.append("SELECT table_rows")
+        .append(" FROM information_schema.tables")
+        .append(" WHERE table_name=").append("\'").append(setc.getName()).append("\'").append(";");
+        return buf.toString();
+    }
 
     /**
      * Retrieves the SQL with page condition
