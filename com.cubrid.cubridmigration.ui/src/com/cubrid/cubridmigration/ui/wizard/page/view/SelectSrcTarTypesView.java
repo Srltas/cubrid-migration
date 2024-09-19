@@ -95,6 +95,7 @@ public class SelectSrcTarTypesView {
                 createSrcTarTypeBtn(
                         grpSrc, Messages.btnSrcOnlineCUBRIDDB, Messages.btnSrcOnlineCUBRIDDBDes);
         btnOnlineCUBRIDSrc.setData(MigrationConfiguration.SOURCE_TYPE_CUBRID);
+        btnOnlineCUBRIDSrc.setEnabled(false);
         srcButtons.add(btnOnlineCUBRIDSrc);
 
         btnOnlineMYSQLSrc =
@@ -107,27 +108,30 @@ public class SelectSrcTarTypesView {
                 createSrcTarTypeBtn(
                         grpSrc, Messages.btnSrcOnlineOracleDB, Messages.btnSrcOnlineOracleDBDes);
         btnOnlineOracleSrc.setData(MigrationConfiguration.SOURCE_TYPE_ORACLE);
+        btnOnlineOracleSrc.setEnabled(false);
         srcButtons.add(btnOnlineOracleSrc);
 
         btnOnlineMSSQLSrc =
                 createSrcTarTypeBtn(
                         grpSrc, Messages.btnSrcOnlineMSSQLDB, Messages.btnSrcOnlineMSSQLDBDes);
         btnOnlineMSSQLSrc.setData(MigrationConfiguration.SOURCE_TYPE_MSSQL);
+        btnOnlineMSSQLSrc.setEnabled(false);
         srcButtons.add(btnOnlineMSSQLSrc);
 
-        /*add new button for mariadb*/
         btnOnlineMariaDBSrc =
                 createSrcTarTypeBtn(
                         grpSrc, Messages.btnSrcOnlineMariaDBDB, Messages.btnSrcOnlineMariaDBDBDes);
         btnOnlineMariaDBSrc.setData(MigrationConfiguration.SOURCE_TYPE_MARIADB);
+        btnOnlineMariaDBSrc.setEnabled(false);
         srcButtons.add(btnOnlineMariaDBSrc);
-        /*add new button for informix*/
+        
         btnOnlineInformixSrc =
                 createSrcTarTypeBtn(
                         grpSrc,
                         Messages.btnSrcOnlineInformixDB,
                         Messages.btnSrcOnlineInformixDBDes);
         btnOnlineInformixSrc.setData(MigrationConfiguration.SOURCE_TYPE_INFORMIX);
+        btnOnlineInformixSrc.setEnabled(false);
         srcButtons.add(btnOnlineInformixSrc);
 
         Label comSep = new Label(grpSrc, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -141,6 +145,7 @@ public class SelectSrcTarTypesView {
                 createSrcTarTypeBtn(
                         grpSrc, Messages.btnSrcMySQLDumpDB, Messages.btnSrcMySQLDumpDBDes);
         btnDumpSrc.setData(MigrationConfiguration.SOURCE_TYPE_XML_1);
+        btnDumpSrc.setEnabled(false);
         srcButtons.add(btnDumpSrc);
 
         Group grpTar = new Group(sectionClient, SWT.NONE);
@@ -176,16 +181,19 @@ public class SelectSrcTarTypesView {
         btnSQLTar =
                 createSrcTarTypeBtn(grpTar, Messages.btnDestSQLFiles, Messages.btnDestSQLFilesDes);
         btnSQLTar.setData(MigrationConfiguration.DEST_SQL);
+        btnSQLTar.setEnabled(false);
         tarButtons.add(btnSQLTar);
 
         btnCSVTar =
                 createSrcTarTypeBtn(grpTar, Messages.btnDestCSVFiles, Messages.btnDestCSVFilesDes);
         btnCSVTar.setData(MigrationConfiguration.DEST_CSV);
+        btnCSVTar.setEnabled(false);
         tarButtons.add(btnCSVTar);
 
         btnXLSTar =
                 createSrcTarTypeBtn(grpTar, Messages.btnDestXLSFiles, Messages.btnDestXLSFilesDes);
         btnXLSTar.setData(MigrationConfiguration.DEST_XLS);
+        btnXLSTar.setEnabled(false);
         tarButtons.add(btnXLSTar);
 
         readDefaultTypes();
