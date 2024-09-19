@@ -466,6 +466,7 @@ public abstract class AbstractJDBCSchemaFetcher implements IDependOnDatabaseType
                     // set column default value
                     column.setDefaultValue(rs.getString("COLUMN_DEF"));
                     column.setAutoIncrement(isYes(rs.getString("IS_AUTOINCREMENT")));
+                    column.setComment(commentEditor(rs.getString("REMARKS")));
 
                     table.addColumn(column);
                 } catch (Exception ex) {
@@ -759,36 +760,9 @@ public abstract class AbstractJDBCSchemaFetcher implements IDependOnDatabaseType
         if (LOG.isDebugEnabled()) {
             LOG.debug("[IN]buildTables()");
         }
-        List<String> tableNameList = getAllTableNames(conn, catalog, schema);
-        for (String tableName : tableNameList) {
-            Table table = null;
+        List<Table> tableList = getAllTables(conn, filter, catalog, schema);
+        for (Table table : tableList) {
             try {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("[VAR]tableName=" + tableName);
-                }
-                // If names format like xxx.xxx means schema name prefixed
-                String tableOwnerName = null;
-                String tablePureName = null;
-                if (tableName != null && tableName.indexOf(".") != -1) {
-                    String[] arr = tableName.split("\\.");
-                    tableOwnerName = arr[0];
-                    tablePureName = arr[1];
-                } else {
-                    tableOwnerName = null;
-                    tablePureName = tableName;
-                }
-                if (filter != null && filter.filter(schema.getName(), tablePureName)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("[VAR]tableName=" + tableName + ", skipped object");
-                    }
-                    continue;
-                }
-                table = factory.createTable();
-                table.setOwner(tableOwnerName);
-                table.setName(tablePureName);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("[VAR]tableName=" + table.getName() + ", owner=" + table.getOwner());
-                }
                 table.setSchema(schema);
 
                 buildTableColumns(conn, catalog, schema, table);
@@ -878,6 +852,7 @@ public abstract class AbstractJDBCSchemaFetcher implements IDependOnDatabaseType
                 //				LOG.debug("Column Name:" + column.getName() + "  Column Type "
                 //						+ column.getDataType() + "  Column Length:"
                 //						+ column.getByteLength());
+                column.setComment(commentEditor(rs.getString("REMARKS")));
             }
         } finally {
             Closer.close(rs);
@@ -902,28 +877,8 @@ public abstract class AbstractJDBCSchemaFetcher implements IDependOnDatabaseType
         if (LOG.isDebugEnabled()) {
             LOG.debug("[IN]buildViews()");
         }
-        List<String> viewNameList = getAllViewNames(conn, catalog, schema);
-        for (String viewName : viewNameList) {
-            String viewOwnerName = null;
-            String viewPureName = null;
-            if (viewName != null && viewName.indexOf(".") != -1) {
-                String[] arr = viewName.split("\\.");
-                viewOwnerName = arr[0];
-                viewPureName = arr[1];
-            } else {
-                viewOwnerName = null;
-                viewPureName = viewName;
-            }
-            if (filter != null && filter.filter(schema.getName(), viewPureName)) {
-                continue;
-            }
-            if (!isViewNameAccepted(viewName)) {
-                continue;
-            }
-
-            final View view = factory.createView();
-            view.setOwner(viewOwnerName);
-            view.setName(viewPureName);
+        List<View> viewList = getAllView(conn, filter, catalog, schema);
+        for (View view : viewList) {
             view.setSchema(schema);
             schema.addView(view);
             buildViewColumns(conn, catalog, schema, view);
@@ -962,6 +917,48 @@ public abstract class AbstractJDBCSchemaFetcher implements IDependOnDatabaseType
             Closer.close(rs);
         }
     }
+    
+    protected List<Table> getAllTables(
+    		final Connection conn,  IBuildSchemaFilter filter, final Catalog catalog, final Schema schema) throws SQLException {
+    	if (LOG.isDebugEnabled()) {
+            LOG.debug("[IN]getAllTables()");
+        }
+    	ResultSet rs = null;
+    	List<Table> tableList = new ArrayList<>();
+    	try {
+    		rs = conn.getMetaData().getTables(getCatalogName(catalog), getSchemaName(schema), null, new String[] {"TABLE"});
+    		
+    		while (rs.next()) {
+    			String tableName = rs.getString("TABLE_NAME");
+    			// If names format like xxx.xxx means schema name prefixed
+                String tableOwnerName = null;
+                String tablePureName = null;
+                if (tableName != null && tableName.indexOf(".") != -1) {
+                    String[] arr = tableName.split("\\.");
+                    tableOwnerName = arr[0];
+                    tablePureName = arr[1];
+                } else {
+                    tableOwnerName = null;
+                    tablePureName = tableName;
+                }
+                if (filter != null && filter.filter(schema.getName(), tablePureName)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("[VAR]tableName=" + tableName + ", skipped object");
+                    }
+                    continue;
+                }
+                Table table = factory.createTable();
+                table.setOwner(tableOwnerName);
+                table.setName(tablePureName);
+                table.setComment(commentEditor(rs.getString("REMARKS")));
+                
+                tableList.add(table);
+    		}
+    		return tableList; 
+    	} finally {
+    		Closer.close(rs);
+    	}
+    }
 
     /**
      * Return a list of view name. for different database, this method may be needed to override
@@ -995,6 +992,51 @@ public abstract class AbstractJDBCSchemaFetcher implements IDependOnDatabaseType
             return viewNameList;
         } finally {
             Closer.close(rs);
+        }
+    }
+    
+    protected List<View> getAllView(final Connection conn, IBuildSchemaFilter filter, final Catalog catalog, final Schema schema) throws SQLException {
+    	if (LOG.isDebugEnabled()) {
+            LOG.debug("[IN]getAllViewNames()");
+        }
+        ResultSet rs = null; // NOPMD
+        List<View> viewList = new ArrayList<>();
+        
+        try {
+        	String schemaName = getSchemaName(schema);
+        	rs = conn.getMetaData().getTables(getCatalogName(catalog), schemaName, null, new String[] {"VIEW"});
+        	
+        	while (rs.next()) {
+        		String prefix = StringUtils.isBlank(schemaName) ? "" : schemaName + ".";
+        		String viewName = prefix + rs.getString("TABLE_NAME");
+            	
+            	String viewOwnerName = null;
+                String viewPureName = null;
+                if (viewName != null && viewName.indexOf(".") != -1) {
+                    String[] arr = viewName.split("\\.");
+                    viewOwnerName = arr[0];
+                    viewPureName = arr[1];
+                } else {
+                    viewOwnerName = null;
+                    viewPureName = viewName;
+                }
+                if (filter != null && filter.filter(schema.getName(), viewPureName)) {
+                    continue;
+                }
+                if (!isViewNameAccepted(viewName)) {
+                    continue;
+                }
+
+                final View view = factory.createView();
+                view.setOwner(viewOwnerName);
+                view.setName(viewPureName);
+                view.setComment(commentEditor(rs.getString("REMARKS")));
+                
+                viewList.add(view);
+        	}
+        	return viewList;
+        } finally {
+        	Closer.close(rs);
         }
     }
 
