@@ -119,12 +119,19 @@ public class SchemaMappingPage extends MigrationWizardPage {
     Map<String, String> fkFullName;
     Map<String, String> dataFullName;
     Map<String, String> indexFullName;
+    Map<String, String> uniqueIndexFullName;
     Map<String, String> serialFullName;
     Map<String, String> updateStatisticFullName;
     Map<String, String> schemaFileListFullName;
     Map<String, String> synonymFileListFullName;
     Map<String, Map<String, String>> grantFileListFullName;
     Map<String, List<String>> tableDataFileListFullName;
+    Map<String, String> plcsqlProcedureHeaderFullName;
+    Map<String, String> plcsqlFunctionHeaderFullName;
+    Map<String, String> plcsqlProcedureFullName;
+    Map<String, String> plcsqlFunctionFullName;
+    Map<String, Map<String, String>> plcsqlProcedureFileListFullName;
+    Map<String, Map<String, String>> plcsqlFunctionFileListFullName;
 
     protected class SrcTable {
         private boolean isSelected;
@@ -765,12 +772,19 @@ public class SchemaMappingPage extends MigrationWizardPage {
         fkFullName = new HashMap<String, String>();
         dataFullName = new HashMap<String, String>();
         indexFullName = new HashMap<String, String>();
+        uniqueIndexFullName = new HashMap<String, String>();
         serialFullName = new HashMap<String, String>();
         updateStatisticFullName = new HashMap<String, String>();
         schemaFileListFullName = new HashMap<String, String>();
         synonymFileListFullName = new HashMap<String, String>();
         grantFileListFullName = new HashMap<String, Map<String, String>>();
         tableDataFileListFullName = new HashMap<String, List<String>>();
+        plcsqlProcedureFullName = new HashMap<>();
+        plcsqlFunctionFullName = new HashMap<>();
+        plcsqlProcedureHeaderFullName = new HashMap<>();
+        plcsqlFunctionHeaderFullName = new HashMap<>();
+        plcsqlProcedureFileListFullName = new HashMap<>();
+        plcsqlFunctionFileListFullName = new HashMap<>();
 
         for (SrcTable srcTable : srcTableList) {
             String targetSchemaName = srcTable.getTarSchema();
@@ -809,6 +823,8 @@ public class SchemaMappingPage extends MigrationWizardPage {
                         config.buildLocalFileFullPath(schemaName, "vclass_query_spec", null));
                 pkFullName.put(schemaName, config.buildLocalFileFullPath(schemaName, "pk", null));
                 fkFullName.put(schemaName, config.buildLocalFileFullPath(schemaName, "fk", null));
+                uniqueIndexFullName.put(
+                        schemaName, config.buildLocalFileFullPath(schemaName, "uk", null));
                 serialFullName.put(
                         schemaName, config.buildLocalFileFullPath(schemaName, "serial", null));
                 schemaFileListFullName.put(
@@ -829,6 +845,39 @@ public class SchemaMappingPage extends MigrationWizardPage {
                                         schemaName, "grant", grant.getSourceObjectOwner()));
                     }
                 }
+
+                plcsqlProcedureHeaderFullName.put(
+                        schemaName,
+                        config.buildLocalFileFullPath(schemaName, "procedure_header", null));
+                plcsqlFunctionHeaderFullName.put(
+                        schemaName,
+                        config.buildLocalFileFullPath(schemaName, "function_header", null));
+
+                plcsqlProcedureFullName.put(
+                        schemaName, config.buildLocalFileFullPath(schemaName, "procedure", null));
+                plcsqlFunctionFullName.put(
+                        schemaName, config.buildLocalFileFullPath(schemaName, "function", null));
+
+                Map<String, String> procedureFiles = new HashMap<>();
+                schema.getPlcsqlProcedures()
+                        .forEach(
+                                proc ->
+                                        procedureFiles.put(
+                                                proc.getName(),
+                                                config.buildPlcsqlProcedureFileFullPath(
+                                                        schemaName, proc.getName(), "procedure")));
+                plcsqlProcedureFileListFullName.put(schemaName, procedureFiles);
+
+                Map<String, String> functionFiles = new HashMap<>();
+                schema.getPlcsqlFunctions()
+                        .forEach(
+                                func ->
+                                        functionFiles.put(
+                                                func.getName(),
+                                                config.buildPlcsqlProcedureFileFullPath(
+                                                        schemaName, func.getName(), "function")));
+                plcsqlFunctionFileListFullName.put(schemaName, functionFiles);
+
             } else {
                 schemaFullName.put(
                         schemaName, config.buildLocalFileFullPath(schemaName, "schema", null));
@@ -866,12 +915,19 @@ public class SchemaMappingPage extends MigrationWizardPage {
         config.setTargetIndexFileName(indexFullName);
         config.setTargetPkFileName(pkFullName);
         config.setTargetFkFileName(fkFullName);
+        config.setTargetUniqueIndexFileName(uniqueIndexFullName);
         config.setTargetSerialFileName(serialFullName);
         config.setTargetUpdateStatisticFileName(updateStatisticFullName);
         config.setTargetSchemaFileListName(schemaFileListFullName);
         config.setTargetSynonymFileName(synonymFileListFullName);
         config.setTargetGrantFileName(grantFileListFullName);
         config.setTargetTableDataFileName(tableDataFileListFullName);
+        config.setTargetAllPlcsqlProcedureHeaderFileName(plcsqlProcedureHeaderFullName);
+        config.setTargetAllPlcsqlFunctionHeaderFileName(plcsqlFunctionHeaderFullName);
+        config.setTargetAllPlcsqlProcedureFileName(plcsqlProcedureFullName);
+        config.setTargetAllPlcsqlFunctionFileName(plcsqlFunctionFullName);
+        config.setTargetPlcsqlProcedureFileName(plcsqlProcedureFileListFullName);
+        config.setTargetPlcsqlFunctionFileName(plcsqlFunctionFileListFullName);
 
         wizard.setSourceCatalog(srcCatalog);
         getMigrationWizard().setSourceDBNode(srcCatalog);
@@ -920,6 +976,7 @@ public class SchemaMappingPage extends MigrationWizardPage {
                 File viewQuerySpecFile = new File(viewQuerySpecFullName.get(schemaName));
                 File pkFile = new File(pkFullName.get(schemaName));
                 File fkFile = new File(fkFullName.get(schemaName));
+                File uniqueIndexFile = new File(uniqueIndexFullName.get(schemaName));
                 File serialFile = new File(serialFullName.get(schemaName));
                 File infoFile = new File(schemaFileListFullName.get(schemaName));
                 File synonymFile = new File(synonymFileListFullName.get(schemaName));
@@ -943,6 +1000,9 @@ public class SchemaMappingPage extends MigrationWizardPage {
                 }
                 if (fkFile.exists()) {
                     buffer.append(fkFile.getCanonicalPath()).append(lineSeparator);
+                }
+                if (uniqueIndexFile.exists()) {
+                    buffer.append(uniqueIndexFile.getCanonicalPath()).append(lineSeparator);
                 }
                 if (serialFile.exists()) {
                     buffer.append(serialFile.getCanonicalPath()).append(lineSeparator);

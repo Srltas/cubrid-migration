@@ -41,6 +41,8 @@ import com.cubrid.cubridmigration.core.engine.config.SourceEntryTableConfig;
 import com.cubrid.cubridmigration.core.engine.config.SourceFKConfig;
 import com.cubrid.cubridmigration.core.engine.config.SourceGrantConfig;
 import com.cubrid.cubridmigration.core.engine.config.SourceIndexConfig;
+import com.cubrid.cubridmigration.core.engine.config.SourcePlcsqlFunctionConfig;
+import com.cubrid.cubridmigration.core.engine.config.SourcePlcsqlProcedureConfig;
 import com.cubrid.cubridmigration.core.engine.config.SourceSQLTableConfig;
 import com.cubrid.cubridmigration.core.engine.config.SourceSequenceConfig;
 import com.cubrid.cubridmigration.core.engine.config.SourceSynonymConfig;
@@ -315,7 +317,7 @@ public class ConfirmationPage extends BaseConfirmationPage {
 
                 Set<String> expPKs = new HashSet<>();
                 for (SourceEntryTableConfig expTable : migration.getExpEntryTableCfg()) {
-                    if (!expTable.isCreatePK()) {
+                    if (!expTable.isCreateNewTable() || !expTable.isHasPK()) {
                         continue;
                     }
 
@@ -490,6 +492,127 @@ public class ConfirmationPage extends BaseConfirmationPage {
                     text.append(lineSeparator);
                 }
 
+                // procedure
+                text.append(tabSeparator).append(Messages.confrimProcedure).append(lineSeparator);
+                oldLength = text.length();
+                Set<String> expProcedures = new HashSet<>();
+                for (SourcePlcsqlProcedureConfig expProcedure :
+                        migration.getExpPlcsqlProcedureCfg()) {
+                    if (!expProcedure.isCreate()) {
+                        continue;
+                    }
+
+                    String owner = isSupportMultiSchema ? expProcedure.getOwner() : conUser;
+                    if (expProcedures.contains(owner)) {
+                        continue;
+                    }
+
+                    expProcedures.add(owner);
+                    text.append(tabSeparator).append(tabSeparator);
+                    String procedureFile =
+                            migration.getTargetPlcsqlProcedureFileName(owner).values().stream()
+                                    .findAny()
+                                    .orElse("");
+                    int lastSlashIndex = procedureFile.lastIndexOf(File.separator);
+                    if (lastSlashIndex != -1) {
+                        procedureFile = procedureFile.substring(0, lastSlashIndex + 1);
+                    }
+                    text.append(procedureFile);
+                    text.append(lineSeparator);
+                }
+                if (styleRanges != null) {
+                    styleRanges.add(
+                            new StyleRange(
+                                    oldLength,
+                                    text.length() - oldLength,
+                                    SWTResourceConstents.COLOR_BLUE,
+                                    null));
+                }
+                if (text.length() == oldLength) {
+                    text.append(tabSeparator).append(tabSeparator);
+                    text.append("-");
+                    text.append(lineSeparator);
+                }
+
+                // function
+                text.append(tabSeparator).append(Messages.confrimFunction).append(lineSeparator);
+                oldLength = text.length();
+                Set<String> expFunctions = new HashSet<>();
+                for (SourcePlcsqlFunctionConfig expFunction : migration.getExpPlcsqlFunctionCfg()) {
+                    if (!expFunction.isCreate()) {
+                        continue;
+                    }
+
+                    String owner = isSupportMultiSchema ? expFunction.getOwner() : conUser;
+                    if (expFunctions.contains(owner)) {
+                        continue;
+                    }
+
+                    expFunctions.add(owner);
+                    text.append(tabSeparator).append(tabSeparator);
+                    String functionFile =
+                            migration.getTargetPlcsqlFunctionFileName(owner).values().stream()
+                                    .findAny()
+                                    .orElse("");
+                    int lastSlashIndex = functionFile.lastIndexOf(File.separator);
+                    if (lastSlashIndex != -1) {
+                        functionFile = functionFile.substring(0, lastSlashIndex + 1);
+                    }
+                    text.append(functionFile);
+                    text.append(lineSeparator);
+                }
+                if (styleRanges != null) {
+                    styleRanges.add(
+                            new StyleRange(
+                                    oldLength,
+                                    text.length() - oldLength,
+                                    SWTResourceConstents.COLOR_BLUE,
+                                    null));
+                }
+                if (text.length() == oldLength) {
+                    text.append(tabSeparator).append(tabSeparator);
+                    text.append("-");
+                    text.append(lineSeparator);
+                }
+
+                // unique index
+                text.append(tabSeparator).append(Messages.confrimUniqueIndex).append(lineSeparator);
+                oldLength = text.length();
+                Set<String> expUniqueIndex = new HashSet<>();
+                for (SourceEntryTableConfig expTable : migration.getExpEntryTableCfg()) {
+                    if (!expTable.isCreateNewTable() || expTable.getIndexConfigList().size() == 0) {
+                        continue;
+                    }
+
+                    String owner = isSupportMultiSchema ? expTable.getOwner() : conUser;
+                    if (expUniqueIndex.contains(owner)) {
+                        continue;
+                    }
+
+                    for (SourceIndexConfig sic : expTable.getIndexConfigList()) {
+                        if (sic.isUnique()) {
+                            expUniqueIndex.add(owner);
+                            text.append(tabSeparator).append(tabSeparator);
+                            text.append(migration.getTargetUniqueIndexFileName(owner));
+                            text.append(lineSeparator);
+                            break;
+                        }
+                    }
+                }
+                if (styleRanges != null) {
+                    styleRanges.add(
+                            new StyleRange(
+                                    oldLength,
+                                    text.length() - oldLength,
+                                    SWTResourceConstents.COLOR_BLUE,
+                                    null));
+                }
+                if (text.length() == oldLength) {
+                    text.append(tabSeparator).append(tabSeparator);
+                    text.append("-");
+                    text.append(lineSeparator);
+                }
+
                 // index
                 text.append(tabSeparator).append(Messages.confrimIndex).append(lineSeparator);
                 oldLength = text.length();
@@ -504,10 +627,15 @@ public class ConfirmationPage extends BaseConfirmationPage {
                         continue;
                     }
 
-                    expIndexes.add(owner);
-                    text.append(tabSeparator).append(tabSeparator);
-                    text.append(migration.getTargetIndexFileName(owner));
-                    text.append(lineSeparator);
+                    for (SourceIndexConfig sic : expTable.getIndexConfigList()) {
+                        if (!sic.isUnique()) {
+                            expIndexes.add(owner);
+                            text.append(tabSeparator).append(tabSeparator);
+                            text.append(migration.getTargetIndexFileName(owner));
+                            text.append(lineSeparator);
+                            break;
+                        }
+                    }
                 }
                 if (styleRanges != null) {
                     styleRanges.add(

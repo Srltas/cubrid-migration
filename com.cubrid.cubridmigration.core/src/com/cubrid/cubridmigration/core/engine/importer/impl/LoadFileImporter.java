@@ -117,10 +117,13 @@ public class LoadFileImporter extends OfflineImporter {
     private final Map<String, String> pkFiles = new HashMap<String, String>();
     private final Map<String, String> fkFiles = new HashMap<String, String>();
     private final Map<String, String> indexFiles = new HashMap<String, String>();
+    private final Map<String, String> uniqueIndexFiles = new HashMap<String, String>();
     private final Map<String, String> sequenceFiles = new HashMap<String, String>();
     private final Map<String, String> synonymFiles = new HashMap<String, String>();
     private final Map<String, Map<String, String>> grantFiles =
             new HashMap<String, Map<String, String>>();
+    private final Map<String, String> plcsqlProcedureFiles = new HashMap<>();
+    private final Map<String, String> plcsqlFunctionFiles = new HashMap<>();
 
     private final Object lockObj = new Object();
 
@@ -337,6 +340,19 @@ public class LoadFileImporter extends OfflineImporter {
     }
 
     /**
+     * Send Unique Index file to server loadDB command.
+     *
+     * @param owner
+     * @return unique index file full path
+     */
+    protected String handleUniqueIndexFile(String owner) {
+        if (!uniqueIndexFiles.containsKey(owner)) {
+            uniqueIndexFiles.put(owner, config.getTargetUniqueIndexFileName(owner));
+        }
+        return uniqueIndexFiles.get(owner);
+    }
+
+    /**
      * Send Sequence file to server loadDB command.
      *
      * @param owner
@@ -376,6 +392,30 @@ public class LoadFileImporter extends OfflineImporter {
     }
 
     /**
+     * Send plcsql Procedure file to server loadDB command.
+     *
+     * @param owner
+     * @return procedure file full path
+     */
+    protected String handlePlcsqlProcedureFile(String owner, String objectName) {
+        return plcsqlProcedureFiles.computeIfAbsent(
+                owner + objectName,
+                key -> config.getTargetPlcsqlProcedureFileName(owner).get(objectName));
+    }
+
+    /**
+     * Send plcsql Function file to server loadDB command.
+     *
+     * @param owner
+     * @return function file full path
+     */
+    protected String handlePlcsqlFunctionFile(String owner, String objectName) {
+        return plcsqlFunctionFiles.computeIfAbsent(
+                owner + objectName,
+                key -> config.getTargetPlcsqlFunctionFileName(owner).get(objectName));
+    }
+
+    /**
      * Send schema file and data file to server for loadDB command.
      *
      * @param fileName the file to be sent.
@@ -404,16 +444,18 @@ public class LoadFileImporter extends OfflineImporter {
             RunnableResultHandler listener,
             String objectType,
             String owner,
-            String sourceObjectOwner) {
+            String sourceObjectOwner,
+            String objectName) {
         executeTask(
                 fileName,
-                getFilePath(objectType, owner, sourceObjectOwner),
+                getFilePath(objectType, owner, sourceObjectOwner, objectName),
                 listener,
                 config.isDeleteTempFile(),
                 true);
     }
 
-    private String getFilePath(String objectType, String owner, String sourceObjectOwner) {
+    private String getFilePath(
+            String objectType, String owner, String sourceObjectOwner, String objectName) {
         if (config.isSplitSchema()) {
             if (objectType.equals(DBObject.OBJ_TYPE_TABLE)) {
                 return handleTableSchemaFile(owner);
@@ -427,12 +469,18 @@ public class LoadFileImporter extends OfflineImporter {
                 return handleFkFile(owner);
             } else if (objectType.equals(DBObject.OBJ_TYPE_INDEX)) {
                 return handleIndexFile(owner);
+            } else if (objectType.equals(DBObject.OBJ_TYPE_UNIQUE_INDEX)) {
+                return handleUniqueIndexFile(owner);
             } else if (objectType.equals(DBObject.OBJ_TYPE_SEQUENCE)) {
                 return handleSequenceFile(owner);
             } else if (objectType.equals(DBObject.OBJ_TYPE_SYNONYM)) {
                 return handleSynonymFile(owner);
             } else if (objectType.equals(DBObject.OBJ_TYPE_GRANT)) {
                 return handleGrantFile(owner, sourceObjectOwner);
+            } else if (objectType.equals(DBObject.OBJ_TYPE_PLCSQL_PROCEDURE)) {
+                return handlePlcsqlProcedureFile(owner, objectName);
+            } else if (objectType.equals(DBObject.OBJ_TYPE_PLCSQL_FUNCTION)) {
+                return handlePlcsqlFunctionFile(owner, objectName);
             }
         } else {
             if (objectType.equals(DBObject.OBJ_TYPE_TABLE)
@@ -440,7 +488,9 @@ public class LoadFileImporter extends OfflineImporter {
                     || objectType.equals(DBObject.OBJ_TYPE_VIEW_QUERY_SPEC)
                     || objectType.equals(DBObject.OBJ_TYPE_SEQUENCE)
                     || objectType.equals(DBObject.OBJ_TYPE_SYNONYM)
-                    || objectType.equals(DBObject.OBJ_TYPE_GRANT)) {
+                    || objectType.equals(DBObject.OBJ_TYPE_GRANT)
+                    || objectType.equals(DBObject.OBJ_TYPE_PLCSQL_PROCEDURE)
+                    || objectType.equals(DBObject.OBJ_TYPE_PLCSQL_FUNCTION)) {
                 return handleSchemaFile(owner);
             } else if (objectType.equals(DBObject.OBJ_TYPE_INDEX)
                     || objectType.equals(DBObject.OBJ_TYPE_PK)
