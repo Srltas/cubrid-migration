@@ -24,7 +24,7 @@ on:
 jobs:
   license:
     name: license
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v2
       - uses: jitterbit/get-changed-files@v1
