@@ -1,2 +1,3 @@
 version=11.3.0_branch_test_merge_commit
-develop
+version=11.3.0_branch_test_merge_rebase
+branch_test3
