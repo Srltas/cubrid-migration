@@ -47,11 +47,13 @@ import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.config.SourceEntryTableConfig;
 import com.cubrid.cubridmigration.core.engine.template.MigrationTemplateParser;
+import com.cubrid.cubridmigration.cubrid.CUBRIDTimeUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -193,9 +195,24 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
                 printHelp();
                 return;
             }
-            String outputFileName = getParameter(tmpArgs, "-o");
-            if (StringUtils.isBlank(outputFileName)) {
-                outPrinter.println("Output file should be specified with '-o'.");
+            String outputDirPath = getParameter(tmpArgs, "-o");
+            if (StringUtils.isBlank(outputDirPath)) {
+                outPrinter.println("Output directory should be specified with '-o'.");
+                return;
+            }
+            File outputDir = new File(outputDirPath);
+            if (outputDir.exists() && !outputDir.isDirectory()) {
+                outPrinter.println("'-o' must be a directory path: " + outputDirPath);
+                return;
+            }
+            if (!outputDir.exists() && !outputDir.mkdirs()) {
+                outPrinter.println(
+                        "Failed to create output directory: " + outputDir.getAbsolutePath());
+                return;
+            }
+            if (!outputDir.canWrite()) {
+                outPrinter.println(
+                        "Output directory is not writable: " + outputDir.getAbsolutePath());
                 return;
             }
             loadDBProperties();
@@ -213,8 +230,9 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
             if (config == null) {
                 isNeedReset = true;
                 config = new MigrationConfiguration();
-                File outputFile = new File(outputFileName);
-                config.setName(PathUtils.getFileNameWithoutExtendName(outputFile.getName()));
+                config.setWizardStartDateTime(
+                        CUBRIDTimeUtil.wizardStarDateTimeFormat(
+                                new Date(System.currentTimeMillis())));
             }
             if (!setSource(config, tmpArgs)) {
                 return;
@@ -223,6 +241,10 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
                 return;
             }
             setOtherOptions(config, tmpArgs);
+            config.setName(
+                    config.getSourceDBType().getName(),
+                    config.getSourceConParams().getDbName(),
+                    config.getWizardStartDateTime());
             Catalog srcCat = config.buildSourceSchema();
             if (srcCat == null) {
                 outPrinter.println("Build source schema error.");
@@ -233,11 +255,13 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
                 config.setAll(true);
             }
             configObjectMapping(config);
+            String outputFileName = config.getName() + ".xml";
+            File outputFile = new File(outputDir, outputFileName);
             MigrationTemplateParser.save(
                     config,
-                    outputFileName,
+                    outputFile.getAbsolutePath(),
                     "yes".equalsIgnoreCase(getParameter(tmpArgs, "-schema")));
-            outPrinter.println(outputFileName + " was created successfully.");
+            outPrinter.println(outputFile.getAbsolutePath() + " was created successfully.");
         } catch (Exception ex) {
             outPrinter.println("Unexpected error. Please check the log for more information.");
             LOG.error("Unexpected error while processing CLI arguments: {}.", args, ex);
