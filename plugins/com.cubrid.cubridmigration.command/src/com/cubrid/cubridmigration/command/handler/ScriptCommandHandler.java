@@ -35,6 +35,8 @@ import com.cubrid.cubridmigration.command.ConsoleCommandHandler;
 import com.cubrid.cubridmigration.command.ConsoleUtils;
 import com.cubrid.cubridmigration.core.common.PathUtils;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
+import com.cubrid.cubridmigration.core.connection.JDBCDriverManager;
+import com.cubrid.cubridmigration.core.connection.JDBCUtil;
 import com.cubrid.cubridmigration.core.dbmetadata.DBSchemaInfoFetcherFactory;
 import com.cubrid.cubridmigration.core.dbmetadata.IDBSchemaInfoFetcher;
 import com.cubrid.cubridmigration.core.dbmetadata.IDBSource;
@@ -197,6 +199,15 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
                 return;
             }
             loadDBProperties();
+            try {
+                JDBCUtil.initialJdbcByPath(PathUtils.getJDBCLibDir());
+            } catch (Exception ex) {
+                LOG.warn(
+                        "Skip default JDBC init ({}): {}",
+                        PathUtils.getJDBCLibDir(),
+                        ex.getMessage());
+                LOG.debug("Default JDBC init failed", ex);
+            }
             boolean isNeedReset = false;
             MigrationConfiguration config = getInitConfig(tmpArgs);
             if (config == null) {
@@ -338,6 +349,10 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
                 outPrinter.println("Read JDBC configuration error:" + svalue);
                 return false;
             }
+            if (!checkJDBCDriver(scp.getDatabaseType(), scp.getDriverFileName())) {
+                outPrinter.println("Invalid driver : " + scp.getDriverFileName());
+                return false;
+            }
             try {
                 Connection con = scp.createConnection();
                 con.close();
@@ -400,6 +415,10 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
                 outPrinter.println("Read JDBC configuration error:" + tvalue);
                 return false;
             }
+            if (!checkJDBCDriver(tcp.getDatabaseType(), tcp.getDriverFileName())) {
+                outPrinter.println("Invalid driver : " + tcp.getDriverFileName());
+                return false;
+            }
             try {
                 Connection con = tcp.createConnection();
                 con.close();
@@ -415,6 +434,21 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
             String charset = dbProperties.getProperty(tvalue + ".charset");
             config.setExp2FileOuput(prefix, ouputDir, charset);
             config.setTargetFileTimeZone("Default");
+        }
+        return true;
+    }
+
+    /**
+     * Check and add JDBC driver if necessary.
+     *
+     * @param dt DatabaseType
+     * @param driverPath driverPath
+     * @return true if driver exists or added successfully
+     */
+    private boolean checkJDBCDriver(DatabaseType dt, String driverPath) {
+        if (dt.getJDBCData(driverPath) == null
+                && !JDBCDriverManager.getInstance().addDriver(driverPath, false)) {
+            return false;
         }
         return true;
     }
