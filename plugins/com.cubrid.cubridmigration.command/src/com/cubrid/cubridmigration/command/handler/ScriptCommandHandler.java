@@ -453,11 +453,21 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
             }
             config.setTargetConParams(tcp);
         } else if (config.targetIsFile()) {
-            String ouputDir = dbProperties.getProperty(tvalue + ".output");
-            String prefix = dbProperties.getProperty(tvalue + ".prefix");
-            String charset = dbProperties.getProperty(tvalue + ".charset");
-            config.setExp2FileOuput(prefix, ouputDir, charset);
+            String prefix = dbProperties.getProperty(tvalue + ".file_prefix");
+            config.setTargetFilePrefix(
+                    prefix == null ? config.getSourceConParams().getDbName() : prefix);
+            config.setFileRepositroyPath(dbProperties.getProperty(tvalue + ".output"));
+            config.setTargetCharSet(dbProperties.getProperty(tvalue + ".charset"));
             config.setTargetFileTimeZone("Default");
+
+            String splitSchema = dbProperties.getProperty(tvalue + ".split_schema");
+            config.setSplitSchema(isDefaultYes(splitSchema));
+
+            String addSchema = dbProperties.getProperty(tvalue + ".add_schema");
+            config.setAddUserSchema(isDefaultYes(addSchema));
+
+            String oneTableOneFile = dbProperties.getProperty(tvalue + ".one_table_one_file");
+            config.setOneTableOneFile(isDefaultNo(oneTableOneFile));
         }
         return true;
     }
@@ -475,6 +485,32 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Return true if the value is null or not "no".
+     *
+     * @param value the text to check
+     * @return true if default is "yes"
+     */
+    private boolean isDefaultYes(String value) {
+        if (value == null) {
+            return true;
+        }
+        return !value.equalsIgnoreCase("no");
+    }
+
+    /**
+     * Return true if the value is "yes". Return false is null or anything else.
+     *
+     * @param value the text to check
+     * @return true if default is "no"
+     */
+    private boolean isDefaultNo(String value) {
+        if (value == null) {
+            return false;
+        }
+        return value.equalsIgnoreCase("yes");
     }
 
     //	public static void main(String[] args) {
