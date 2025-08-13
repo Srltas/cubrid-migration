@@ -480,11 +480,10 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
      * @return true if driver exists or added successfully
      */
     private boolean checkJDBCDriver(DatabaseType dt, String driverPath) {
-        if (dt.getJDBCData(driverPath) == null
-                && !JDBCDriverManager.getInstance().addDriver(driverPath, false)) {
-            return false;
-        }
-        return true;
+        boolean isDriverAlreadyRegistered =
+                JDBCDriverManager.getInstance().addDriver(driverPath, false);
+        boolean successfullyAddedNewDriver = (dt.getJDBCData(driverPath) != null);
+        return successfullyAddedNewDriver || isDriverAlreadyRegistered;
     }
 
     /**
