@@ -180,6 +180,7 @@ public class StartCommandHandler implements ConsoleCommandHandler {
                 }
             }
             if (targetPath != null) {
+                config.setFileRepositroyPath(targetPath);
                 config.changeTargetFilePath(targetPath);
             }
             config.cleanNoUsedConfigForStart();

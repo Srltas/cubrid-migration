@@ -2008,19 +2008,15 @@ public class MigrationConfiguration {
                                         .substring(tempPath.length()));
             }
             if (targetGrantFileName.get(schemaName) != null) {
-                Map<String, String> grantFileFullName = targetGrantFileName.get(schemaName);
-                for (SourceGrantConfig sgc : expGrants) {
-                    if (!grantFileFullName.containsKey(schemaName)) {
-                        continue;
-                    }
-                    if (grantFileFullName.get(schemaName) != null) {
-                        addTargetGrantFileName(
-                                schemaName,
-                                sgc.getSourceObjectOwner(),
-                                path2
-                                        + grantFileFullName
-                                                .get(schemaName)
-                                                .substring(tempPath.length()));
+                Map<String, String> grantFilesForSchema = targetGrantFileName.get(schemaName);
+
+                for (Map.Entry<String, String> entry : grantFilesForSchema.entrySet()) {
+                    String sourceObjectOwner = entry.getKey();
+                    String oldFilePath = entry.getValue();
+
+                    if (oldFilePath != null) {
+                        String newFilePath = path2 + oldFilePath.substring(tempPath.length());
+                        addTargetGrantFileName(schemaName, sourceObjectOwner, newFilePath);
                     }
                 }
             }
@@ -2057,25 +2053,31 @@ public class MigrationConfiguration {
                                         .substring(tempPath.length()));
             }
             if (targetPlcsqlProcedureFileName.get(schemaName) != null) {
-                for (SourcePlcsqlProcedureConfig spc : expPlcsqlProcedures) {
-                    addTargetPlcsqlProcedureFileName(
-                            schemaName,
-                            spc.getName(),
-                            path2
-                                    + targetSchemaFileListName
-                                            .get(schemaName)
-                                            .substring(tempPath.length()));
+                Map<String, String> proceduresForSchema =
+                        targetPlcsqlProcedureFileName.get(schemaName);
+
+                for (Map.Entry<String, String> entry : proceduresForSchema.entrySet()) {
+                    String procedureName = entry.getKey();
+                    String oldFilePath = entry.getValue();
+
+                    if (oldFilePath != null) {
+                        String newFilePath = path2 + oldFilePath.substring(tempPath.length());
+                        addTargetPlcsqlProcedureFileName(schemaName, procedureName, newFilePath);
+                    }
                 }
             }
             if (targetPlcsqlFunctionFileName.get(schemaName) != null) {
-                for (SourcePlcsqlFunctionConfig fpc : expPlcsqlFunctions) {
-                    addTargetPlcsqlFunctionFileName(
-                            schemaName,
-                            fpc.getName(),
-                            path2
-                                    + targetSchemaFileListName
-                                            .get(schemaName)
-                                            .substring(tempPath.length()));
+                Map<String, String> functionsForSchema =
+                        targetPlcsqlFunctionFileName.get(schemaName);
+
+                for (Map.Entry<String, String> entry : functionsForSchema.entrySet()) {
+                    String functionName = entry.getKey();
+                    String oldFilePath = entry.getValue();
+
+                    if (oldFilePath != null) {
+                        String newFilePath = path2 + oldFilePath.substring(tempPath.length());
+                        addTargetPlcsqlFunctionFileName(schemaName, functionName, newFilePath);
+                    }
                 }
             }
         } else {
