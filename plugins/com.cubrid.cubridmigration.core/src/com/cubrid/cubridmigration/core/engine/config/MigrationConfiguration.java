@@ -2089,7 +2089,7 @@ public class MigrationConfiguration {
         }
         if (this.isOneTableOneFile()) {
             if (targetTableDataFileName.get(schemaName) != null) {
-                List<String> filePaths = targetTableDataFileName.get(schemaName);
+                List<String> filePaths = new ArrayList<>(targetTableDataFileName.get(schemaName));
                 for (String filePath : filePaths) {
                     addTargetTableDataFileName(
                             schemaName, path2 + filePath.substring(tempPath.length()));
