@@ -29,6 +29,7 @@
                             <target>
                                 <get src="${jre.download.url}/OpenJDK21U-jre_x64_windows_hotspot_21.0.7_6.zip" dest="${project.build.directory}/win-jre.zip" />
                                 <get src="${jre.download.url}/OpenJDK21U-jre_x64_linux_hotspot_21.0.7_6.tar.gz" dest="${project.build.directory}/linux-jre.tar.gz" />
+                                <get src="${jre.download.url}/OpenJDK21U-jre_aarch64_mac_hotspot_21.0.7_6.tar.gz" dest="${project.build.directory}/mac-aarch64-jre.tar.gz" />
                             </target>
                         </configuration>
                     </execution>
@@ -47,8 +48,12 @@
                                 <untar src="${project.build.directory}/linux-jre.tar.gz" dest="${jre.dir}/linux" compression="gzip">
                                     <mapper type="regexp" from="^[^/]+/(.*)$" to="linux-jre/\1"/>
                                 </untar>
+                                <untar src="${project.build.directory}/mac-aarch64-jre.tar.gz" dest="${jre.dir}/mac-aarch64" compression="gzip">
+                                    <mapper type="regexp" from="^[^/]+/(.*)$" to="mac-aarch64-jre/\1"/>
+                                </untar>
                                 <chmod perm="755">
                                     <fileset dir="${jre.dir}/linux/linux-jre/bin" includes="**/*"/>
+                                    <fileset dir="${jre.dir}/mac-aarch64/mac-aarch64-jre/Contents/Home/bin" includes="**/*"/>
                                 </chmod>
                             </target>
                         </configuration>
@@ -87,6 +92,24 @@
                         <configuration>
                             <descriptors>
                                 <descriptor>${basedir}/console-zip.xml</descriptor>
+                            </descriptors>
+                            <finalName>${cubridmigration-console}-${cubridmigration-version}</finalName>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>migrationconsole-mac-tar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>${basedir}/console-mac-tar.xml</descriptor>
                             </descriptors>
                             <finalName>${cubridmigration-console}-${cubridmigration-version}</finalName>
                             <archive>

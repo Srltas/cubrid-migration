@@ -95,6 +95,11 @@
                             <ws>cocoa</ws>
                             <arch>x86_64</arch>
                         </environment>
+                        <environment>
+                            <os>macosx</os>
+                            <ws>cocoa</ws>
+                            <arch>aarch64</arch>
+                        </environment>
                     </environments>
                 </configuration>
             </plugin>
@@ -145,7 +150,7 @@
             <modules>
                 <module>plugins</module>
                 <module>features</module>
-				<module>site</module>
+                <module>site</module>
                 <module>product</module>
             </modules>
         </profile>

@@ -120,6 +120,11 @@ function copy_consolecmt_to_directory ()
     cp -vfp $CONSOLE_WINDOWS $TARGET
   fi
 
+  CONSOLE_MAC_AARCH64=$CONSOLE_TARGET/$CMT_CONSOLE_NAME-$RELEASE_VERSION-mac-aarch64.tar.gz
+  if [ -e $CONSOLE_MAC_AARCH64 ]; then
+    cp -vfp $CONSOLE_MAC_AARCH64 $TARGET
+  fi
+
 }
 
 function copy_cmt_to_directory ()
