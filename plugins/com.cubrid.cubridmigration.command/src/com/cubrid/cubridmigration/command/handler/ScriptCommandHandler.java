@@ -145,7 +145,8 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
             return cp;
         } catch (Exception ex) {
             LOG.error("Failed to build connection parameters for [{}].", cpname, ex);
-            LOG.error("Failed to build connection parameters for [{}].", cpname, ex);
+            LOG.error("Failed to build connection 
+            parameters for [{}].", cpname, ex);
             return null;
         }
     }
