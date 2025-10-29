@@ -84,50 +84,36 @@ jobs:
 
       - id: files
         uses: jitterbit/get-changed-files@v1
+        with:
+          format: json
         continue-on-error: true
-      - name: Diagnose GitHub API rate limits (unauthenticated vs authenticated)
+
+      - name: Build argfile for google-java-format
+        id: argfile
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          ARGFILE="${{ runner.temp }}/gjf-files.txt"
+          echo '${{ steps.files.outputs.added_modified }}' \
+          | jq -r '.[] | select(endswith(".java"))' > "$ARGFILE" || true
 
-          echo "== Unauthenticated rate limit headers =="
-          curl -sI https://api.github.com/rate_limit | tr -d '\r' | grep -i '^X-RateLimit' || true
-
-          echo "== Unauthenticated body: core =="
-          curl -s https://api.github.com/rate_limit | jq '.resources.core' || true
-
-          echo "== Probe release tag (unauthenticated) =="
-          curl -s -D - https://api.github.com/repos/google/google-java-format/releases/tags/google-java-format-1.7 -o /dev/null \
-            | tr -d '\r' | sed -n '1,20p' || true
-
-          echo "== Authenticated rate limit headers =="
-          curl -sI -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/rate_limit \
-            | tr -d '\r' | grep -i '^X-RateLimit' || true
-
-          echo "== Authenticated body: core =="
-          curl -s -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/rate_limit \
-            | jq '.resources.core' || true
-
-          echo "== Probe release tag (authenticated) =="
-          curl -s -D - -H "Authorization: Bearer $GH_TOKEN" \
-            https://api.github.com/repos/google/google-java-format/releases/tags/google-java-format-1.7 -o /dev/null \
-            | tr -d '\r' | sed -n '1,20p' || true
-
-          echo "== Release first pages =="
-          curl -s https://api.github.com/repos/google/google-java-format/releases \
-            | jq -r '.[].name'
-
-          echo "== Release 4 pages =="
-          curl -s 'https://api.github.com/repos/google/google-java-format/releases?per_page=100&page=4' \
-            | jq -r '.[].name'
+          if [ -s "$ARGFILE" ]; then
+            echo "has_java=true" >> "$GITHUB_OUTPUT"
+            echo "argfile=$ARGFILE" >> "$GITHUB_OUTPUT"
+            echo "Changed java files:"
+            cat "$ARGFILE"
+          else
+            echo "has_java=false" >> "$GITHUB_OUTPUT"
+            echo "No changed .java files."
+          fi
 
       - uses: axel-op/googlejavaformat-action@v4
+        if: ${{ steps.argfile.outputs.has_java == 'true' }}
         with:
           release-name: v1.32.0
-          args: "--aosp --replace --set-exit-if-changed"
-          files: ${{ steps.files.outputs.added_modified }}
+          args: "--aosp --replace --set-exit-if-changed @${{ steps.argfile.outputs.argfile }}"
+          files: "**/*.java"
+          files-excluded: "**/*"
           skip-commit: true
   build-desktop:
     runs-on: ubuntu-latest
