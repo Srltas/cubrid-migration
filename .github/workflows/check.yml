@@ -91,7 +91,7 @@ jobs:
           json: true
 
       - uses: axel-op/googlejavaformat-action@v4
-        if: ${{ steps.argfile.outputs.has_java == 'true' }}
+        if: ${{ steps.changed.outputs.any_changed == 'true' }}
         with:
           release-name: v1.32.0
           args: "--aosp --replace --set-exit-if-changed @.github/outputs/all_changed_files.txt"
