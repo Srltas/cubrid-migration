@@ -114,7 +114,7 @@ jobs:
         with:
           version: google-java-format-1.7
           args: "--aosp --replace --set-exit-if-changed"
-          files: ${{ steps.files.output.added_modified }}
+          files: ${{ steps.files.outputs.added_modified }}
           skipCommit: true
   build-desktop:
     runs-on: ubuntu-latest
