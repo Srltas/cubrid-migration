@@ -110,12 +110,12 @@ jobs:
             https://api.github.com/repos/google/google-java-format/releases/tags/google-java-format-1.7 -o /dev/null \
             | tr -d '\r' | sed -n '1,20p' || true
 
-      - uses: axel-op/googlejavaformat-action@v3
+      - uses: axel-op/googlejavaformat-action@v4
         with:
-          version: google-java-format-1.7
+          release-name: google-java-format-1.7
           args: "--aosp --replace --set-exit-if-changed"
           files: ${{ steps.files.outputs.added_modified }}
-          skipCommit: true
+          skip-commit: true
   build-desktop:
     runs-on: ubuntu-latest
     steps:
