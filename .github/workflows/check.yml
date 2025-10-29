@@ -80,6 +80,36 @@ jobs:
       - id: files
         uses: jitterbit/get-changed-files@v1
         continue-on-error: true
+      - name: Diagnose GitHub API rate limits (unauthenticated vs authenticated)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          echo "== Unauthenticated rate limit headers =="
+          curl -sI https://api.github.com/rate_limit | tr -d '\r' | grep -i '^X-RateLimit' || true
+
+          echo "== Unauthenticated body: core =="
+          curl -s https://api.github.com/rate_limit | jq '.resources.core' || true
+
+          echo "== Probe release tag (unauthenticated) =="
+          curl -s -D - https://api.github.com/repos/google/google-java-format/releases/tags/google-java-format-1.7 -o /dev/null \
+            | tr -d '\r' | sed -n '1,20p' || true
+
+          echo "== Authenticated rate limit headers =="
+          curl -sI -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/rate_limit \
+            | tr -d '\r' | grep -i '^X-RateLimit' || true
+
+          echo "== Authenticated body: core =="
+          curl -s -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/rate_limit \
+            | jq '.resources.core' || true
+
+          echo "== Probe release tag (authenticated) =="
+          curl -s -D - -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/google/google-java-format/releases/tags/google-java-format-1.7 -o /dev/null \
+            | tr -d '\r' | sed -n '1,20p' || true
+
       - uses: axel-op/googlejavaformat-action@v3
         with:
           skipCommit: true
