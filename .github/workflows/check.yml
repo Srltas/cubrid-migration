@@ -86,7 +86,7 @@ jobs:
 
       - name: Download google-java-format 1.7
         run: |
-          wget -q0 "$RUNNER_TEMP/gjf.jar" \
+          wget -q -O "$RUNNER_TEMP/gjf.jar" \
            https://github.com/CUBRID/3rdparty/raw/develop/google-java-format/google-java-format-1.7-all-deps.jar
 
       - id: files
