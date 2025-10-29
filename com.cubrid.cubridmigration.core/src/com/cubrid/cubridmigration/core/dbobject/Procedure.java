@@ -58,7 +58,9 @@ public class Procedure extends DBObject {
         this.procedureDDL = procDDL;
     }
 
-    /** @return object type */
+    /**
+     * @return object type
+     */
     public String getObjType() {
         return OBJ_TYPE_PROCEDURE;
     }

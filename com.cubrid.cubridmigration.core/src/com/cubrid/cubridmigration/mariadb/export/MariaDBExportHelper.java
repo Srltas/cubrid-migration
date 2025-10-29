@@ -40,13 +40,15 @@ import com.cubrid.cubridmigration.mariadb.export.handler.MariaDBBitTypeHandler;
 import com.cubrid.cubridmigration.mariadb.export.handler.MariaDBDateTypeHandler;
 import com.cubrid.cubridmigration.mariadb.export.handler.MariaDBTimestampTypeHandler;
 import com.cubrid.cubridmigration.mariadb.export.handler.MariaDBYearTypeHandler;
+
+import org.apache.log4j.Logger;
+
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.log4j.Logger;
 
 /**
  * a class help to export MariaDB data and verify MariaDB sql statement

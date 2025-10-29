@@ -38,6 +38,12 @@ import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.MigrationTemplateParser;
 import com.cubrid.cubridmigration.ui.message.Messages;
 import com.cubrid.cubridmigration.ui.script.dialog.EditScriptDialog;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.eclipse.swt.widgets.Display;
+
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.File;
@@ -47,10 +53,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.eclipse.swt.widgets.Display;
 
 /**
  * MigrationScriptManager with Singleton, it responses to manage migration scripts.
@@ -329,7 +331,9 @@ public final class MigrationScriptManager implements IItemModelOfGroupProvider, 
         return null;
     }
 
-    /** @return copy of scripts list */
+    /**
+     * @return copy of scripts list
+     */
     public List<Object> getItems() {
         return new ArrayList<Object>(scripts);
     }
