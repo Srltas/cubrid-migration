@@ -34,8 +34,7 @@ import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.ui.MigrationUIPlugin;
 import com.cubrid.cubridmigration.ui.message.Messages;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -47,6 +46,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.osgi.service.prefs.BackingStoreException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SelectSrcTarTypesCom is view of select source type and destination type

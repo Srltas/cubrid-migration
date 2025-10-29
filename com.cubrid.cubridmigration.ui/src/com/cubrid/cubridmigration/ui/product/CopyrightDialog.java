@@ -33,6 +33,7 @@ package com.cubrid.cubridmigration.ui.product;
 import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.ui.MigrationUIPlugin;
 import com.cubrid.cubridmigration.ui.message.Messages;
+
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.IDialogConstants;

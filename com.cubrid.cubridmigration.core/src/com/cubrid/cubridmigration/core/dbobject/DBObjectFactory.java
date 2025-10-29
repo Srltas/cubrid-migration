@@ -31,6 +31,7 @@
 package com.cubrid.cubridmigration.core.dbobject;
 
 import com.cubrid.cubridmigration.core.datatype.DataType;
+
 import java.math.BigInteger;
 
 /**

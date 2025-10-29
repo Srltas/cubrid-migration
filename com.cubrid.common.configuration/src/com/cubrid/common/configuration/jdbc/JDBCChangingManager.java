@@ -30,9 +30,10 @@
  */
 package com.cubrid.common.configuration.jdbc;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * JDBCChangingManager maintains all the subjects about changing JDBC information and all the

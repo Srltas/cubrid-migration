@@ -32,6 +32,7 @@ package com.cubrid.cubridmigration.ui.preference;
 
 import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.ui.MigrationUIPlugin;
+
 import org.apache.log4j.Logger;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.preference.IPreferenceStore;

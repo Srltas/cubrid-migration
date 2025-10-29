@@ -65,6 +65,11 @@ import com.cubrid.cubridmigration.core.trans.DBTransformHelper;
 import com.cubrid.cubridmigration.cubrid.CUBRIDDataTypeHelper;
 import com.cubrid.cubridmigration.ui.message.Messages;
 import com.cubrid.cubridmigration.ui.wizard.IMigrationWizardStatus;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.eclipse.osgi.util.NLS;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -75,9 +80,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.eclipse.osgi.util.NLS;
 
 /**
  * Verify validation of migration configuration and other utilities.
@@ -889,7 +891,9 @@ public class MigrationCfgUtils {
         return result;
     }
 
-    /** @return true if user should change the target character type's size to avoid data lost. */
+    /**
+     * @return true if user should change the target character type's size to avoid data lost.
+     */
     public boolean doesNeedToChangeCharacterTypeSize() {
         boolean isEffectedByCharacterTypeSize;
 
@@ -1041,7 +1045,9 @@ public class MigrationCfgUtils {
         }
     }
 
-    /** @return table names which don't have PK. */
+    /**
+     * @return table names which don't have PK.
+     */
     public String getNoPKSourceTablesCheckingResult() {
         StringBuffer sb = new StringBuffer();
         Table table = null;

@@ -61,6 +61,14 @@ import com.cubrid.cubridmigration.core.engine.config.SourceViewConfig;
 import com.cubrid.cubridmigration.core.engine.exception.ErrorMigrationTemplateException;
 import com.cubrid.cubridmigration.cubrid.CUBRIDDatabase;
 import com.cubrid.cubridmigration.mysql.trans.MySQL2CUBRIDMigParas;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.helpers.DefaultHandler;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -69,6 +77,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.UUID;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -77,12 +86,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * MigrationTemplateParser Description

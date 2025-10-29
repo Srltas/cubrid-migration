@@ -31,6 +31,9 @@
 package com.cubrid.cubridmigration.core.common;
 
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -39,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * The path utility can get resource file from core jar and can get installation dir and can get
@@ -363,12 +365,16 @@ public final class PathUtils {
         return PathUtils.getUserHomeDir() + "krb5cc_" + System.getProperty("user.name");
     }
 
-    /** @return getDefaultKrbConfigFile */
+    /**
+     * @return getDefaultKrbConfigFile
+     */
     public static String getDefaultKrbConfigFile() {
         return CUBRIDIOUtils.IS_OS_WINDOWS ? "c:\\Windows\\krb5.ini" : "/etc/krb5.conf";
     }
 
-    /** @return getGSSLoginFile */
+    /**
+     * @return getGSSLoginFile
+     */
     public static String getGSSLoginFile() {
         return installLocation + "gsslogin.conf";
     }

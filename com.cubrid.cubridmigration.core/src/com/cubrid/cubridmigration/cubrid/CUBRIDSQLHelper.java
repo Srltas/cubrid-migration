@@ -45,14 +45,16 @@ import com.cubrid.cubridmigration.core.dbobject.Synonym;
 import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.dbobject.View;
 import com.cubrid.cubridmigration.core.sql.SQLHelper;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 /**
  * CUBRIDSQLHelper
