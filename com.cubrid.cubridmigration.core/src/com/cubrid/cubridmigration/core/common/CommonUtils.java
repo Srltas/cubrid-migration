@@ -101,7 +101,7 @@ public final class CommonUtils {
             }
 
         } catch (UnsupportedEncodingException ex) {
-            LOG.error(LogUtil.getExceptionString(ex));
+            LOG.error("PR_Test", LogUtil.getExceptionString(ex));
             throw new RuntimeException(ex);
         }
     }
