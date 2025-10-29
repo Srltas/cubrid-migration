@@ -91,12 +91,19 @@ jobs:
 
       - id: files
         uses: jitterbit/get-changed-files@v1
+        continue-on-error: true
 
       - name: Run google-java-format 1.7 on changed files
         if: ${{ steps.files.outputs.added_modified != '' }}
+        shell: bash
         run: |
-          printf '%s\n' ${{ steps.files.outputs.added_modified }} > "$RUNNER_TEMP/gjf-files.txt"
-          java -jar "$RUNNER_TEMP/gjf.jar" --aosp --replace --set-exit-if-changed @"$RUNNER_TEMP/gjf-files.txt"
+          printf '%s\n' ${{ steps.files.outputs.added_modified }} \
+          | grep -E '\.java$' > "$RUNNER_TEMP/gjf-files.txt" || true
+
+          if [ -s "$RUNNER_TEMP/gjf-files.txt" ]; then
+          java -jar "$RUNNER_TEMP/gjf.jar" \
+            --aosp --replace --set-exit-if-changed @"$RUNNER_TEMP/gjf-files.txt"
+          fi
 
       - name: Suggest code changes
         if: ${{ failure() }}
