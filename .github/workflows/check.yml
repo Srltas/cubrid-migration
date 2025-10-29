@@ -120,7 +120,7 @@ jobs:
 
       - uses: axel-op/googlejavaformat-action@v4
         with:
-          release-name: v1.28.0
+          release-name: v1.32.0
           args: "--aosp --replace --set-exit-if-changed"
           files: ${{ steps.files.outputs.added_modified }}
           skip-commit: true
