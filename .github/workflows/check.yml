@@ -85,10 +85,8 @@ jobs:
       - id: changed
         uses: tj-actions/changed-files@v47
         with:
-          files: |
-            **/*.java
+          files: "**/*.java"
           write_output_files: true
-          json: true
 
       - uses: axel-op/googlejavaformat-action@v4
         if: ${{ steps.changed.outputs.any_changed == 'true' }}
