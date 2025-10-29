@@ -82,36 +82,19 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - id: files
-        uses: jitterbit/get-changed-files@v1
+      - id: changed
+        uses: tj-actions/changed-files@v47
         with:
-          format: json
-        continue-on-error: true
-
-      - name: Build argfile for google-java-format
-        id: argfile
-        shell: bash
-        run: |
-          set -euo pipefail
-          ARGFILE="${{ runner.temp }}/gjf-files.txt"
-          echo '${{ steps.files.outputs.added_modified }}' \
-          | jq -r '.[] | select(endswith(".java"))' > "$ARGFILE" || true
-
-          if [ -s "$ARGFILE" ]; then
-            echo "has_java=true" >> "$GITHUB_OUTPUT"
-            echo "argfile=$ARGFILE" >> "$GITHUB_OUTPUT"
-            echo "Changed java files:"
-            cat "$ARGFILE"
-          else
-            echo "has_java=false" >> "$GITHUB_OUTPUT"
-            echo "No changed .java files."
-          fi
+          files: |
+            **/*.java
+          write_output_files: true
+          json: true
 
       - uses: axel-op/googlejavaformat-action@v4
         if: ${{ steps.argfile.outputs.has_java == 'true' }}
         with:
           release-name: v1.32.0
-          args: "--aosp --replace --set-exit-if-changed @${{ steps.argfile.outputs.argfile }}"
+          args: "--aosp --replace --set-exit-if-changed @.github/outputs/all_changed_files.txt"
           files: "**/*.java"
           files-excluded: "**/*"
           skip-commit: true
