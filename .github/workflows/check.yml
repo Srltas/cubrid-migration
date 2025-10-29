@@ -110,6 +110,14 @@ jobs:
             https://api.github.com/repos/google/google-java-format/releases/tags/google-java-format-1.7 -o /dev/null \
             | tr -d '\r' | sed -n '1,20p' || true
 
+          echo "== Release first pages =="
+          curl -s https://api.github.com/repos/google/google-java-format/releases \
+            | jq -r '.[].name'
+
+          echo "== Release 4 pages =="
+          curl -s 'https://api.github.com/repos/google/google-java-format/releases?per_page=100&page=4' \
+            | jq -r '.[].name'
+
       - uses: axel-op/googlejavaformat-action@v4
         with:
           release-name: 1.28.0
