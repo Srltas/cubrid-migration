@@ -20,12 +20,11 @@ on:
     branches:
       - develop
       - release/**
-      - pr-test-main
 
 jobs:
   license:
     name: license
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v2
       - uses: jitterbit/get-changed-files@v1
@@ -67,41 +66,35 @@ jobs:
           test $result = "PASS"
   pr-style:
     name: pr-style
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: deepakputhraya/action-pr-title@master
         with:
           regex: '^\[[A-Z]+-\d+\]\s.+'
   code-style:
     name: code-style
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
-
       - id: changed
         uses: tj-actions/changed-files@v47
         with:
           files: "**/*.java"
           write_output_files: true
-
       - uses: axel-op/googlejavaformat-action@v4
         if: ${{ steps.changed.outputs.any_changed == 'true' }}
         with:
           release-name: v1.32.0
           args: "--aosp --replace --set-exit-if-changed @.github/outputs/all_changed_files.txt"
-          files: "**/*.java"
-          files-excluded: "**/*"
           skip-commit: true
-  build-desktop:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Suggest code changes
+        if: ${{ failure() }}
+        uses: reviewdog/action-suggester@v1
         with:
-          java-version: '8'
-          distribution: 'temurin'
-      - run: mvn build -Pdesktop
+          tool_name: code-style (indent, googlejavaformat)
