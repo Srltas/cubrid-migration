@@ -56,8 +56,7 @@ public class DoMigration {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        System.out.println("Thank you for 
-        using CUBRID Migration Toolkit(CMT) Console.");
+        System.out.println("Thank you for using CUBRID Migration Toolkit(CMT) Console.");
         PathUtils.initPaths();
         LogUtil.initLog(PathUtils.getLogDir());
         List<String> argList = new ArrayList<String>();
@@ -65,8 +64,7 @@ public class DoMigration {
             argList.add(arg);
         }
         if (argList.isEmpty()) {
-            ConsoleUtils.printHelp("/com/cubrid/
-            cubridmigration/command/help.txt");
+            ConsoleUtils.printHelp("/com/cubrid/cubridmigration/command/help.txt");
             return;
         }
         final ConsoleCommandHandler commandHandler = handlerFactory(argList);
