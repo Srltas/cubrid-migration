@@ -35,7 +35,7 @@ import com.cubrid.common.ui.navigator.ICUBRIDNode;
 import com.cubrid.common.ui.navigator.node.AbstractGroupNode;
 import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.ui.message.Messages;
-import java.util.ArrayList;
+
 import org.apache.log4j.Logger;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -51,6 +51,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
+
+import java.util.ArrayList;
 
 /**
  * Filter setting dialog

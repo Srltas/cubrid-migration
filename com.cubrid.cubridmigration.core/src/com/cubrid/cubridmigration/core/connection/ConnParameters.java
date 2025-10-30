@@ -33,11 +33,13 @@ package com.cubrid.cubridmigration.core.connection;
 import com.cubrid.common.configuration.jdbc.IJDBCConnecInfo;
 import com.cubrid.cubridmigration.core.dbmetadata.IDBSource;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * ConnectionParameters:DB Connection parameters

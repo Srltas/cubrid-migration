@@ -41,9 +41,7 @@ import com.cubrid.cubridmigration.ui.common.dialog.DetailMessageDialog;
 import com.cubrid.cubridmigration.ui.message.Messages;
 import com.cubrid.cubridmigration.ui.script.MigrationScript;
 import com.jcraft.jsch.Session;
-import java.io.File;
-import java.util.Locale;
-import java.util.UUID;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -54,6 +52,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.osgi.service.prefs.BackingStoreException;
+
+import java.io.File;
+import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Export migration script dialog, supports exporting to local file system and remote file system by
@@ -117,7 +119,9 @@ public class ExportScriptDialog extends TransFileBySSHDialog {
         newShell.setText(Messages.titleExportScript);
     }
 
-    /** @return type button style */
+    /**
+     * @return type button style
+     */
     protected int getTypeButtonStyle() {
         return SWT.CHECK;
     }

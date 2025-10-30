@@ -32,15 +32,17 @@ package com.cubrid.cubridmigration.command.handler;
 
 import com.cubrid.cubridmigration.command.ConsoleUtils;
 import com.cubrid.cubridmigration.core.engine.report.MigrationReportFileUtils;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 
 /**
  * LogCommandHandler Description

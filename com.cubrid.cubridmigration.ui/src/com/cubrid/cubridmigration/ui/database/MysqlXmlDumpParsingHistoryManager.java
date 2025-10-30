@@ -35,12 +35,15 @@ import com.cubrid.cubridmigration.core.common.PathUtils;
 import com.cubrid.cubridmigration.core.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.common.xml.IXMLMemento;
 import com.cubrid.cubridmigration.core.common.xml.XMLMemento;
+
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.parsers.ParserConfigurationException;
-import org.apache.log4j.Logger;
 
 /**
  * Record XML dump file's parsing history into local machine.

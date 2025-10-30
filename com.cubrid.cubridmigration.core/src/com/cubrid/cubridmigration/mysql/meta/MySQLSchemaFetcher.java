@@ -58,6 +58,10 @@ import com.cubrid.cubridmigration.core.export.DBExportHelper;
 import com.cubrid.cubridmigration.core.sql.SQLHelper;
 import com.cubrid.cubridmigration.mysql.MySQLDataTypeHelper;
 import com.cubrid.cubridmigration.mysql.dbobj.MySQLTrigger;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverPropertyInfo;
@@ -74,8 +78,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 /**
  * ReverseEngineeringMysqlJdbc
@@ -282,9 +284,9 @@ public final class MySQLSchemaFetcher extends AbstractJDBCSchemaFetcher {
         }
 
         String sqlStr =
-                "SELECT * FROM INFORMATION_SCHEMA.PARTITIONS "
-                        + "WHERE TABLE_SCHEMA=? AND PARTITION_NAME IS NOT NULL "
-                        + "ORDER BY TABLE_NAME, PARTITION_ORDINAL_POSITION, SUBPARTITION_ORDINAL_POSITION";
+                "SELECT * FROM INFORMATION_SCHEMA.PARTITIONS WHERE TABLE_SCHEMA=? AND"
+                    + " PARTITION_NAME IS NOT NULL ORDER BY TABLE_NAME, PARTITION_ORDINAL_POSITION,"
+                    + " SUBPARTITION_ORDINAL_POSITION";
 
         ResultSet rs = null; // NOPMD
         PreparedStatement stmt = null; // NOPMD

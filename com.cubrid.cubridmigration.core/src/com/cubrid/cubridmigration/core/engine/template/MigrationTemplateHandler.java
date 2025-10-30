@@ -57,14 +57,16 @@ import com.cubrid.cubridmigration.core.engine.config.SourceTableConfig;
 import com.cubrid.cubridmigration.cubrid.CUBRIDDataTypeHelper;
 import com.cubrid.cubridmigration.cubrid.CUBRIDDatabase;
 import com.cubrid.cubridmigration.mysql.trans.MySQL2CUBRIDMigParas;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * MigrationTemplateHandler Description
@@ -252,7 +254,9 @@ public final class MigrationTemplateHandler extends DefaultHandler {
     //		config.setCmServer(cmServer);
     //	}
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetColumn(Attributes attributes) {
         Column column = new Column();
         column.setName(attributes.getValue(TemplateTags.ATTR_NAME));
@@ -283,7 +287,9 @@ public final class MigrationTemplateHandler extends DefaultHandler {
         // column.setUnique(unique);
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetJDBC(Attributes attributes) {
         ConnParameters cp =
                 ConnParameters.getConParam(
@@ -307,7 +313,9 @@ public final class MigrationTemplateHandler extends DefaultHandler {
                 getBoolean(attributes.getValue(TemplateTags.ATTR_WRITE_ERROR_RECORDS), false));
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetFK(Attributes attributes) {
         FK fk = new FK(targetTable);
         targetTable.addFK(fk);
@@ -330,14 +338,18 @@ public final class MigrationTemplateHandler extends DefaultHandler {
         // fk.setOnCacheObject(attributes.getValue(TemplateTags.ATTR_ON_CACHE_OBJECT));
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetHashPartition(Attributes attributes) {
         PartitionTable pt = new PartitionTable();
         pt.setPartitionName(attributes.getValue(TemplateTags.ATTR_NAME));
         targetTable.getPartitionInfo().addPartition(pt);
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetIndex(Attributes attributes) {
         Index index = new Index(targetTable);
         index.setName(attributes.getValue(TemplateTags.ATTR_NAME));
@@ -373,7 +385,9 @@ public final class MigrationTemplateHandler extends DefaultHandler {
         targetTable.addIndex(index);
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetPartition(Attributes attributes) {
         PartitionInfo partition = new PartitionInfo();
         targetTable.setPartitionInfo(partition);
@@ -381,14 +395,18 @@ public final class MigrationTemplateHandler extends DefaultHandler {
         partition.setPartitionMethod(attributes.getValue(TemplateTags.ATTR_TYPE));
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetPK(Attributes attributes) {
         PK pk = new PK(targetTable);
         targetTable.setPk(pk);
         pk.setPkColumns(getStringList(attributes.getValue(TemplateTags.ATTR_FIELDS)));
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetRangePartition(Attributes attributes) {
         PartitionTable pt = new PartitionTable();
         pt.setPartitionName(attributes.getValue(TemplateTags.ATTR_NAME));
@@ -396,7 +414,9 @@ public final class MigrationTemplateHandler extends DefaultHandler {
         targetTable.getPartitionInfo().addPartition(pt);
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetSequence(Attributes attributes) {
         Sequence seq = new Sequence();
         seq.setName(attributes.getValue(TemplateTags.ATTR_NAME));
@@ -422,7 +442,9 @@ public final class MigrationTemplateHandler extends DefaultHandler {
         config.addTargetSerialSchema(seq);
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetSynonym(Attributes attributes) {
         Synonym syn = new Synonym();
         syn.setName(attributes.getValue(TemplateTags.ATTR_NAME));
@@ -434,7 +456,9 @@ public final class MigrationTemplateHandler extends DefaultHandler {
         config.addTargetSynonymSchema(syn);
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetGrant(Attributes attributes) {
         Grant grn = new Grant();
         grn.setOwner(attributes.getValue(TemplateTags.ATTR_OWNER));
@@ -450,7 +474,9 @@ public final class MigrationTemplateHandler extends DefaultHandler {
         config.addTargetGrantSchema(grn);
     }
 
-    /** @param attributes of node */
+    /**
+     * @param attributes of node
+     */
     private void parseTargetTable(Attributes attributes) {
         targetTable = new Table();
         targetTable.setName(attributes.getValue(TemplateTags.ATTR_NAME));
@@ -893,6 +919,7 @@ public final class MigrationTemplateHandler extends DefaultHandler {
         //			parseCMServer(qName, attr);
         //		}
     }
+
     /**
      * convert String vertion to int
      *

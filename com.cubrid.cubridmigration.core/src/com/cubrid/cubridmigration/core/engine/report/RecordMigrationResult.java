@@ -134,7 +134,9 @@ public class RecordMigrationResult implements Serializable {
         this.srcSchema = srcSchema;
     }
 
-    /** @return true if the migration has error */
+    /**
+     * @return true if the migration has error
+     */
     public boolean isDataMigrationHasError() {
         return getTotalCount() != getExpCount() || getExpCount() != getImpCount();
     }

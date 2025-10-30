@@ -49,6 +49,10 @@ import com.cubrid.cubridmigration.core.dbtype.IDependOnDatabaseType;
 import com.cubrid.cubridmigration.core.engine.exception.JDBCConnectErrorException;
 import com.cubrid.cubridmigration.core.export.DBExportHelper;
 import com.cubrid.cubridmigration.core.sql.SQLHelper;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -61,8 +65,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 /**
  * AbstractJDBCSchemaFetcher

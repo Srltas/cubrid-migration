@@ -76,6 +76,7 @@ import com.cubrid.cubridmigration.ui.common.navigator.node.TriggersNode;
 import com.cubrid.cubridmigration.ui.common.navigator.node.ViewNode;
 import com.cubrid.cubridmigration.ui.common.navigator.node.ViewsNode;
 import com.cubrid.cubridmigration.ui.message.Messages;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -118,7 +119,8 @@ public final class CubridNodeManager {
             }
             return instance;
         }
-    };
+    }
+    ;
 
     private CubridNodeManager() {
         // do nothing.

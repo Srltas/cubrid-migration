@@ -31,6 +31,7 @@
 package com.cubrid.cubridmigration.core.io;
 
 import com.sun.org.apache.xml.internal.utils.XMLChar;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;

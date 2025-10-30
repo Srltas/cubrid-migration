@@ -48,6 +48,9 @@ import com.cubrid.cubridmigration.core.engine.config.SourceViewConfig;
 import com.cubrid.cubridmigration.core.engine.exception.BreakMigrationException;
 import com.cubrid.cubridmigration.core.engine.task.IMigrationTask;
 import com.cubrid.cubridmigration.core.engine.task.MigrationTaskFactory;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +58,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * MigrationTasksScheduler responses to schedule migration tasks.

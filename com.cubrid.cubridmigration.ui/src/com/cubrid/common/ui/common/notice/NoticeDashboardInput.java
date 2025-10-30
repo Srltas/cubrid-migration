@@ -31,6 +31,7 @@
 package com.cubrid.common.ui.common.notice;
 
 import com.cubrid.cubridmigration.ui.MigrationUIPlugin;
+
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
