@@ -43,6 +43,7 @@ import com.cubrid.cubridmigration.core.dbmetadata.IDBSource;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
 import com.cubrid.cubridmigration.core.dbobject.Table;
+import com.cubrid.cubridmigration.core.dbobject.Version;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.config.SourceEntryTableConfig;
@@ -70,6 +71,7 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
 
     private static final Logger LOG = LogUtil.getLogger(ScriptCommandHandler.class);
     private static final List<String> COMMANDS = new ArrayList<String>();
+    private static final int USERSCHEMA_VERSION = 112;
 
     static {
         String[] cmds = new String[] {"-s", "-t", "-schema", "-o"};
@@ -93,10 +95,13 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
         }
         IDBSource ds = config.getTargetConParams();
         if (ds == null) {
-            return;
+            String message = "Target connection parameters are missing.";
+            LOG.error(message);
+            throw new IllegalStateException(message);
         }
         IDBSchemaInfoFetcher bcf = DBSchemaInfoFetcherFactory.createFetcher(ds);
         Catalog cl = bcf.fetchSchema(ds, null);
+        updateTargetDBVersion(config, cl);
         if (cl == null || cl.getSchemas().isEmpty()) {
             return;
         }
@@ -111,6 +116,43 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
             setc.setReplace(false);
             setc.setCreatePK(false);
         }
+    }
+
+    private void updateTargetDBVersion(MigrationConfiguration config, Catalog catalog) {
+        if (!config.targetIsOnline()) {
+            return;
+        }
+
+        if (catalog != null && catalog.getVersion() != null) {
+            Version version = catalog.getVersion();
+            int major = Math.max(0, version.getDbMajorVersion());
+            int minor = Math.max(0, version.getDbMinorVersion());
+            int numericVersion = (major * 10) + minor;
+            config.setTargetDBVersion(String.valueOf(numericVersion));
+            config.setAddUserSchema(numericVersion >= USERSCHEMA_VERSION);
+            return;
+        }
+
+        String currentVersion = config.getTargetDBVersion();
+        if (StringUtils.isNumeric(currentVersion)) {
+            int numericVersion = Integer.parseInt(currentVersion);
+            LOG.warn(
+                    "Target DB version could not be refreshed; using existing value '{}'.",
+                    currentVersion);
+            config.setAddUserSchema(numericVersion >= USERSCHEMA_VERSION);
+            return;
+        }
+        
+        String reason =
+                catalog == null
+                        ? "Target catalog information could not be fetched."
+                        : "Target catalog does not expose database version information.";
+
+        LOG.error("Failed to determine target database version. {}", reason);
+        throw new IllegalStateException(
+                "Failed to determine target database version. "
+                        + reason
+                        + " Please verify the target connection configuration.");
     }
 
     /**
@@ -262,6 +304,9 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
                     outputFile.getAbsolutePath(),
                     "yes".equalsIgnoreCase(getParameter(tmpArgs, "-schema")));
             outPrinter.println(outputFile.getAbsolutePath() + " was created successfully.");
+        } catch (IllegalStateException ex) {
+            outPrinter.println(ex.getMessage());
+            LOG.error("Failed to generate migration script: {}.", ex.getMessage(), ex);
         } catch (Exception ex) {
             outPrinter.println("Unexpected error. Please check the log for more information.");
             LOG.error("Unexpected error while processing CLI arguments: {}.", args, ex);
