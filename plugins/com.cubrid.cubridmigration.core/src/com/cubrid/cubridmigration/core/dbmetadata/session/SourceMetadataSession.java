@@ -18,10 +18,12 @@ public class SourceMetadataSession {
     private CatalogHeader header;
     private final Map<String, SourceSchemaSummary> summaries = new LinkedHashMap<>();
     private final Map<String, Catalog> fragments = new LinkedHashMap<>();
+    private Catalog legacyCatalog;
 
     public void reset(ConnParameters parameters) {
         this.connParameters = parameters;
         this.header = null;
+        this.legacyCatalog = null;
         summaries.clear();
         fragments.clear();
     }
@@ -84,5 +86,13 @@ public class SourceMetadataSession {
 
     public boolean isActiveFor(ConnParameters parameters) {
         return Objects.equals(connParameters, parameters);
+    }
+
+    public Catalog getLegacyCatalog() {
+        return legacyCatalog;
+    }
+
+    public void setLegacyCatalog(Catalog legacyCatalog) {
+        this.legacyCatalog = legacyCatalog;
     }
 }

@@ -652,6 +652,8 @@ public class SelectSourcePage extends MigrationWizardPage {
                     session.putSummary(summary);
                 }
             }
+
+            session.setLegacyCatalog(catalog);
         }
 
         /**

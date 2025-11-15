@@ -554,7 +554,14 @@ public class SchemaMappingPage extends MigrationWizardPage {
     }
 
     private void setOfflineData() {
-        srcCatalog = wizard.getOriginalSourceCatalog().createCatalog();
+        Catalog legacyCatalog = wizard.getOriginalSourceCatalog();
+        if (legacyCatalog == null) {
+            logger.warn("No original source catalog available for offline schema mapping");
+            srcCatalog = new Catalog();
+            srcSchemaList = new ArrayList<Schema>();
+            return;
+        }
+        srcCatalog = legacyCatalog.createCatalog();
         srcSchemaList = srcCatalog.getSchemas();
         Map<String, Schema> scriptSchemaMap = config.getScriptSchemaMapping();
         List<Schema> targetSchemaList = config.getTargetSchemaList();
@@ -687,11 +694,20 @@ public class SchemaMappingPage extends MigrationWizardPage {
     }
 
     private void populateLegacyOnlineData() {
-        srcCatalog = wizard.getOriginalSourceCatalog().createCatalog();
+        Catalog legacyCatalog = wizard.getOriginalSourceCatalog();
+        if (legacyCatalog == null) {
+            logger.warn("Unable to populate legacy online data without original catalog");
+            srcCatalog = new Catalog();
+            tarCatalog = wizard.getTargetCatalog();
+            srcSchemaList = new ArrayList<Schema>();
+            tarSchemaList = tarCatalog == null ? new ArrayList<Schema>() : tarCatalog.getSchemas();
+            return;
+        }
+        srcCatalog = legacyCatalog.createCatalog();
         tarCatalog = wizard.getTargetCatalog();
 
         srcSchemaList = srcCatalog.getSchemas();
-        tarSchemaList = tarCatalog.getSchemas();
+        tarSchemaList = tarCatalog == null ? new ArrayList<Schema>() : tarCatalog.getSchemas();
 
         Map<String, Schema> scriptSchemaMap = config.getScriptSchemaMapping();
 
@@ -792,7 +808,13 @@ public class SchemaMappingPage extends MigrationWizardPage {
         if (metadataSession == null
                 || metadataProvider == null
                 || metadataSession.getSummaries().isEmpty()) {
-            srcCatalog = wizard.getOriginalSourceCatalog().createCatalog();
+            Catalog legacyCatalog = wizard.getOriginalSourceCatalog();
+            if (legacyCatalog == null) {
+                MessageDialog.openError(
+                        getShell(), Messages.msgError, Messages.errMsgLoadSchemaFailed);
+                return false;
+            }
+            srcCatalog = legacyCatalog.createCatalog();
             return saveOnlineDataLegacy();
         }
 

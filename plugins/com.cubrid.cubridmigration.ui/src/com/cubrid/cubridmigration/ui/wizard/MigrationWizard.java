@@ -131,7 +131,6 @@ public class MigrationWizard extends Wizard implements IMigrationWizardStatus {
     protected MigrationConfiguration migrationConfig;
 
     protected Catalog sourceCatalog;
-    protected Catalog originalSourceCatalog;
     protected Catalog targetCatalog;
 
     protected SourceMetadataSession sourceMetadataSession;
@@ -314,7 +313,10 @@ public class MigrationWizard extends Wizard implements IMigrationWizardStatus {
     }
 
     public Catalog getOriginalSourceCatalog() {
-        return originalSourceCatalog;
+        if (sourceMetadataSession != null) {
+            return sourceMetadataSession.getLegacyCatalog();
+        }
+        return null;
     }
 
     /**
@@ -516,7 +518,10 @@ public class MigrationWizard extends Wizard implements IMigrationWizardStatus {
      * @param originalSourceCatalog
      */
     public void setOriginalSourceCatalog(Catalog originalSourceCatalog) {
-        this.originalSourceCatalog = originalSourceCatalog;
+        if (sourceMetadataSession == null) {
+            sourceMetadataSession = new SourceMetadataSession();
+        }
+        sourceMetadataSession.setLegacyCatalog(originalSourceCatalog);
     }
 
     /**
