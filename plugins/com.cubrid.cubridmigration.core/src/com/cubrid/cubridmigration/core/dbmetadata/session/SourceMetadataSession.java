@@ -42,6 +42,16 @@ public class SourceMetadataSession {
         if (summary == null) {
             return;
         }
+        SourceSchemaSummary existing = summaries.get(summary.getSchemaName());
+        if (existing != null) {
+            summary.setSelected(existing.isSelected());
+            if (existing.getLoadState() == SourceSchemaSummary.LoadState.LOADED) {
+                summary.setLoadState(existing.getLoadState());
+            }
+            if (existing.isGrantorSchema()) {
+                summary.setGrantorSchema(true);
+            }
+        }
         summaries.put(summary.getSchemaName(), summary);
     }
 

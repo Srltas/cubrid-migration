@@ -647,7 +647,9 @@ public class SelectSourcePage extends MigrationWizardPage {
 
             if (session.getSummaries().isEmpty()) {
                 for (Schema schema : catalog.getSchemas()) {
-                    session.putSummary(new SourceSchemaSummary(schema.getName()));
+                    SourceSchemaSummary summary = new SourceSchemaSummary(schema.getName());
+                    summary.setGrantorSchema(schema.isGrantorSchema());
+                    session.putSummary(summary);
                 }
             }
         }

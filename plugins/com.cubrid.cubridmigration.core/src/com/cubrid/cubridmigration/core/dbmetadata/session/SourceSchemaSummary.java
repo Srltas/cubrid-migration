@@ -17,6 +17,7 @@ public class SourceSchemaSummary {
     private final String schemaName;
     private boolean selected;
     private LoadState loadState;
+    private boolean grantorSchema;
 
     public SourceSchemaSummary(String schemaName) {
         this(schemaName, false, LoadState.NOT_LOADED);
@@ -48,6 +49,14 @@ public class SourceSchemaSummary {
         this.loadState = loadState;
     }
 
+    public boolean isGrantorSchema() {
+        return grantorSchema;
+    }
+
+    public void setGrantorSchema(boolean grantorSchema) {
+        this.grantorSchema = grantorSchema;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -75,6 +84,8 @@ public class SourceSchemaSummary {
                 + selected
                 + ", loadState="
                 + loadState
+                + ", grantorSchema="
+                + grantorSchema
                 + '}';
     }
 }
