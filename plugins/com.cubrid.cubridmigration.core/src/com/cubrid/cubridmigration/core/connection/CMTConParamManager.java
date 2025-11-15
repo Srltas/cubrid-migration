@@ -37,6 +37,7 @@ import com.cubrid.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.common.CipherUtils;
 import com.cubrid.cubridmigration.core.common.xml.IXMLMemento;
 import com.cubrid.cubridmigration.core.common.xml.XMLMemento;
+import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogCacheManager;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 
@@ -236,7 +237,9 @@ public final class CMTConParamManager implements IJDBCInfoChangedSubject {
             return;
         }
         ConnParameters oldCP = cp.clone();
+        CatalogCacheManager.getInstance().invalidate(oldCP);
         cp.copy(newcp);
+        CatalogCacheManager.getInstance().invalidate(cp);
         save2File();
         if (silence) {
             return;
@@ -261,7 +264,13 @@ public final class CMTConParamManager implements IJDBCInfoChangedSubject {
         if (cp == null) {
             return;
         }
+        if (catalog == null) {
+            catalogs.remove(cp);
+            CatalogCacheManager.getInstance().invalidate(cp);
+            return;
+        }
         catalogs.put(cp, catalog);
+        CatalogCacheManager.getInstance().storeLegacyCatalog(cp, catalog);
     }
 
     /**
@@ -275,7 +284,16 @@ public final class CMTConParamManager implements IJDBCInfoChangedSubject {
         if (cp == null) {
             return null;
         }
-        return catalogs.get(cp);
+        Catalog catalog = catalogs.get(cp);
+        if (catalog != null) {
+            return catalog;
+        }
+        Catalog cached = CatalogCacheManager.getInstance().getLegacyCatalog(cp);
+        if (cached != null) {
+            catalogs.put(cp, cached);
+            return cached;
+        }
+        return null;
     }
 
     /**
@@ -332,6 +350,7 @@ public final class CMTConParamManager implements IJDBCInfoChangedSubject {
             if (cp.getConName().equals(conName)) {
                 connections.remove(cp);
                 catalogs.remove(cp);
+                CatalogCacheManager.getInstance().invalidate(cp);
                 save2File();
                 if (silence) {
                     return;
