@@ -31,12 +31,14 @@
 package com.cubrid.cubridmigration.ui.wizard;
 
 import com.cubrid.common.log.LogUtil;
+import com.cubrid.cubridmigration.core.dbmetadata.session.SourceMetadataSession;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.template.reader.MigrationTemplateReader;
 import com.cubrid.cubridmigration.core.engine.template.writer.MigrationTemplateWriter;
 import com.cubrid.cubridmigration.cubrid.CUBRIDTimeUtil;
+import com.cubrid.cubridmigration.ui.database.provider.SourceMetadataProvider;
 import com.cubrid.cubridmigration.ui.common.UICommonTool;
 import com.cubrid.cubridmigration.ui.common.navigator.event.CubridNodeManager;
 import com.cubrid.cubridmigration.ui.common.navigator.node.DatabaseNode;
@@ -132,6 +134,9 @@ public class MigrationWizard extends Wizard implements IMigrationWizardStatus {
     protected Catalog originalSourceCatalog;
     protected Catalog targetCatalog;
 
+    protected SourceMetadataSession sourceMetadataSession;
+    protected SourceMetadataProvider sourceMetadataProvider;
+
     protected DatabaseNode sourceDBNode;
 
     private boolean saveSchema;
@@ -146,6 +151,7 @@ public class MigrationWizard extends Wizard implements IMigrationWizardStatus {
         migrationConfig = new MigrationConfiguration();
         migrationConfig.setWizardStartDateTime(
                 CUBRIDTimeUtil.wizardStarDateTimeFormat(new Date(System.currentTimeMillis())));
+        sourceMetadataSession = new SourceMetadataSession();
     }
 
     public MigrationWizard(MigrationScript migrationScript) {
@@ -336,6 +342,29 @@ public class MigrationWizard extends Wizard implements IMigrationWizardStatus {
      */
     public Catalog getTargetCatalog() {
         return targetCatalog;
+    }
+
+    public SourceMetadataSession getSourceMetadataSession() {
+        if (sourceMetadataSession == null) {
+            sourceMetadataSession = new SourceMetadataSession();
+        }
+        return sourceMetadataSession;
+    }
+
+    public void setSourceMetadataSession(SourceMetadataSession sourceMetadataSession) {
+        if (sourceMetadataSession == null) {
+            this.sourceMetadataSession = new SourceMetadataSession();
+        } else {
+            this.sourceMetadataSession = sourceMetadataSession;
+        }
+    }
+
+    public SourceMetadataProvider getSourceMetadataProvider() {
+        return sourceMetadataProvider;
+    }
+
+    public void setSourceMetadataProvider(SourceMetadataProvider sourceMetadataProvider) {
+        this.sourceMetadataProvider = sourceMetadataProvider;
     }
 
     public boolean isLoadMigrationScript() {
