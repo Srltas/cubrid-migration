@@ -28,8 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
- * JDBC-based implementation of {@link SourceMetadataProvider}. The concrete loading logic will be
- * provided in later phases once the wizard consumes the new lazy-loading infrastructure.
+ * JDBC-based implementation of {@link SourceMetadataProvider} that can list schemas and load
+ * filtered schema fragments for the wizard's lazy-loading workflow.
  */
 public class JdbcSourceMetadataProvider implements SourceMetadataProvider {
 

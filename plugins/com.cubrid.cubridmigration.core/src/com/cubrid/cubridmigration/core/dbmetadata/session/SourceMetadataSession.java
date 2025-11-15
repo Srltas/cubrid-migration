@@ -65,10 +65,6 @@ public class SourceMetadataSession {
         return Collections.unmodifiableCollection(summaries.values());
     }
 
-    public Map<String, SourceSchemaSummary> getSummaryMap() {
-        return Collections.unmodifiableMap(summaries);
-    }
-
     public void putFragment(String schemaName, Catalog catalog) {
         if (schemaName == null || catalog == null) {
             return;
