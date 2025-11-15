@@ -33,6 +33,7 @@ package com.cubrid.cubridmigration.ui.database;
 import com.cubrid.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.dbmetadata.DBSchemaInfoFetcherFactory;
+import com.cubrid.cubridmigration.core.dbmetadata.IBuildSchemaFilter;
 import com.cubrid.cubridmigration.core.dbmetadata.IDBSchemaInfoFetcher;
 import com.cubrid.cubridmigration.core.dbmetadata.IDBSource;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
@@ -64,6 +65,7 @@ public class SchemaFetcherWithProgress implements IRunnableWithProgress {
     protected boolean isFinished;
     protected Exception exception;
     protected String errorMessage;
+    protected IBuildSchemaFilter filter;
 
     protected SchemaFetcherWithProgress() {
         //
@@ -137,7 +139,7 @@ public class SchemaFetcherWithProgress implements IRunnableWithProgress {
                 new Thread("Cancel progress") {
                     public void run() {
                         try {
-                            catalog = fetcher.fetchSchema(dbSource, null);
+                            catalog = fetcher.fetchSchema(dbSource, filter);
                         } catch (Exception ex) {
                             exception = ex;
                             LOG.error("", ex);
@@ -189,6 +191,10 @@ public class SchemaFetcherWithProgress implements IRunnableWithProgress {
         this.dbSource = ds;
     }
 
+    protected void setFilter(IBuildSchemaFilter filter) {
+        this.filter = filter;
+    }
+
     public String getErrorMessage() {
         return errorMessage;
     }
@@ -204,8 +210,14 @@ public class SchemaFetcherWithProgress implements IRunnableWithProgress {
      * @return SchemaFetcherWithProgress
      */
     public static SchemaFetcherWithProgress getInstance(IDBSource ds) {
+        return getInstance(ds, null);
+    }
+
+    public static SchemaFetcherWithProgress getInstance(
+            IDBSource ds, IBuildSchemaFilter filter) {
         SchemaFetcherWithProgress runnable = new SchemaFetcherWithProgress();
         runnable.setDBSource(ds);
+        runnable.setFilter(filter);
         return runnable;
     }
 
@@ -217,8 +229,13 @@ public class SchemaFetcherWithProgress implements IRunnableWithProgress {
      * @return Catalog
      */
     public static Catalog fetch(IDBSource ds) {
+        return fetch(ds, null);
+    }
+
+    public static Catalog fetch(IDBSource ds, IBuildSchemaFilter filter) {
         SchemaFetcherWithProgress runnable = new SchemaFetcherWithProgress();
         runnable.setDBSource(ds);
+        runnable.setFilter(filter);
         Catalog catalog = runnable.fetch();
         if (catalog == null && runnable.exception != null) {
             runnable.openErrorDialog(runnable.errorMessage, runnable.exception.getMessage());

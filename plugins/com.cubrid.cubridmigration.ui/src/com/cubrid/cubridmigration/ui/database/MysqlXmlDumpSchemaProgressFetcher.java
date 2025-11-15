@@ -136,7 +136,7 @@ public class MysqlXmlDumpSchemaProgressFetcher extends SchemaFetcherWithProgress
                         try {
                             MysqlXmlDumpSource tempDs = ((MysqlXmlDumpSource) dbSource).clone();
                             tempDs.setEvent(readerEvent);
-                            catalog = fetcher.fetchSchema(tempDs, null);
+                            catalog = fetcher.fetchSchema(tempDs, filter);
                         } catch (Exception ex) {
                             exception = ex;
                         } finally {

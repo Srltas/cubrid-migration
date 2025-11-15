@@ -34,6 +34,7 @@ import com.cubrid.common.log.LogUtil;
 import com.cubrid.common.ui.swt.table.TableViewerBuilder;
 import com.cubrid.cubridmigration.core.connection.CMTConParamManager;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
+import com.cubrid.cubridmigration.core.dbmetadata.IBuildSchemaFilter;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 import com.cubrid.cubridmigration.ui.MigrationUIPlugin;
@@ -688,8 +689,12 @@ public class JDBCConnectionMgrView {
      * @param cp connection parameters.
      */
     private void updateConParamCatalog(ConnParameters cp) {
+        updateConParamCatalog(cp, null);
+    }
+
+    private void updateConParamCatalog(ConnParameters cp, IBuildSchemaFilter filter) {
         final CMTConParamManager cpm = CMTConParamManager.getInstance();
-        SchemaFetcherWithProgress fetcher = SchemaFetcherWithProgress.getInstance(cp);
+        SchemaFetcherWithProgress fetcher = SchemaFetcherWithProgress.getInstance(cp, filter);
         Catalog catalog = fetcher.fetch();
 
         // If fetch catalog successfully, update cache and return.
