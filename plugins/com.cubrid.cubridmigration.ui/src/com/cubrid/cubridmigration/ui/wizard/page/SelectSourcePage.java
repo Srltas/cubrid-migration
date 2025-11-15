@@ -33,6 +33,9 @@ package com.cubrid.cubridmigration.ui.wizard.page;
 import com.cubrid.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.common.TimeZoneUtils;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
+import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogHeader;
+import com.cubrid.cubridmigration.core.dbmetadata.session.SourceMetadataSession;
+import com.cubrid.cubridmigration.core.dbmetadata.session.SourceSchemaSummary;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Grant;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
@@ -47,6 +50,7 @@ import com.cubrid.cubridmigration.ui.database.DatabaseConnectionInfo;
 import com.cubrid.cubridmigration.ui.database.IJDBCConnectionFilter;
 import com.cubrid.cubridmigration.ui.database.JDBCConnectionMgrView;
 import com.cubrid.cubridmigration.ui.database.MysqlXmlDumpSchemaProgressFetcher;
+import com.cubrid.cubridmigration.ui.database.provider.SourceMetadataProvider;
 import com.cubrid.cubridmigration.ui.message.Messages;
 import com.cubrid.cubridmigration.ui.wizard.MigrationWizard;
 import com.cubrid.cubridmigration.ui.wizard.dialog.RenameSchemaDialog;
@@ -536,6 +540,8 @@ public class SelectSourcePage extends MigrationWizardPage {
                 return false;
             }
 
+            refreshMetadataSession(wzd, catalog);
+
             if (catalog.getDatabaseType().getID() == 1) {
                 removeEmptySchema(catalog);
             }
@@ -592,6 +598,60 @@ public class SelectSourcePage extends MigrationWizardPage {
                 }
             }
             return true;
+        }
+
+        private void refreshMetadataSession(MigrationWizard wizard, Catalog catalog) {
+            SourceMetadataSession session = wizard.getSourceMetadataSession();
+            if (session == null) {
+                session = new SourceMetadataSession();
+                wizard.setSourceMetadataSession(session);
+            }
+
+            ConnParameters connParameters = catalog.getConnectionParameters();
+            session.reset(connParameters);
+
+            SourceMetadataProvider provider = wizard.getSourceMetadataProvider();
+            boolean headerAssigned = false;
+            if (provider != null && connParameters != null) {
+                try {
+                    CatalogHeader header = provider.loadHeader(connParameters);
+                    if (header != null) {
+                        session.setHeader(header);
+                        headerAssigned = true;
+                    }
+                } catch (UnsupportedOperationException ex) {
+                    LOG.debug("Source metadata provider header loading not yet available", ex);
+                } catch (Exception ex) {
+                    LOG.warn("Failed to load catalog header through source metadata provider", ex);
+                }
+
+                try {
+                    List<SourceSchemaSummary> summaries = provider.listSchemas(session);
+                    if (summaries != null) {
+                        for (SourceSchemaSummary summary : summaries) {
+                            session.putSummary(summary);
+                        }
+                    }
+                } catch (UnsupportedOperationException ex) {
+                    LOG.debug("Source metadata provider schema listing not yet available", ex);
+                } catch (Exception ex) {
+                    LOG.warn("Failed to enumerate schemas through source metadata provider", ex);
+                }
+            }
+
+            if (!headerAssigned) {
+                String version = catalog.getVersion() == null ? null : catalog.getVersion().toString();
+                String timeZone = catalog.getAdditionalInfo().get(Catalog.KEY_DB_TIMEZONE);
+                session.setHeader(new CatalogHeader(catalog.getName(), version, timeZone));
+            }
+
+            if (session.getSummaries().isEmpty()) {
+                for (Schema schema : catalog.getSchemas()) {
+                    SourceSchemaSummary summary = new SourceSchemaSummary(schema.getName());
+                    summary.setGrantorSchema(schema.isGrantorSchema());
+                    session.putSummary(summary);
+                }
+            }
         }
 
         /**

@@ -31,7 +31,9 @@
 package com.cubrid.cubridmigration.core.dbmetadata;
 
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
+import com.cubrid.cubridmigration.core.dbmetadata.AbstractJDBCSchemaFetcher;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
+import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 import com.cubrid.cubridmigration.mysql.MysqlXmlDumpSource;
 import com.cubrid.cubridmigration.mysql.meta.MYSQLXMLSchemaFether;
 
@@ -72,5 +74,22 @@ public final class DBSchemaInfoFetcherFactory {
             return new MYSQLXMLSchemaFether();
         }
         return NA_FETCHER;
+    }
+
+    /**
+     * Return JDBC schema fetcher for the given connection parameters.
+     *
+     * @param cp ConnParameters
+     * @return JDBC schema fetcher or null when database type is unknown
+     */
+    public static AbstractJDBCSchemaFetcher getJdbcFetcher(ConnParameters cp) {
+        if (cp == null) {
+            throw new IllegalArgumentException("ConnParameters must not be null");
+        }
+        DatabaseType dt = cp.getDatabaseType();
+        if (dt == null) {
+            return null;
+        }
+        return dt.getMetaDataBuilder();
     }
 }
