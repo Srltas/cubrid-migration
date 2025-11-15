@@ -34,15 +34,21 @@ import com.cubrid.common.log.LogUtil;
 import com.cubrid.common.ui.swt.table.celleditor.CheckboxCellEditorFactory;
 import com.cubrid.common.ui.swt.table.celleditor.EditableComboBoxCellEditor;
 import com.cubrid.common.ui.swt.table.listener.CheckBoxColumnSelectionListener;
+import com.cubrid.cubridmigration.core.dbmetadata.session.SourceMetadataSession;
+import com.cubrid.cubridmigration.core.dbmetadata.session.SourceSchemaSummary;
+import com.cubrid.cubridmigration.core.dbmetadata.session.SourceSchemaSummary.LoadState;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Grant;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
+import com.cubrid.cubridmigration.ui.database.provider.CatalogAssembler;
+import com.cubrid.cubridmigration.ui.database.provider.SourceMetadataProvider;
 import com.cubrid.cubridmigration.ui.common.CompositeUtils;
 import com.cubrid.cubridmigration.ui.common.dialog.DetailMessageDialog;
 import com.cubrid.cubridmigration.ui.message.Messages;
 import com.cubrid.cubridmigration.ui.wizard.MigrationWizard;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.PageChangedEvent;
@@ -84,6 +90,10 @@ public class SchemaMappingPage extends MigrationWizardPage {
 
     private MigrationWizard wizard = null;
     private MigrationConfiguration config = null;
+
+    private SourceMetadataSession metadataSession;
+    private SourceMetadataProvider metadataProvider;
+    private final CatalogAssembler catalogAssembler = new CatalogAssembler();
 
     private String[] propertyList = {
         "",
@@ -345,35 +355,46 @@ public class SchemaMappingPage extends MigrationWizardPage {
         col6.setText(propertyList[5]);
     }
 
-    private void getSchemaValues() {
-        Catalog targetCatalog = wizard.getTargetCatalog();
-        Catalog sourceCatalog = wizard.getOriginalSourceCatalog();
+    private void updateTargetSchemaCandidates() {
+        tarCatalog = wizard.getTargetCatalog();
+        if (tarCatalog == null) {
+            tarSchemaNameArray = new String[0];
+            return;
+        }
 
-        List<Schema> targetSchemaList = targetCatalog.getSchemas();
-        List<Schema> sourceSchemaList = sourceCatalog.getSchemas();
+        List<Schema> targetSchemaList = tarCatalog.getSchemas();
 
         tarSchemaNameList = new ArrayList<String>();
         ArrayList<String> dropDownSchemaList = new ArrayList<String>();
 
-        for (Schema schema : targetSchemaList) {
-            tarSchemaNameList.add(schema.getName());
-            dropDownSchemaList.add(schema.getName());
+        if (targetSchemaList != null) {
+            for (Schema schema : targetSchemaList) {
+                if (schema == null || schema.getName() == null) {
+                    continue;
+                }
+                tarSchemaNameList.add(schema.getName().toUpperCase(Locale.US));
+                dropDownSchemaList.add(schema.getName());
+            }
         }
 
-        for (Schema schema : sourceSchemaList) {
-            if (tarSchemaNameList.contains(schema.getName().toUpperCase())) {
+        for (SrcTable srcTable : srcTableList) {
+            String schemaName = srcTable.getSrcSchema();
+            if (schemaName == null) {
                 continue;
             }
-
-            dropDownSchemaList.add(schema.getName());
+            String upper = schemaName.toUpperCase(Locale.US);
+            if (!tarSchemaNameList.contains(upper)) {
+                dropDownSchemaList.add(schemaName);
+            }
         }
 
-        if (targetCatalog.isDBAGroup()) {
-            tarSchemaNameArray = dropDownSchemaList.toArray(new String[] {});
-
-        } else {
+        if (tarCatalog.isDBAGroup()) {
+            tarSchemaNameArray = dropDownSchemaList.toArray(new String[0]);
+        } else if (tarCatalog.getConnectionParameters() != null) {
             tarSchemaNameArray =
-                    new String[] {targetCatalog.getConnectionParameters().getConUser()};
+                    new String[] {tarCatalog.getConnectionParameters().getConUser()};
+        } else {
+            tarSchemaNameArray = new String[0];
         }
     }
 
@@ -591,12 +612,81 @@ public class SchemaMappingPage extends MigrationWizardPage {
     }
 
     private void setOnlineSchemaMappingPage() {
-        setOnlineData();
-        getSchemaValues();
+        boolean sessionPopulated = populateSessionOnlineData();
+        if (!sessionPopulated) {
+            populateLegacyOnlineData();
+        }
+        updateTargetSchemaCandidates();
         setOnlineEditor();
     }
 
-    private void setOnlineData() {
+    private boolean populateSessionOnlineData() {
+        metadataSession = wizard.getSourceMetadataSession();
+        metadataProvider = wizard.getSourceMetadataProvider();
+        if (metadataSession == null || metadataSession.getSummaries().isEmpty()) {
+            return false;
+        }
+
+        tarCatalog = wizard.getTargetCatalog();
+        srcCatalog = null;
+
+        Map<String, Schema> scriptSchemaMap = config.getScriptSchemaMapping();
+        String srcDbTypeName =
+                config.getSourceDBType() == null
+                        ? ""
+                        : config.getSourceDBType().getName();
+        String tarDbTypeName =
+                tarCatalog == null || tarCatalog.getDatabaseType() == null
+                        ? ""
+                        : tarCatalog.getDatabaseType().getName();
+
+        for (SourceSchemaSummary summary : metadataSession.getSummaries()) {
+            SrcTable srcTable = new SrcTable();
+            srcTable.setSrcSchema(summary.getSchemaName());
+            srcTable.setSrcDBType(srcDbTypeName);
+            srcTable.setNote(summary.isGrantorSchema());
+            srcTable.setTarDBType(tarDbTypeName);
+            srcTable.setSelected(summary.isSelected());
+
+            if (!summary.isGrantorSchema()) {
+                srcTableList.add(0, srcTable);
+            } else {
+                srcTableList.add(srcTable);
+            }
+
+            Schema scriptSchema = scriptSchemaMap.get(srcTable.getSrcSchema());
+            String targetSchemaName = null;
+            if (scriptSchema != null) {
+                targetSchemaName = scriptSchema.getTargetSchemaName();
+                srcTable.setSelected(scriptSchema.isMigration());
+            }
+
+            if (StringUtils.isBlank(targetSchemaName)) {
+                targetSchemaName = srcTable.getSrcSchema();
+                if (tarCatalog != null && tarCatalog.getVersion() != null) {
+                    int version =
+                            tarCatalog.getVersion().getDbMajorVersion() * 10
+                                    + tarCatalog.getVersion().getDbMinorVersion();
+                    if (!tarCatalog.isDBAGroup() || version < 112) {
+                        List<Schema> targetSchemas = tarCatalog.getSchemas();
+                        if (targetSchemas != null && !targetSchemas.isEmpty()) {
+                            targetSchemaName = targetSchemas.get(0).getName();
+                        }
+                    }
+                }
+            }
+
+            if (StringUtils.isBlank(targetSchemaName)) {
+                targetSchemaName = srcTable.getSrcSchema();
+            }
+
+            srcTable.setTarSchema(targetSchemaName.toUpperCase(Locale.US));
+            summary.setSelected(srcTable.isSelected());
+        }
+        return !srcTableList.isEmpty();
+    }
+
+    private void populateLegacyOnlineData() {
         srcCatalog = wizard.getOriginalSourceCatalog().createCatalog();
         tarCatalog = wizard.getTargetCatalog();
 
@@ -683,20 +773,102 @@ public class SchemaMappingPage extends MigrationWizardPage {
             return;
         }
         if (isGotoNextPage(event)) {
-            Catalog originalSrcCatlog = wizard.getOriginalSourceCatalog();
-            if (originalSrcCatlog.getSchemas().size() != srcCatalog.getSchemas().size()) {
-                srcCatalog.getSchemas().clear();
-                srcCatalog.setSchemas(originalSrcCatlog.getSchemas());
-            }
             if (config.targetIsOnline()) {
                 event.doit = saveOnlineData();
             } else {
+                Catalog originalSrcCatlog = wizard.getOriginalSourceCatalog();
+                if (originalSrcCatlog != null && srcCatalog != null) {
+                    if (originalSrcCatlog.getSchemas().size() != srcCatalog.getSchemas().size()) {
+                        srcCatalog.getSchemas().clear();
+                        srcCatalog.setSchemas(originalSrcCatlog.getSchemas());
+                    }
+                }
                 event.doit = saveOfflineData(config.isAddUserSchema(), config.isSplitSchema());
             }
         }
     }
 
     private boolean saveOnlineData() {
+        if (metadataSession == null
+                || metadataProvider == null
+                || metadataSession.getSummaries().isEmpty()) {
+            srcCatalog = wizard.getOriginalSourceCatalog().createCatalog();
+            return saveOnlineDataLegacy();
+        }
+
+        if (!isSelectCheckbox()) {
+            MessageDialog.openError(
+                    getShell(), Messages.msgError, Messages.msgErrEmptySchemaCheckbox);
+            return false;
+        }
+
+        List<String> selectedSchemas = new ArrayList<String>();
+        List<String> toLoad = new ArrayList<String>();
+        for (SrcTable srcTable : srcTableList) {
+            SourceSchemaSummary summary =
+                    metadataSession.getSummary(srcTable.getSrcSchema());
+            if (summary != null) {
+                summary.setSelected(srcTable.isSelected());
+            }
+            if (srcTable.isSelected()) {
+                selectedSchemas.add(srcTable.getSrcSchema());
+                if (summary != null && summary.getLoadState() != LoadState.LOADED) {
+                    summary.setLoadState(LoadState.LOADING);
+                    toLoad.add(srcTable.getSrcSchema());
+                }
+            }
+        }
+
+        if (selectedSchemas.isEmpty()) {
+            MessageDialog.openError(
+                    getShell(), Messages.msgError, Messages.msgErrEmptySchemaCheckbox);
+            return false;
+        }
+
+        if (!toLoad.isEmpty()) {
+            try {
+                metadataProvider.loadSchemaDetails(
+                        metadataSession, toLoad, new NullProgressMonitor());
+                for (String schemaName : toLoad) {
+                    SourceSchemaSummary summary = metadataSession.getSummary(schemaName);
+                    if (summary != null) {
+                        summary.setLoadState(LoadState.LOADED);
+                    }
+                }
+            } catch (RuntimeException ex) {
+                for (String schemaName : toLoad) {
+                    SourceSchemaSummary summary = metadataSession.getSummary(schemaName);
+                    if (summary != null) {
+                        summary.setLoadState(LoadState.FAILED);
+                    }
+                }
+                logger.error("Failed to load schema details", ex);
+                MessageDialog.openError(
+                        getShell(), Messages.msgError, Messages.errMsgLoadSchemaFailed);
+                return false;
+            }
+        }
+
+        try {
+            srcCatalog = catalogAssembler.buildCatalog(metadataSession, selectedSchemas);
+        } catch (RuntimeException ex) {
+            logger.error("Failed to assemble catalog from session fragments", ex);
+            MessageDialog.openError(
+                    getShell(), Messages.msgError, Messages.errMsgLoadSchemaFailed);
+            return false;
+        }
+
+        if (srcCatalog == null || srcCatalog.getSchemas().isEmpty()) {
+            MessageDialog.openError(
+                    getShell(), Messages.msgError, Messages.msgErrEmptySchemaCheckbox);
+            return false;
+        }
+
+        tarCatalog = wizard.getTargetCatalog();
+        return saveOnlineDataLegacy();
+    }
+
+    private boolean saveOnlineDataLegacy() {
         if (!isSelectCheckbox()) {
             MessageDialog.openError(
                     getShell(), Messages.msgError, Messages.msgErrEmptySchemaCheckbox);
