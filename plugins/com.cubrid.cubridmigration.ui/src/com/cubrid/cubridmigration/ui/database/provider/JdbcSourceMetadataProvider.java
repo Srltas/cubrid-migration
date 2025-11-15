@@ -3,6 +3,7 @@ package com.cubrid.cubridmigration.ui.database.provider;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.dbmetadata.IBuildSchemaFilter;
 import com.cubrid.cubridmigration.core.dbmetadata.JDBCDBSchemaFetcherFacade;
+import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogCacheManager;
 import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogHeader;
 import com.cubrid.cubridmigration.core.dbmetadata.session.SourceMetadataSession;
 import com.cubrid.cubridmigration.core.dbmetadata.session.SourceSchemaSummary;
@@ -94,6 +95,9 @@ public class JdbcSourceMetadataProvider implements SourceMetadataProvider {
             return catalog;
         }
 
+        CatalogCacheManager cacheManager = CatalogCacheManager.getInstance();
+        ConnParameters connParameters = session.getConnParameters();
+
         for (Schema schema : new ArrayList<Schema>(schemas)) {
             if (schema == null || !filter.accepts(schema.getName())) {
                 continue;
@@ -102,11 +106,18 @@ public class JdbcSourceMetadataProvider implements SourceMetadataProvider {
             fragment.getSchemas().clear();
             fragment.addSchema(cloneSchema(schema));
             session.putFragment(schema.getName(), fragment);
+            if (connParameters != null) {
+                cacheManager.storeFragment(connParameters, schema.getName(), fragment);
+            }
             SourceSchemaSummary summary = session.getSummary(schema.getName());
             if (summary != null) {
                 summary.setLoadState(LoadState.LOADED);
                 summary.setGrantorSchema(schema.isGrantorSchema());
             }
+        }
+
+        if (connParameters != null) {
+            cacheManager.storeSummaries(connParameters, session.getSummaries());
         }
 
         return catalog;

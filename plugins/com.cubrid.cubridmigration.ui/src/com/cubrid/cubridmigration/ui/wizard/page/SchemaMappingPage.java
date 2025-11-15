@@ -34,6 +34,7 @@ import com.cubrid.common.log.LogUtil;
 import com.cubrid.common.ui.swt.table.celleditor.CheckboxCellEditorFactory;
 import com.cubrid.common.ui.swt.table.celleditor.EditableComboBoxCellEditor;
 import com.cubrid.common.ui.swt.table.listener.CheckBoxColumnSelectionListener;
+import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogCacheManager;
 import com.cubrid.cubridmigration.core.dbmetadata.session.SourceMetadataSession;
 import com.cubrid.cubridmigration.core.dbmetadata.session.SourceSchemaSummary;
 import com.cubrid.cubridmigration.core.dbmetadata.session.SourceSchemaSummary.LoadState;
@@ -864,6 +865,11 @@ public class SchemaMappingPage extends MigrationWizardPage {
                         summary.setLoadState(LoadState.FAILED);
                     }
                 }
+                if (metadataSession != null && metadataSession.getConnParameters() != null) {
+                    CatalogCacheManager cacheManager = CatalogCacheManager.getInstance();
+                    cacheManager.storeSummaries(
+                            metadataSession.getConnParameters(), metadataSession.getSummaries());
+                }
                 logger.error("Failed to load schema details", ex);
                 MessageDialog.openError(
                         getShell(), Messages.msgError, Messages.errMsgLoadSchemaFailed);
@@ -884,6 +890,15 @@ public class SchemaMappingPage extends MigrationWizardPage {
             MessageDialog.openError(
                     getShell(), Messages.msgError, Messages.msgErrEmptySchemaCheckbox);
             return false;
+        }
+
+        if (metadataSession != null && metadataSession.getConnParameters() != null) {
+            CatalogCacheManager cacheManager = CatalogCacheManager.getInstance();
+            cacheManager.storeSummaries(metadataSession.getConnParameters(), metadataSession.getSummaries());
+            for (Map.Entry<String, Catalog> entry : metadataSession.getFragments().entrySet()) {
+                cacheManager.storeFragment(
+                        metadataSession.getConnParameters(), entry.getKey(), entry.getValue());
+            }
         }
 
         tarCatalog = wizard.getTargetCatalog();

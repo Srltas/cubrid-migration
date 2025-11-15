@@ -34,6 +34,7 @@ import com.cubrid.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.common.TimeZoneUtils;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogHeader;
+import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogCacheManager;
 import com.cubrid.cubridmigration.core.dbmetadata.session.SourceMetadataSession;
 import com.cubrid.cubridmigration.core.dbmetadata.session.SourceSchemaSummary;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
@@ -76,6 +77,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -610,8 +612,37 @@ public class SelectSourcePage extends MigrationWizardPage {
             ConnParameters connParameters = catalog.getConnectionParameters();
             session.reset(connParameters);
 
+            CatalogCacheManager cacheManager = CatalogCacheManager.getInstance();
             SourceMetadataProvider provider = wizard.getSourceMetadataProvider();
             boolean headerAssigned = false;
+
+            if (connParameters != null) {
+                CatalogHeader cachedHeader = cacheManager.getHeader(connParameters);
+                if (cachedHeader != null) {
+                    session.setHeader(cachedHeader);
+                    headerAssigned = true;
+                }
+                Collection<SourceSchemaSummary> cachedSummaries =
+                        cacheManager.getSummaries(connParameters);
+                for (SourceSchemaSummary cachedSummary : cachedSummaries) {
+                    session.putSummary(cachedSummary);
+                }
+                Map<String, Catalog> cachedFragments = cacheManager.getFragments(connParameters);
+                for (Map.Entry<String, Catalog> entry : cachedFragments.entrySet()) {
+                    session.putFragment(entry.getKey(), entry.getValue());
+                    SourceSchemaSummary summary = session.getSummary(entry.getKey());
+                    if (summary == null) {
+                        summary = new SourceSchemaSummary(entry.getKey());
+                        session.putSummary(summary);
+                    }
+                    summary.setLoadState(SourceSchemaSummary.LoadState.LOADED);
+                }
+                Catalog cachedLegacy = cacheManager.getLegacyCatalog(connParameters);
+                if (cachedLegacy != null) {
+                    session.setLegacyCatalog(cachedLegacy);
+                }
+            }
+
             if (provider != null && connParameters != null) {
                 try {
                     CatalogHeader header = provider.loadHeader(connParameters);
@@ -654,6 +685,12 @@ public class SelectSourcePage extends MigrationWizardPage {
             }
 
             session.setLegacyCatalog(catalog);
+
+            if (connParameters != null) {
+                cacheManager.storeHeader(connParameters, session.getHeader());
+                cacheManager.storeSummaries(connParameters, session.getSummaries());
+                cacheManager.storeLegacyCatalog(connParameters, catalog);
+            }
         }
 
         /**
