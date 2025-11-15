@@ -32,8 +32,12 @@ package com.cubrid.cubridmigration.core.dbmetadata;
 
 import com.cubrid.cubridmigration.core.common.Closer;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
+import com.cubrid.cubridmigration.core.dbmetadata.AbstractJDBCSchemaFetcher;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
+
+import java.util.Collections;
+import java.util.List;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -101,5 +105,22 @@ public class JDBCDBSchemaFetcherFacade implements IDBSchemaInfoFetcher {
             cancelRunable.run();
             cancelRunable = null;
         }
+    }
+
+    /**
+     * List available schema names for the given JDBC connection parameters.
+     *
+     * @param cp JDBC connection parameters
+     * @return schema name list, empty when builder is not available
+     */
+    public List<String> listSchemaNames(ConnParameters cp) {
+        if (cp == null) {
+            return Collections.emptyList();
+        }
+        AbstractJDBCSchemaFetcher builder = DBSchemaInfoFetcherFactory.getJdbcFetcher(cp);
+        if (builder == null) {
+            return Collections.emptyList();
+        }
+        return builder.getAllSchemaNames(cp);
     }
 }
