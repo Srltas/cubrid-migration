@@ -33,6 +33,7 @@ package com.cubrid.cubridmigration.ui.database;
 import com.cubrid.common.log.LogUtil;
 import com.cubrid.common.ui.swt.table.TableViewerBuilder;
 import com.cubrid.cubridmigration.core.connection.CMTConParamManager;
+import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogCacheManager;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
@@ -689,12 +690,14 @@ public class JDBCConnectionMgrView {
      */
     private void updateConParamCatalog(ConnParameters cp) {
         final CMTConParamManager cpm = CMTConParamManager.getInstance();
+        final CatalogCacheManager cacheManager = CatalogCacheManager.getInstance();
         SchemaFetcherWithProgress fetcher = SchemaFetcherWithProgress.getInstance(cp);
         Catalog catalog = fetcher.fetch();
 
         // If fetch catalog successfully, update cache and return.
         if (catalog != null) {
             cpm.updateCatalog(dbID, catalog);
+            cacheManager.storeLegacyCatalog(cp, catalog);
             return;
         }
         // Cache catalog for mapping
@@ -737,5 +740,6 @@ public class JDBCConnectionMgrView {
         }
         // Update cached catalog with old catalog.
         cpm.updateCatalog(dbID, oldCatalog);
+        cacheManager.storeLegacyCatalog(cp, oldCatalog);
     }
 }
