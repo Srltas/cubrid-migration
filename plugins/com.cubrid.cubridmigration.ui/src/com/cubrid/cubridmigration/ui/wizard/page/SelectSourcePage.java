@@ -531,20 +531,44 @@ public class SelectSourcePage extends MigrationWizardPage {
          * @return true if successfully
          */
         public boolean save() {
-            if (this.conMgrView.getSelectedDCI() == null) {
+            DatabaseConnectionInfo selectedDCI = this.conMgrView.getSelectedDCI();
+            if (selectedDCI == null) {
                 MessageDialog.openError(
                         getShell(), Messages.msgError, Messages.sourceDBPageErrNoSelectedItem);
                 return false;
             }
             final MigrationWizard wzd = getMigrationWizard();
-            Catalog catalog = getCatalog();
-            if (catalog == null) {
+            ConnParameters connParameters = selectedDCI.getConnParameters();
+            if (connParameters == null) {
+                MessageDialog.openError(
+                        getShell(), Messages.msgError, Messages.sourceDBPageErrNoSelectedItem);
                 return false;
             }
 
-            refreshMetadataSession(wzd, catalog);
+            refreshMetadataSession(wzd, null, connParameters);
 
-            if (catalog.getDatabaseType().getID() == 1) {
+            Catalog catalog = null;
+            SourceMetadataSession session = wzd.getSourceMetadataSession();
+            List<String> availableSchemas = collectSchemaNames(session);
+
+            if (availableSchemas.isEmpty()) {
+                catalog = getCatalog();
+                if (catalog == null) {
+                    return false;
+                }
+
+                refreshMetadataSession(wzd, catalog, connParameters);
+                session = wzd.getSourceMetadataSession();
+                availableSchemas = collectSchemaNames(session);
+
+                if (availableSchemas.isEmpty() && catalog.getSchemas() != null) {
+                    for (Schema schema : catalog.getSchemas()) {
+                        availableSchemas.add(schema.getName());
+                    }
+                }
+            }
+
+            if (catalog != null && catalog.getDatabaseType().getID() == 1) {
                 removeEmptySchema(catalog);
             }
 
@@ -552,20 +576,24 @@ public class SelectSourcePage extends MigrationWizardPage {
             Map<String, String> old2NewSchemaMapping = new HashMap<String, String>();
             MigrationConfiguration cfg = wzd.getMigrationConfig();
             cfg.resetSchemaInfo();
-            if (catalog.getDatabaseType().isSupportMultiSchema()
-                    && !cfg.getExpEntryTableCfg().isEmpty()) {
+            boolean supportMultiSchema = false;
+            if (catalog != null && catalog.getDatabaseType() != null) {
+                supportMultiSchema = catalog.getDatabaseType().isSupportMultiSchema();
+            } else if (connParameters.getDatabaseType() != null) {
+                supportMultiSchema = connParameters.getDatabaseType().isSupportMultiSchema();
+            }
+            if (supportMultiSchema && !cfg.getExpEntryTableCfg().isEmpty()) {
+                java.util.Set<String> availableSchemaSet = new java.util.HashSet<String>(availableSchemas);
                 List<String> expSchemas = cfg.getExpSchemaNames();
                 for (String schema : expSchemas) {
-                    if (catalog.getSchemaByName(schema) != null) {
+                    if (availableSchemaSet.contains(schema)) {
                         continue;
                     }
                     errorSchemas.add(schema);
                 }
                 if (!errorSchemas.isEmpty()) {
                     List<String> newSchemas = new ArrayList<String>();
-                    for (Schema newSchema : catalog.getSchemas()) {
-                        newSchemas.add(newSchema.getName());
-                    }
+                    newSchemas.addAll(availableSchemas);
                     old2NewSchemaMapping =
                             RenameSchemaDialog.renameSchemas(errorSchemas, newSchemas);
                     // Dialog canceled, user maybe want to choose another source.
@@ -576,20 +604,32 @@ public class SelectSourcePage extends MigrationWizardPage {
             }
 
             // create configuration name
+            CatalogHeader header = session == null ? null : session.getHeader();
             if (cfg.getName() == null) {
-                cfg.setName(
-                        catalog.getDatabaseType().getName(),
-                        catalog.getName(),
-                        cfg.getWizardStartDateTime());
+                String dbTypeName =
+                        catalog != null && catalog.getDatabaseType() != null
+                                ? catalog.getDatabaseType().getName()
+                                : connParameters.getDatabaseType() == null
+                                        ? ""
+                                        : connParameters.getDatabaseType().getName();
+                String dbName = null;
+                if (catalog != null && catalog.getName() != null) {
+                    dbName = catalog.getName();
+                } else if (header != null && header.getDatabaseName() != null) {
+                    dbName = header.getDatabaseName();
+                } else {
+                    dbName = connParameters.getDbName();
+                }
+                cfg.setName(dbTypeName, dbName, cfg.getWizardStartDateTime());
             }
 
-            if (isInputChanged() || wzd.getOriginalSourceCatalog() != catalog) {
+            if (isInputChanged() || (catalog != null && wzd.getOriginalSourceCatalog() != catalog)) {
                 // If it is a new migration, initialize the configuration
                 wzd.resetBySourceDBChanged();
                 cfg = wzd.getMigrationConfig();
             }
             wzd.setOriginalSourceCatalog(catalog);
-            cfg.setSourceConParams(catalog.getConnectionParameters());
+            cfg.setSourceConParams(connParameters);
             // Set the invalid schema to right schema or remove them.
             for (String es : errorSchemas) {
                 String newSchema = old2NewSchemaMapping.get(es);
@@ -602,14 +642,21 @@ public class SelectSourcePage extends MigrationWizardPage {
             return true;
         }
 
-        private void refreshMetadataSession(MigrationWizard wizard, Catalog catalog) {
+        private boolean refreshMetadataSession(
+                MigrationWizard wizard, Catalog catalog, ConnParameters connParameters) {
             SourceMetadataSession session = wizard.getSourceMetadataSession();
             if (session == null) {
                 session = new SourceMetadataSession();
                 wizard.setSourceMetadataSession(session);
             }
 
-            ConnParameters connParameters = catalog.getConnectionParameters();
+            if (connParameters == null && catalog != null) {
+                connParameters = catalog.getConnectionParameters();
+            }
+            if (connParameters == null) {
+                return false;
+            }
+
             session.reset(connParameters);
 
             CatalogCacheManager cacheManager = CatalogCacheManager.getInstance();
@@ -638,7 +685,7 @@ public class SelectSourcePage extends MigrationWizardPage {
                     summary.setLoadState(SourceSchemaSummary.LoadState.LOADED);
                 }
                 Catalog cachedLegacy = cacheManager.getLegacyCatalog(connParameters);
-                if (cachedLegacy != null) {
+                if (cachedLegacy != null && catalog == null) {
                     session.setLegacyCatalog(cachedLegacy);
                 }
             }
@@ -671,12 +718,19 @@ public class SelectSourcePage extends MigrationWizardPage {
             }
 
             if (!headerAssigned) {
-                String version = catalog.getVersion() == null ? null : catalog.getVersion().toString();
-                String timeZone = catalog.getAdditionalInfo().get(Catalog.KEY_DB_TIMEZONE);
-                session.setHeader(new CatalogHeader(catalog.getName(), version, timeZone));
+                if (catalog != null) {
+                    String version =
+                            catalog.getVersion() == null ? null : catalog.getVersion().toString();
+                    String timeZone = catalog.getAdditionalInfo().get(Catalog.KEY_DB_TIMEZONE);
+                    session.setHeader(new CatalogHeader(catalog.getName(), version, timeZone));
+                } else {
+                    session.setHeader(
+                            new CatalogHeader(
+                                    connParameters.getDbName(), null, connParameters.getTimeZone()));
+                }
             }
 
-            if (session.getSummaries().isEmpty()) {
+            if (session.getSummaries().isEmpty() && catalog != null) {
                 for (Schema schema : catalog.getSchemas()) {
                     SourceSchemaSummary summary = new SourceSchemaSummary(schema.getName());
                     summary.setGrantorSchema(schema.isGrantorSchema());
@@ -684,13 +738,36 @@ public class SelectSourcePage extends MigrationWizardPage {
                 }
             }
 
-            session.setLegacyCatalog(catalog);
+            if (catalog != null) {
+                session.setLegacyCatalog(catalog);
+            }
 
             if (connParameters != null) {
-                cacheManager.storeHeader(connParameters, session.getHeader());
-                cacheManager.storeSummaries(connParameters, session.getSummaries());
-                cacheManager.storeLegacyCatalog(connParameters, catalog);
+                if (session.getHeader() != null) {
+                    cacheManager.storeHeader(connParameters, session.getHeader());
+                }
+                if (!session.getSummaries().isEmpty()) {
+                    cacheManager.storeSummaries(connParameters, session.getSummaries());
+                }
+                if (catalog != null) {
+                    cacheManager.storeLegacyCatalog(connParameters, catalog);
+                }
             }
+
+            return true;
+        }
+
+        private List<String> collectSchemaNames(SourceMetadataSession session) {
+            List<String> schemaNames = new ArrayList<String>();
+            if (session == null) {
+                return schemaNames;
+            }
+            for (SourceSchemaSummary summary : session.getSummaries()) {
+                if (summary != null && summary.getSchemaName() != null) {
+                    schemaNames.add(summary.getSchemaName());
+                }
+            }
+            return schemaNames;
         }
 
         /**
