@@ -159,7 +159,7 @@ public class SchemaFetcherWithProgress implements IRunnableWithProgress {
      * @return Catalog
      */
     public Catalog fetch() {
-        return fetch(null);
+        return fetch((IBuildSchemaFilter) null);
     }
 
     /**
