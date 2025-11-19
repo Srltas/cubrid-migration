@@ -33,6 +33,7 @@ package com.cubrid.cubridmigration.ui.database;
 import com.cubrid.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
 import com.cubrid.cubridmigration.core.dbmetadata.DBSchemaInfoFetcherFactory;
+import com.cubrid.cubridmigration.core.dbmetadata.IBuildSchemaFilter;
 import com.cubrid.cubridmigration.core.dbmetadata.IDBSchemaInfoFetcher;
 import com.cubrid.cubridmigration.core.dbmetadata.IDBSource;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
@@ -64,6 +65,7 @@ public class SchemaFetcherWithProgress implements IRunnableWithProgress {
     protected boolean isFinished;
     protected Exception exception;
     protected String errorMessage;
+    private IBuildSchemaFilter activeFilter;
 
     protected SchemaFetcherWithProgress() {
         //
@@ -133,11 +135,12 @@ public class SchemaFetcherWithProgress implements IRunnableWithProgress {
     protected Thread startFetchingThread(
             final IDBSchemaInfoFetcher fetcher, final IProgressMonitor pm) {
         pm.beginTask(Messages.progressMetadata, IProgressMonitor.UNKNOWN);
+        final IBuildSchemaFilter filter = activeFilter;
         Thread thread =
                 new Thread("Cancel progress") {
                     public void run() {
                         try {
-                            catalog = fetcher.fetchSchema(dbSource, null);
+                            catalog = fetcher.fetchSchema(dbSource, filter);
                         } catch (Exception ex) {
                             exception = ex;
                             LOG.error("", ex);
@@ -156,7 +159,19 @@ public class SchemaFetcherWithProgress implements IRunnableWithProgress {
      * @return Catalog
      */
     public Catalog fetch() {
+        return fetch((IBuildSchemaFilter) null);
+    }
+
+    /**
+     * return catalog with progress dialog
+     *
+     * @param filter schema filter
+     * @return Catalog
+     */
+    public Catalog fetch(IBuildSchemaFilter filter) {
+        activeFilter = filter;
         CompositeUtils.runMethodInProgressBar(true, true, this);
+        activeFilter = null;
         return catalog;
     }
 

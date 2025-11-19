@@ -33,6 +33,10 @@ package com.cubrid.cubridmigration.ui.wizard.page;
 import com.cubrid.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.common.TimeZoneUtils;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
+import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogHeader;
+import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogCacheManager;
+import com.cubrid.cubridmigration.core.dbmetadata.session.SourceMetadataSession;
+import com.cubrid.cubridmigration.core.dbmetadata.session.SourceSchemaSummary;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Grant;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
@@ -47,6 +51,7 @@ import com.cubrid.cubridmigration.ui.database.DatabaseConnectionInfo;
 import com.cubrid.cubridmigration.ui.database.IJDBCConnectionFilter;
 import com.cubrid.cubridmigration.ui.database.JDBCConnectionMgrView;
 import com.cubrid.cubridmigration.ui.database.MysqlXmlDumpSchemaProgressFetcher;
+import com.cubrid.cubridmigration.ui.database.provider.SourceMetadataProvider;
 import com.cubrid.cubridmigration.ui.message.Messages;
 import com.cubrid.cubridmigration.ui.wizard.MigrationWizard;
 import com.cubrid.cubridmigration.ui.wizard.dialog.RenameSchemaDialog;
@@ -72,6 +77,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -525,18 +531,44 @@ public class SelectSourcePage extends MigrationWizardPage {
          * @return true if successfully
          */
         public boolean save() {
-            if (this.conMgrView.getSelectedDCI() == null) {
+            DatabaseConnectionInfo selectedDCI = this.conMgrView.getSelectedDCI();
+            if (selectedDCI == null) {
                 MessageDialog.openError(
                         getShell(), Messages.msgError, Messages.sourceDBPageErrNoSelectedItem);
                 return false;
             }
             final MigrationWizard wzd = getMigrationWizard();
-            Catalog catalog = getCatalog();
-            if (catalog == null) {
+            ConnParameters connParameters = selectedDCI.getConnParameters();
+            if (connParameters == null) {
+                MessageDialog.openError(
+                        getShell(), Messages.msgError, Messages.sourceDBPageErrNoSelectedItem);
                 return false;
             }
 
-            if (catalog.getDatabaseType().getID() == 1) {
+            refreshMetadataSession(wzd, null, connParameters);
+
+            Catalog catalog = null;
+            SourceMetadataSession session = wzd.getSourceMetadataSession();
+            List<String> availableSchemas = collectSchemaNames(session);
+
+            if (availableSchemas.isEmpty()) {
+                catalog = getCatalog();
+                if (catalog == null) {
+                    return false;
+                }
+
+                refreshMetadataSession(wzd, catalog, connParameters);
+                session = wzd.getSourceMetadataSession();
+                availableSchemas = collectSchemaNames(session);
+
+                if (availableSchemas.isEmpty() && catalog.getSchemas() != null) {
+                    for (Schema schema : catalog.getSchemas()) {
+                        availableSchemas.add(schema.getName());
+                    }
+                }
+            }
+
+            if (catalog != null && catalog.getDatabaseType().getID() == 1) {
                 removeEmptySchema(catalog);
             }
 
@@ -544,20 +576,24 @@ public class SelectSourcePage extends MigrationWizardPage {
             Map<String, String> old2NewSchemaMapping = new HashMap<String, String>();
             MigrationConfiguration cfg = wzd.getMigrationConfig();
             cfg.resetSchemaInfo();
-            if (catalog.getDatabaseType().isSupportMultiSchema()
-                    && !cfg.getExpEntryTableCfg().isEmpty()) {
+            boolean supportMultiSchema = false;
+            if (catalog != null && catalog.getDatabaseType() != null) {
+                supportMultiSchema = catalog.getDatabaseType().isSupportMultiSchema();
+            } else if (connParameters.getDatabaseType() != null) {
+                supportMultiSchema = connParameters.getDatabaseType().isSupportMultiSchema();
+            }
+            if (supportMultiSchema && !cfg.getExpEntryTableCfg().isEmpty()) {
+                java.util.Set<String> availableSchemaSet = new java.util.HashSet<String>(availableSchemas);
                 List<String> expSchemas = cfg.getExpSchemaNames();
                 for (String schema : expSchemas) {
-                    if (catalog.getSchemaByName(schema) != null) {
+                    if (availableSchemaSet.contains(schema)) {
                         continue;
                     }
                     errorSchemas.add(schema);
                 }
                 if (!errorSchemas.isEmpty()) {
                     List<String> newSchemas = new ArrayList<String>();
-                    for (Schema newSchema : catalog.getSchemas()) {
-                        newSchemas.add(newSchema.getName());
-                    }
+                    newSchemas.addAll(availableSchemas);
                     old2NewSchemaMapping =
                             RenameSchemaDialog.renameSchemas(errorSchemas, newSchemas);
                     // Dialog canceled, user maybe want to choose another source.
@@ -568,20 +604,32 @@ public class SelectSourcePage extends MigrationWizardPage {
             }
 
             // create configuration name
+            CatalogHeader header = session == null ? null : session.getHeader();
             if (cfg.getName() == null) {
-                cfg.setName(
-                        catalog.getDatabaseType().getName(),
-                        catalog.getName(),
-                        cfg.getWizardStartDateTime());
+                String dbTypeName =
+                        catalog != null && catalog.getDatabaseType() != null
+                                ? catalog.getDatabaseType().getName()
+                                : connParameters.getDatabaseType() == null
+                                        ? ""
+                                        : connParameters.getDatabaseType().getName();
+                String dbName = null;
+                if (catalog != null && catalog.getName() != null) {
+                    dbName = catalog.getName();
+                } else if (header != null && header.getDatabaseName() != null) {
+                    dbName = header.getDatabaseName();
+                } else {
+                    dbName = connParameters.getDbName();
+                }
+                cfg.setName(dbTypeName, dbName, cfg.getWizardStartDateTime());
             }
 
-            if (isInputChanged() || wzd.getOriginalSourceCatalog() != catalog) {
+            if (isInputChanged() || (catalog != null && wzd.getOriginalSourceCatalog() != catalog)) {
                 // If it is a new migration, initialize the configuration
                 wzd.resetBySourceDBChanged();
                 cfg = wzd.getMigrationConfig();
             }
             wzd.setOriginalSourceCatalog(catalog);
-            cfg.setSourceConParams(catalog.getConnectionParameters());
+            cfg.setSourceConParams(connParameters);
             // Set the invalid schema to right schema or remove them.
             for (String es : errorSchemas) {
                 String newSchema = old2NewSchemaMapping.get(es);
@@ -592,6 +640,134 @@ public class SelectSourcePage extends MigrationWizardPage {
                 }
             }
             return true;
+        }
+
+        private boolean refreshMetadataSession(
+                MigrationWizard wizard, Catalog catalog, ConnParameters connParameters) {
+            SourceMetadataSession session = wizard.getSourceMetadataSession();
+            if (session == null) {
+                session = new SourceMetadataSession();
+                wizard.setSourceMetadataSession(session);
+            }
+
+            if (connParameters == null && catalog != null) {
+                connParameters = catalog.getConnectionParameters();
+            }
+            if (connParameters == null) {
+                return false;
+            }
+
+            session.reset(connParameters);
+
+            CatalogCacheManager cacheManager = CatalogCacheManager.getInstance();
+            SourceMetadataProvider provider = wizard.getSourceMetadataProvider();
+            boolean headerAssigned = false;
+
+            if (connParameters != null) {
+                CatalogHeader cachedHeader = cacheManager.getHeader(connParameters);
+                if (cachedHeader != null) {
+                    session.setHeader(cachedHeader);
+                    headerAssigned = true;
+                }
+                Collection<SourceSchemaSummary> cachedSummaries =
+                        cacheManager.getSummaries(connParameters);
+                for (SourceSchemaSummary cachedSummary : cachedSummaries) {
+                    session.putSummary(cachedSummary);
+                }
+                Map<String, Catalog> cachedFragments = cacheManager.getFragments(connParameters);
+                for (Map.Entry<String, Catalog> entry : cachedFragments.entrySet()) {
+                    session.putFragment(entry.getKey(), entry.getValue());
+                    SourceSchemaSummary summary = session.getSummary(entry.getKey());
+                    if (summary == null) {
+                        summary = new SourceSchemaSummary(entry.getKey());
+                        session.putSummary(summary);
+                    }
+                    summary.setLoadState(SourceSchemaSummary.LoadState.LOADED);
+                }
+                Catalog cachedLegacy = cacheManager.getLegacyCatalog(connParameters);
+                if (cachedLegacy != null && catalog == null) {
+                    session.setLegacyCatalog(cachedLegacy);
+                }
+            }
+
+            if (provider != null && connParameters != null) {
+                try {
+                    CatalogHeader header = provider.loadHeader(connParameters);
+                    if (header != null) {
+                        session.setHeader(header);
+                        headerAssigned = true;
+                    }
+                } catch (UnsupportedOperationException ex) {
+                    LOG.debug("Source metadata provider header loading not yet available", ex);
+                } catch (Exception ex) {
+                    LOG.warn("Failed to load catalog header through source metadata provider", ex);
+                }
+
+                try {
+                    List<SourceSchemaSummary> summaries = provider.listSchemas(session);
+                    if (summaries != null) {
+                        for (SourceSchemaSummary summary : summaries) {
+                            session.putSummary(summary);
+                        }
+                    }
+                } catch (UnsupportedOperationException ex) {
+                    LOG.debug("Source metadata provider schema listing not yet available", ex);
+                } catch (Exception ex) {
+                    LOG.warn("Failed to enumerate schemas through source metadata provider", ex);
+                }
+            }
+
+            if (!headerAssigned) {
+                if (catalog != null) {
+                    String version =
+                            catalog.getVersion() == null ? null : catalog.getVersion().toString();
+                    String timeZone = catalog.getAdditionalInfo().get(Catalog.KEY_DB_TIMEZONE);
+                    session.setHeader(new CatalogHeader(catalog.getName(), version, timeZone));
+                } else {
+                    session.setHeader(
+                            new CatalogHeader(
+                                    connParameters.getDbName(), null, connParameters.getTimeZone()));
+                }
+            }
+
+            if (session.getSummaries().isEmpty() && catalog != null) {
+                for (Schema schema : catalog.getSchemas()) {
+                    SourceSchemaSummary summary = new SourceSchemaSummary(schema.getName());
+                    summary.setGrantorSchema(schema.isGrantorSchema());
+                    session.putSummary(summary);
+                }
+            }
+
+            if (catalog != null) {
+                session.setLegacyCatalog(catalog);
+            }
+
+            if (connParameters != null) {
+                if (session.getHeader() != null) {
+                    cacheManager.storeHeader(connParameters, session.getHeader());
+                }
+                if (!session.getSummaries().isEmpty()) {
+                    cacheManager.storeSummaries(connParameters, session.getSummaries());
+                }
+                if (catalog != null) {
+                    cacheManager.storeLegacyCatalog(connParameters, catalog);
+                }
+            }
+
+            return true;
+        }
+
+        private List<String> collectSchemaNames(SourceMetadataSession session) {
+            List<String> schemaNames = new ArrayList<String>();
+            if (session == null) {
+                return schemaNames;
+            }
+            for (SourceSchemaSummary summary : session.getSummaries()) {
+                if (summary != null && summary.getSchemaName() != null) {
+                    schemaNames.add(summary.getSchemaName());
+                }
+            }
+            return schemaNames;
         }
 
         /**

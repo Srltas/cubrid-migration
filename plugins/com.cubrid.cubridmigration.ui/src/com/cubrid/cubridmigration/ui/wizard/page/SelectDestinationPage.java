@@ -35,6 +35,7 @@ import com.cubrid.cubridmigration.core.common.CommonUtils;
 import com.cubrid.cubridmigration.core.common.PathUtils;
 import com.cubrid.cubridmigration.core.common.TimeZoneUtils;
 import com.cubrid.cubridmigration.core.connection.ConnParameters;
+import com.cubrid.cubridmigration.core.dbmetadata.session.CatalogHeader;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.ui.common.Status;
@@ -755,14 +756,22 @@ public class SelectDestinationPage extends MigrationWizardPage {
             MigrationConfiguration config = getMigrationWizard().getMigrationConfig();
 
             String dbName = "";
+            Catalog legacyCatalog = getMigrationWizard().getOriginalSourceCatalog();
+            CatalogHeader header = getMigrationWizard().getSourceMetadataSession().getHeader();
             if (config.sourceIsXMLDump()) {
-                dbName = getMigrationWizard().getOriginalSourceCatalog().getName();
+                if (legacyCatalog != null && legacyCatalog.getName() != null) {
+                    dbName = legacyCatalog.getName();
+                } else if (header != null && header.getDatabaseName() != null) {
+                    dbName = header.getDatabaseName();
+                }
             } else {
-                dbName =
-                        getMigrationWizard()
-                                .getOriginalSourceCatalog()
-                                .getConnectionParameters()
-                                .getDbName();
+                if (legacyCatalog != null
+                        && legacyCatalog.getConnectionParameters() != null
+                        && legacyCatalog.getConnectionParameters().getDbName() != null) {
+                    dbName = legacyCatalog.getConnectionParameters().getDbName();
+                } else if (header != null && header.getDatabaseName() != null) {
+                    dbName = header.getDatabaseName();
+                }
             }
 
             btnCSVSetting.setVisible(config.targetIsCSV());

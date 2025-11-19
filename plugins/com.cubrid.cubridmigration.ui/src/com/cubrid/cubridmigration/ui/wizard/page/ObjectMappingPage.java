@@ -162,6 +162,13 @@ public class ObjectMappingPage extends MigrationWizardPage implements IRefreshab
             Catalog sourceCatalog = mw.getSourceCatalog();
             Catalog targetCatalog = mw.getTargetCatalog();
 
+            if (sourceCatalog == null) {
+                LOG.error("Source catalog is null when entering ObjectMappingPage");
+                MessageDialog.openError(
+                        getShell(), Messages.msgError, Messages.errMsgLoadSchemaFailed);
+                return;
+            }
+
             final MigrationConfiguration cfg = mw.getMigrationConfig();
             if (cfg.sourceIsOnline() && !cfg.getSourceDBType().equals(DatabaseType.CUBRID)) {
                 MessageDialog.openInformation(
