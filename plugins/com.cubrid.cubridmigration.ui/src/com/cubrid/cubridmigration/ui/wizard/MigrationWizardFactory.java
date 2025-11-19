@@ -31,6 +31,7 @@
 package com.cubrid.cubridmigration.ui.wizard;
 
 import com.cubrid.cubridmigration.core.common.PathUtils;
+import com.cubrid.cubridmigration.core.dbmetadata.session.SourceMetadataSession;
 import com.cubrid.cubridmigration.core.engine.MigrationProcessManager;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
 import com.cubrid.cubridmigration.core.engine.config.SourceCSVConfig;
@@ -58,6 +59,8 @@ import com.cubrid.cubridmigration.ui.wizard.dialog.MigrationWizardDialog;
 import com.cubrid.cubridmigration.ui.wizard.editor.CSVProgressEditorPart;
 import com.cubrid.cubridmigration.ui.wizard.editor.MigrationProgressEditorPart;
 import com.cubrid.cubridmigration.ui.wizard.editor.SQLProgressEditorPart;
+import com.cubrid.cubridmigration.ui.database.provider.JdbcSourceMetadataProvider;
+import com.cubrid.cubridmigration.ui.database.provider.SourceMetadataProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -93,7 +96,8 @@ public final class MigrationWizardFactory {
         if (MigrationWizardFactory.migrationIsRunning()) {
             return;
         }
-        Wizard wizard = new MigrationWizard(script);
+        MigrationWizard wizard = new MigrationWizard(script);
+        configureMetadataSupport(wizard);
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
         MigrationWizardDialog dialog = new MigrationWizardDialog(shell, wizard);
         openWizardDlg(dialog);
@@ -119,7 +123,8 @@ public final class MigrationWizardFactory {
         if (MigrationWizardFactory.migrationIsRunning()) {
             return;
         }
-        Wizard wizard = new MigrationWizard(script);
+        MigrationWizard wizard = new MigrationWizard(script);
+        configureMetadataSupport(wizard);
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
         MigrationWizardDialog dialog = new MigrationWizardDialog(shell, wizard);
         openWizardDlg(dialog);
@@ -147,6 +152,7 @@ public final class MigrationWizardFactory {
         Shell activeShell = PlatformUI.getWorkbench().getDisplay().getActiveShell();
 
         MigrationWizard wizard = new MigrationWizard();
+        configureMetadataSupport(wizard);
 
         MigrationWizardDialog dialog = new MigrationWizardDialog(activeShell, wizard);
 
@@ -161,6 +167,7 @@ public final class MigrationWizardFactory {
         Shell activeShell = PlatformUI.getWorkbench().getDisplay().getActiveShell();
 
         MigrationWizard wizard = new MigrationWizard();
+        configureMetadataSupport(wizard);
         MigrationWizardDialog dialog = new MigrationWizardDialog(activeShell, wizard);
         openWizardDlg(dialog);
     }
@@ -172,9 +179,22 @@ public final class MigrationWizardFactory {
         }
         Shell activeShell = PlatformUI.getWorkbench().getDisplay().getActiveShell();
 
-        MigrationWizardDialog dialog =
-                new MigrationWizardDialog(activeShell, new MigrationWizard());
+        MigrationWizard wizard = new MigrationWizard();
+        configureMetadataSupport(wizard);
+        MigrationWizardDialog dialog = new MigrationWizardDialog(activeShell, wizard);
         openWizardDlg(dialog);
+    }
+
+    private static void configureMetadataSupport(MigrationWizard wizard) {
+        SourceMetadataSession session = wizard.getSourceMetadataSession();
+        if (session == null) {
+            session = new SourceMetadataSession();
+            wizard.setSourceMetadataSession(session);
+        }
+        SourceMetadataProvider provider = wizard.getSourceMetadataProvider();
+        if (provider == null) {
+            wizard.setSourceMetadataProvider(new JdbcSourceMetadataProvider());
+        }
     }
 
     /**
