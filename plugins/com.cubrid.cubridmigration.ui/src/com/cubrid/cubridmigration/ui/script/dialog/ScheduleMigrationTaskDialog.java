@@ -36,9 +36,6 @@ import com.cubrid.cubridmigration.ui.script.MigrationScript;
 import com.cubrid.cubridmigration.ui.script.MigrationScriptManager;
 import com.cubrid.cubridmigration.ui.script.MigrationScriptSchedulerManager;
 
-import it.sauronsoftware.cron4j.InvalidPatternException;
-import it.sauronsoftware.cron4j.Scheduler;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -192,10 +189,14 @@ public class ScheduleMigrationTaskDialog extends Dialog {
         }
         if (btnOnce.getSelection()) {
             String[] split = script.getCronPatten().split(" ");
-            txtOnce.setText(split[3] + "-" + split[2] + " " + split[1] + ":" + split[0]);
+            if (split.length >= 4) {
+                txtOnce.setText(split[3] + "-" + split[2] + " " + split[1] + ":" + split[0]);
+            }
         } else if (btnRepeat.getSelection()) {
             String[] split = script.getCronPatten().split(" ");
-            txtRepeat.setText(split[1] + ":" + split[0]);
+            if (split.length >= 2) {
+                txtRepeat.setText(split[1] + ":" + split[0]);
+            }
         } else if (btnAdvance.getSelection()) {
             txtAdvance.setText(script.getCronPatten());
         }
@@ -296,18 +297,17 @@ public class ScheduleMigrationTaskDialog extends Dialog {
                 }
             } else if (btnAdvance.getSelection()) {
                 try {
-                    Scheduler scheduler = new Scheduler();
                     String text = txtAdvance.getText().trim();
-                    scheduler.schedule(
-                            text,
-                            new Runnable() {
+                    // Basic validation for 5 parts
+                    String[] parts = text.split("\\s+");
+                    if (parts.length < 5) {
+                        throw new IllegalArgumentException("Invalid cron pattern");
+                    }
 
-                                public void run() {}
-                            });
                     script.setCronMode(2);
                     script.setCronPatten(text);
                     MigrationScriptSchedulerManager.addReservation(script);
-                } catch (InvalidPatternException ex) {
+                } catch (Exception ex) {
                     MessageDialog.openError(
                             getShell(), Messages.msgError, Messages.errMsgInvalidCronPatten);
                     txtAdvance.setFocus();
