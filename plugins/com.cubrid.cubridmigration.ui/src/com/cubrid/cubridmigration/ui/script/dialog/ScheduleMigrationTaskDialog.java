@@ -189,11 +189,13 @@ public class ScheduleMigrationTaskDialog extends Dialog {
         }
         if (btnOnce.getSelection()) {
             String[] split = script.getCronPatten().split(" ");
+            // Ensure pattern has enough parts (prevent IndexOutOfBoundsException)
             if (split.length >= 4) {
                 txtOnce.setText(split[3] + "-" + split[2] + " " + split[1] + ":" + split[0]);
             }
         } else if (btnRepeat.getSelection()) {
             String[] split = script.getCronPatten().split(" ");
+            // Ensure pattern has enough parts (prevent IndexOutOfBoundsException)
             if (split.length >= 2) {
                 txtRepeat.setText(split[1] + ":" + split[0]);
             }
