@@ -34,6 +34,7 @@ import com.cubrid.common.log.LogUtil;
 import com.cubrid.cubridmigration.command.CmdMigrationMonitor;
 import com.cubrid.cubridmigration.command.ConsoleCommandHandler;
 import com.cubrid.cubridmigration.command.ConsoleMigrationReporter;
+import com.cubrid.cubridmigration.command.ConsoleSourceSchemaBuilder;
 import com.cubrid.cubridmigration.command.ConsoleUtils;
 import com.cubrid.cubridmigration.command.DoMigration;
 import com.cubrid.cubridmigration.core.common.PathUtils;
@@ -117,7 +118,8 @@ public class StartCommandHandler implements ConsoleCommandHandler {
             if (migrateDataOnly) {
                 result = config.buildSourceSchemaForDataMigration();
             } else {
-                result = config.buildRequiredSourceSchema();
+                ConsoleSourceSchemaBuilder builder = new ConsoleSourceSchemaBuilder();
+                result = builder.build(config);
             }
         } catch (Exception ex) {
             outPrinter.println("Get schema information error:" + ex.getMessage());

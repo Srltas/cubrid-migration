@@ -176,4 +176,51 @@ public class JDBCDBSchemaFetcherFacade implements IDBSchemaInfoFetcher {
             cancelRunable = null;
         }
     }
+
+    /**
+     * get Catalog
+     *
+     * @param ds JDBC Connection parameters
+     * @param schemaNames List<String>
+     * @return Catalog
+     */
+    public Catalog fetchSchemas(IDBSource ds, List<String> schemaNames) {
+        if (cancelRunable != null) {
+            throw new RuntimeException("One fetching work is running.");
+        }
+        try {
+            ConnParameters cp = (ConnParameters) ds;
+            final Connection conn = cp.createConnection();
+            // Create cancel process
+            cancelRunable =
+                    new Runnable() {
+
+                        public void run() {
+                            try {
+                                conn.close();
+                            } catch (Exception ex) {
+                                // Do nothing
+                            }
+                        }
+                    };
+            try {
+                DatabaseType dt = cp.getDatabaseType();
+                AbstractJDBCSchemaFetcher builder = dt.getMetaDataBuilder();
+                Catalog catalog = builder.buildCatalog(conn, cp, schemaNames);
+
+                if (catalog.getCharset() == null) {
+                    catalog.setCharset(cp.getCharset());
+                } else {
+                    cp.setCharset(catalog.getCharset());
+                }
+                cp.setTimeZone(catalog.getTimezone());
+                return catalog;
+            } finally {
+                cancelRunable = null;
+                Closer.close(conn);
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 }

@@ -110,6 +110,42 @@ public abstract class AbstractJDBCSchemaFetcher implements IDependOnDatabaseType
      */
     public Catalog buildCatalog(final Connection conn, ConnParameters cp, IBuildSchemaFilter filter)
             throws SQLException {
+        // Build schema
+        List<String> schemas = getSchemaNames(conn, cp);
+        return buildCatalog(conn, cp, schemas, filter);
+    }
+
+    /**
+     * buildCatalog
+     *
+     * @param conn Connection
+     * @param cp connection parameter
+     * @param schemaNames list of schema names
+     * @return Catalog
+     * @throws SQLException e
+     */
+    public Catalog buildCatalog(
+            final Connection conn, ConnParameters cp, List<String> schemaNames)
+            throws SQLException {
+        return buildCatalog(conn, cp, schemaNames, null);
+    }
+
+    /**
+     * buildCatalog
+     *
+     * @param conn Connection
+     * @param cp connection parameter
+     * @param schemas list of schema names
+     * @param filter IBuildSchemaFilter
+     * @return Catalog
+     * @throws SQLException e
+     */
+    public Catalog buildCatalog(
+            final Connection conn,
+            ConnParameters cp,
+            List<String> schemas,
+            IBuildSchemaFilter filter)
+            throws SQLException {
         String dbName = cp.getDbName();
         String catalogName;
 
@@ -133,8 +169,6 @@ public abstract class AbstractJDBCSchemaFetcher implements IDependOnDatabaseType
         catalog.setConnectionParameters(cp);
         catalog.setVersion(getVersion(conn));
         catalog.setSupportedDataType(getSupportedSqlTypes(conn));
-        // Build schema
-        List<String> schemas = getSchemaNames(conn, cp);
         if (schemas.isEmpty()) {
             throw new IllegalArgumentException("Invalid schema or no schema specified.");
         }
