@@ -1,20 +1,19 @@
 /*
- * Copyright (C) 2008 Search Solution Corporation.
  * Copyright (C) 2016 CUBRID Corporation.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
  * - Redistributions of source code must retain the above copyright notice,
- *   this list of conditions and the following disclaimer.
+ * this list of conditions and the following disclaimer.
  *
  * - Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
  *
  * - Neither the name of the <ORGANIZATION> nor the names of its contributors
- *   may be used to endorse or promote products derived from this software without
- *   specific prior written permission.
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -30,52 +29,96 @@
  */
 package com.cubrid.cubridmigration.command;
 
+import com.cubrid.cubridmigration.core.connection.ConnParameters;
+import com.cubrid.cubridmigration.core.dbmetadata.BuildSchemaFilterFactory;
+import com.cubrid.cubridmigration.core.dbmetadata.DBSchemaInfoFetcherFactory;
+import com.cubrid.cubridmigration.core.dbmetadata.IBuildSchemaFilter;
+import com.cubrid.cubridmigration.core.dbmetadata.IDBSchemaInfoFetcher;
 import com.cubrid.cubridmigration.core.dbmetadata.JDBCDBSchemaFetcherFacade;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
+import com.cubrid.cubridmigration.core.dbobject.Schema;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
-import com.cubrid.cubridmigration.core.engine.config.SourceEntryTableConfig;
-import com.cubrid.cubridmigration.core.engine.config.SourceSQLTableConfig;
+import com.cubrid.cubridmigration.mysql.MysqlXmlDumpSource;
+
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-/**
- * This class builds the source catalog for the console mode of the CUBRID Migration Toolkit. It
- * extracts the schema names from the migration configuration and fetches only those schemas from the
- * source database.
- *
- * @author CUBRID Corporation
- * @version 1.0 - 2023-11-28 created by CUBRID Corporation
- */
-public class ConsoleSourceSchemaBuilder {
+public final class ConsoleSourceSchemaBuilder {
 
-    /**
-     * build source catalog for console migration
-     *
-     * @param config MigrationConfiguration
-     * @return Catalog
-     */
-    public Catalog build(MigrationConfiguration config) {
-        List<String> schemaNames = new ArrayList<String>();
-        if (config.sourceIsOnline() || config.sourceIsXMLDump()) {
-            for (SourceEntryTableConfig setc : config.getExpEntryTableCfg()) {
-                if (setc.getOwner() == null || schemaNames.contains(setc.getOwner())) {
-                    continue;
-                }
-                schemaNames.add(setc.getOwner());
-            }
-        } else {
-            for (SourceSQLTableConfig sstc : config.getExpSQLCfg()) {
-                if (sstc.getOwner() == null || schemaNames.contains(sstc.getOwner())) {
-                    continue;
-                }
-                schemaNames.add(sstc.getOwner());
-            }
-        }
-        if (schemaNames.isEmpty()) {
-            throw new RuntimeException("No source schema specified in migration script.");
-        }
+	private ConsoleSourceSchemaBuilder() {}
 
-        JDBCDBSchemaFetcherFacade builder = new JDBCDBSchemaFetcherFacade();
-        return builder.fetchSchemas(config.getSourceConParams(), schemaNames);
-    }
+	public static Catalog buildSelectedOnly(MigrationConfiguration config, PrintStream outPrinter) {
+		if (config == null) {
+			return null;
+		}
+		Set<String> selectedSchemas = config.getSelectedSrcSchemas();
+		if (selectedSchemas == null || selectedSchemas.isEmpty()) {
+			if (outPrinter != null) {
+				outPrinter.println("Invalid migration script: <schemas> is required for console.");
+			}
+			return null;
+		}
+		IBuildSchemaFilter filter = BuildSchemaFilterFactory.from(config);
+
+		if (config.sourceIsOnline()) {
+			ConnParameters cp = config.getSourceConParams();
+			if (cp == null) {
+				if (outPrinter != null) {
+					outPrinter.println("Invalid source database connection.");
+				}
+				return null;
+			}
+			JDBCDBSchemaFetcherFacade facade = new JDBCDBSchemaFetcherFacade();
+			List<String> schemaList = new ArrayList<String>(selectedSchemas);
+			return facade.fetchSchemaObjectsForSchemas(cp, schemaList, filter);
+		}
+
+		if (config.sourceIsXMLDump()) {
+			if (outPrinter != null) {
+				outPrinter.println(
+						"Warning: XML dump loads full schema metadata before filtering.");
+			}
+			MysqlXmlDumpSource ds =
+					new MysqlXmlDumpSource(
+							config.getSourceFileName(), config.getSourceFileEncoding());
+			IDBSchemaInfoFetcher fetcher = DBSchemaInfoFetcherFactory.createFetcher(ds);
+			Catalog catalog = fetcher.fetchSchema(ds, filter);
+			if (catalog == null) {
+				return null;
+			}
+			filterSchemas(catalog, selectedSchemas);
+			return catalog;
+		}
+
+		return null;
+	}
+
+	private static void filterSchemas(Catalog catalog, Set<String> selectedSchemas) {
+		if (catalog == null || selectedSchemas == null || selectedSchemas.isEmpty()) {
+			return;
+		}
+		List<Schema> removeSchemas = new ArrayList<Schema>();
+		for (Schema schema : catalog.getSchemas()) {
+			if (!containsIgnoreCase(selectedSchemas, schema.getName())) {
+				removeSchemas.add(schema);
+			}
+		}
+		if (!removeSchemas.isEmpty()) {
+			catalog.removeSchema(removeSchemas);
+		}
+	}
+
+	private static boolean containsIgnoreCase(Set<String> selectedSchemas, String schemaName) {
+		if (schemaName == null) {
+			return false;
+		}
+		for (String s : selectedSchemas) {
+			if (schemaName.equalsIgnoreCase(s)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

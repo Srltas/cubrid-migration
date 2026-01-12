@@ -118,8 +118,7 @@ public class StartCommandHandler implements ConsoleCommandHandler {
             if (migrateDataOnly) {
                 result = config.buildSourceSchemaForDataMigration();
             } else {
-                ConsoleSourceSchemaBuilder builder = new ConsoleSourceSchemaBuilder();
-                result = builder.build(config);
+				result = ConsoleSourceSchemaBuilder.buildSelectedOnly(config, outPrinter);
             }
         } catch (Exception ex) {
             outPrinter.println("Get schema information error:" + ex.getMessage());
@@ -128,6 +127,7 @@ public class StartCommandHandler implements ConsoleCommandHandler {
         }
         if (result == null) {
             outPrinter.println("Can not get schema information.");
+			return null;
         }
         return result;
     }
