@@ -56,7 +56,7 @@ public class ConsoleSourceSchemaBuilder {
      */
     public Catalog build(MigrationConfiguration config) {
         List<String> schemaNames = new ArrayList<String>();
-        if (config.sourceIsSchema()) {
+        if (config.sourceIsOnline() || config.sourceIsXMLDump()) {
             for (SourceEntryTableConfig setc : config.getExpEntryTableCfg()) {
                 if (setc.getOwner() == null || schemaNames.contains(setc.getOwner())) {
                     continue;
