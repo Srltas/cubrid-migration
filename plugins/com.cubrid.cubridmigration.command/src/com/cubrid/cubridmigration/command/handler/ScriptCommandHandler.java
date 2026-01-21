@@ -254,6 +254,22 @@ public class ScriptCommandHandler implements ConsoleCommandHandler {
                 outPrinter.println("Build source schema error.");
                 return;
             }
+            // Auto mapping schema
+            List<Schema> schemaMappingList = new ArrayList<Schema>();
+            for (Schema schema : srcCat.getSchemas()) {
+                String schemaName = schema.getName();
+                if (StringUtils.isEmpty(schema.getTargetSchemaName())) {
+                    schema.setTargetSchemaName(schemaName);
+                }
+                // For SchemasNodeWriter
+                Schema mappingSchema = new Schema();
+                mappingSchema.setName(schemaName);
+                mappingSchema.setTargetSchemaName(schemaName);
+                schemaMappingList.add(mappingSchema);
+            }
+            config.removeTargetSchemaList();
+            config.setTargetSchemaList(schemaMappingList);
+
             config.setSrcCatalog(srcCat, isNeedReset);
             if (isNeedReset) {
                 config.setAll(true);
