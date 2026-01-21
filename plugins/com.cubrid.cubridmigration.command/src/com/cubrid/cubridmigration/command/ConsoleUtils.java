@@ -103,7 +103,7 @@ public class ConsoleUtils {
                 args.remove(str);
                 found = true;
             } else if (str.startsWith(paramName)) {
-                param = str.substring(3);
+                param = str.substring(paramName.length());
                 args.remove(str);
                 break;
             }
