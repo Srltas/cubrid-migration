@@ -27,13 +27,18 @@
  * OF SUCH DAMAGE.
  *
  */
-package com.cubrid.cubridmigration.oracle.meta;
+package com.cubrid.cubridmigration.core.dbobject;
 
-public class OracleConstants {
+public interface SourcePlsqlProcedure {
+    String getOwner();
 
-    public static final String PROCEDURE = "PROCEDURE";
-    public static final String FUNCTION = "FUNCTION";
+    String getName();
 
-    public static final String PROCEDURE_AUTHID_DEFINER = "DEFINER";
-    public static final String PROCEDURE_AUTHID_CURRENT_USER = "CURRENT_USER";
+    String getAuthid();
+
+    String getProcedureType();
+
+    String getDDL();
+
+    void setDDL(String ddl);
 }
