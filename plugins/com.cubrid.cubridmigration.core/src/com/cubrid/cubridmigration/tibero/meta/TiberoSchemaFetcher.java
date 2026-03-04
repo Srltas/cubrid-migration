@@ -65,7 +65,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -288,10 +287,6 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
         Table sourceTable = super.buildSQLTable(resultSetMeta);
         List<Column> columns = sourceTable.getColumns();
         for (Column column : columns) {
-            if (isNULLType(column.getDataType())) {
-                column.setDataType("VARCHAR2");
-                column.setJdbcIDOfDataType(Types.VARCHAR);
-            }
             column.setShownDataType(dtHelper.getShownDataType(column));
         }
         return sourceTable;
@@ -328,7 +323,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
                     if (column == null) {
                         continue;
                     }
-                    fillColumnMetadata(column, rs, dtHelper);
+                    fillColumnMetadata(catalog, column, rs, dtHelper);
                 } catch (Exception ex) {
                     LOG.error("Read table column information error:{}", table.getName(), ex);
                 }
@@ -347,23 +342,23 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param dtHelper TiberoDataTypeHelper
      * @throws SQLException e
      */
-    private void fillColumnMetadata(Column column, ResultSet rs, TiberoDataTypeHelper dtHelper)
+    private void fillColumnMetadata(
+            Catalog catalog, Column column, ResultSet rs, TiberoDataTypeHelper dtHelper)
             throws SQLException {
         String dataType = rs.getString("DATA_TYPE");
-        if ("NVARCHAR".equalsIgnoreCase(dataType)) {
-            dataType = "NVARCHAR2";
-        }
         column.setDataType(dataType);
 
         column.setByteLength(rs.getInt("DATA_LENGTH"));
         String precisionStr = rs.getString("DATA_PRECISION");
-        column.setPrecision(precisionStr == null ? null : rs.getInt("DATA_PRECISION"));
+        Integer precision = precisionStr == null ? null : rs.getInt("DATA_PRECISION");
+        column.setPrecision(precision);
         String scaleStr = rs.getString("DATA_SCALE");
-        column.setScale(scaleStr == null ? null : rs.getInt("DATA_SCALE"));
-        if ("NUMBER".equals(column.getDataType()) && precisionStr == null && "0".equals(scaleStr)) {
-            column.setDataType("INTEGER");
-        }
+        Integer scale = scaleStr == null ? null : rs.getInt("DATA_SCALE");
+        column.setScale(scale);
 
+        column.setJdbcIDOfDataType(dtHelper.getJdbcDataTypeID(catalog, dataType, precision, scale));
+
+        column.setByteLength(rs.getInt("DATA_LENGTH"));
         column.setNullable(!"N".equalsIgnoreCase(rs.getString("NULLABLE")));
 
         String defaultValue = rs.getString("DATA_DEFAULT");
@@ -633,23 +628,6 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
                         viewName,
                         column.getName());
         return comment == null ? null : commentEditor(comment);
-    }
-
-    /**
-     * Return query text of a view
-     *
-     * @param conn Connection
-     * @param schemaName schema name
-     * @param viewName String
-     * @return String
-     * @throws SQLException e
-     */
-    private String getQueryText(
-            final Connection conn, String schemaName, final String viewName, View view)
-            throws SQLException {
-        LOG.debug("[SQL]{}, 1={}, 2={}", SQL_SHOW_VIEW_QUERYTEXT, schemaName, viewName);
-
-        return commentQueryLoader.getViewQueryText(conn, schemaName, viewName);
     }
 
     /**
