@@ -158,5 +158,17 @@
                 <module>product</module>
             </modules>
         </profile>
+
+        <profile>
+            <id>unit-test</id>
+            <modules>
+                <!-- 최소 필요 Tycho 플러그인: 리액터에 포함해 사전 install 없이 참조 가능 -->
+                <module>plugins/com.cubrid.common.log</module>
+                <module>plugins/com.cubrid.common.configuration</module>
+                <module>plugins/com.cubrid.cubridmigration.core</module>
+                <!-- 독립 Maven jar 모듈 -->
+                <module>unit-test</module>
+            </modules>
+        </profile>
     </profiles>
 </project>

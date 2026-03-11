@@ -14,6 +14,16 @@
 
     <build>
         <sourceDirectory>src/</sourceDirectory>
+        <!-- XML/properties 리소스를 Maven 빌드 시 클래스패스에 포함 (Tycho 빌드는 build.properties 사용) -->
+        <resources>
+            <resource>
+                <directory>src/</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.antlr</groupId>
