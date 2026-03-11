@@ -476,12 +476,17 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
             throws SQLException {
         super.buildViewColumns(conn, catalog, schema, view);
         TiberoDataTypeHelper dtHelper = TiberoDataTypeHelper.getInstance(null);
+        Map<String, Map<String, String>> allColumnComments =
+                commentQueryLoader.findAllViewColumnComments(conn, schema.getName());
+        Map<String, String> viewColumnComments = allColumnComments.get(view.getName());
         for (Column column : view.getColumns()) {
             String shownDataType = dtHelper.getShownDataType(column);
             LOG.debug("[VAR]shownDataType={}, column={}", shownDataType, column);
 
             column.setShownDataType(shownDataType);
-            column.setComment(getViewColumnComment(conn, schema.getName(), view.getName(), column));
+            if (viewColumnComments != null) {
+                column.setComment(commentEditor(viewColumnComments.get(column.getName())));
+            }
         }
     }
 

@@ -38,10 +38,23 @@ import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public final class TiberoDataTypeHelper extends DBDataTypeHelper {
 
     private static final TiberoDataTypeHelper HELPER = new TiberoDataTypeHelper();
+
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+    private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("TIMESTAMP\\(\\d*\\)");
+    private static final Pattern TIME_PATTERN = Pattern.compile("TIME\\(\\d*\\)");
+    private static final Pattern TIMESTAMP_TZ_PATTERN =
+            Pattern.compile("TIMESTAMP\\(\\d*\\) WITH TIME ZONE");
+    private static final Pattern TIMESTAMP_LTZ_PATTERN =
+            Pattern.compile("TIMESTAMP\\(\\d*\\) WITH LOCAL TIME ZONE");
+    private static final Pattern INTERVAL_DS_PATTERN =
+            Pattern.compile("INTERVAL DAY\\(\\d*\\) TO SECOND\\(\\d*\\)");
+    private static final Pattern INTERVAL_YM_PATTERN =
+            Pattern.compile("INTERVAL YEAR\\(\\d*\\) TO MONTH");
 
     /**
      * Singleton
@@ -64,25 +77,27 @@ public final class TiberoDataTypeHelper extends DBDataTypeHelper {
             return "";
         }
 
-        // Normalize metadata type text to avoid mismatch caused by case/spacing variation.
-        String normalizedType = dataType.trim().toUpperCase(Locale.ENGLISH).replaceAll("\\s+", " ");
+        String normalizedType =
+                WHITESPACE_PATTERN
+                        .matcher(dataType.trim().toUpperCase(Locale.ENGLISH))
+                        .replaceAll(" ");
         String key = normalizedType;
 
         if ("JSON".equals(normalizedType)) {
             key = "JSON";
         } else if ("XMLTYPE".equals(normalizedType) || normalizedType.endsWith(" XMLTYPE")) {
             key = "XMLTYPE";
-        } else if (normalizedType.matches("TIMESTAMP\\(\\d*\\)")) {
+        } else if (TIMESTAMP_PATTERN.matcher(normalizedType).matches()) {
             key = "TIMESTAMP";
-        } else if (normalizedType.matches("TIME\\(\\d*\\)")) {
+        } else if (TIME_PATTERN.matcher(normalizedType).matches()) {
             key = "TIME";
-        } else if (normalizedType.matches("TIMESTAMP\\(\\d*\\) WITH TIME ZONE")) {
+        } else if (TIMESTAMP_TZ_PATTERN.matcher(normalizedType).matches()) {
             key = "TIMESTAMP WITH TIME ZONE";
-        } else if (normalizedType.matches("TIMESTAMP\\(\\d*\\) WITH LOCAL TIME ZONE")) {
+        } else if (TIMESTAMP_LTZ_PATTERN.matcher(normalizedType).matches()) {
             key = "TIMESTAMP WITH LOCAL TIME ZONE";
-        } else if (normalizedType.matches("INTERVAL DAY\\(\\d*\\) TO SECOND\\(\\d*\\)")) {
+        } else if (INTERVAL_DS_PATTERN.matcher(normalizedType).matches()) {
             key = "INTERVAL DAY TO SECOND";
-        } else if (normalizedType.matches("INTERVAL YEAR\\(\\d*\\) TO MONTH")) {
+        } else if (INTERVAL_YM_PATTERN.matcher(normalizedType).matches()) {
             key = "INTERVAL YEAR TO MONTH";
         }
         return key;

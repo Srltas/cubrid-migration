@@ -145,4 +145,22 @@ class TiberoCommentQueryLoader {
         }
         return result;
     }
+
+    Map<String, Map<String, String>> findAllViewColumnComments(Connection conn, String schemaName) {
+        Map<String, Map<String, String>> result = new HashMap<>();
+        try (PreparedStatement pstmt = conn.prepareStatement(SQL_GET_ALL_VIEW_COLUMN_COMMENTS)) {
+            pstmt.setString(1, schemaName);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String viewName = rs.getString("TABLE_NAME");
+                    String columnName = rs.getString("COLUMN_NAME");
+                    String comment = rs.getString("COMMENTS");
+                    result.computeIfAbsent(viewName, k -> new HashMap<>()).put(columnName, comment);
+                }
+            }
+        } catch (SQLException e) {
+            LOG.error("Query all view column comments error", e);
+        }
+        return result;
+    }
 }

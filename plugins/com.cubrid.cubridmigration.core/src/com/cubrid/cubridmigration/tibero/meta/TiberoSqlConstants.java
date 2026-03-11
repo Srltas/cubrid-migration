@@ -107,6 +107,9 @@ public final class TiberoSqlConstants {
             "SELECT COMMENTS FROM ALL_COL_COMMENTS WHERE OWNER=? AND "
                     + "TABLE_NAME=? AND COLUMN_NAME=?";
 
+    public static final String SQL_GET_ALL_VIEW_COLUMN_COMMENTS =
+            "SELECT TABLE_NAME, COLUMN_NAME, COMMENTS FROM ALL_COL_COMMENTS WHERE OWNER=?";
+
     public static final String SQL_GET_TABLE_COMMENT =
             "SELECT COMMENTS FROM ALL_TAB_COMMENTS WHERE OWNER=? AND " + "TABLE_NAME=?";
 
