@@ -78,6 +78,14 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
     protected void adjustPrecision(
             Column srcColumn, Column cubColumn, MigrationConfiguration config) {
 
+        // ROWID and INTERVAL types do not need precision adjustment
+        final String srcDataType = srcColumn.getDataType();
+        if ("ROWID".equals(srcDataType)
+                || srcDataType.indexOf("INTERVAL YEAR") > -1
+                || srcDataType.indexOf("INTERVAL DAY") > -1) {
+            return;
+        }
+
         CUBRIDDataTypeHelper cubDTHelper = CUBRIDDataTypeHelper.getInstance(null);
         long expectedPrecision = (long) cubColumn.getPrecision();
         if (cubDTHelper.isStrictNumeric(cubColumn.getDataType())) {
