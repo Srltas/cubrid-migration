@@ -167,7 +167,7 @@
                 <module>plugins/com.cubrid.common.configuration</module>
                 <module>plugins/com.cubrid.cubridmigration.core</module>
                 <!-- 독립 Maven jar 모듈 -->
-                <module>unit-test</module>
+                <module>tests/unit-test</module>
             </modules>
         </profile>
     </profiles>
