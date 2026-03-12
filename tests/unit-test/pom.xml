@@ -5,22 +5,17 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!--
-        Standalone Maven jar 모듈. 루트 pom을 parent로 선언하지 않아
-        Tycho 플러그인 설정을 상속받지 않는다.
-        루트 pom.xml의 unit-test 프로파일을 통해 리액터에 포함된다.
-    -->
-    <groupId>com.cubrid.cubridmigration</groupId>
+    <parent>
+        <groupId>com.cubrid.cubridmigration</groupId>
+        <artifactId>cubridmigration</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
     <artifactId>cubridmigration-unit-test</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
-        <java.version>21</java.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <junit-jupiter.version>6.0.3</junit-jupiter.version>
         <mockito.version>5.22.0</mockito.version>
         <assertj.version>3.27.7</assertj.version>
@@ -45,35 +40,15 @@
             <artifactId>com.cubrid.cubridmigration.core</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
-        <!-- com.cubrid.common.log: LogUtil 사용 -->
         <dependency>
             <groupId>com.cubrid.cubridmigration</groupId>
             <artifactId>com.cubrid.common.log</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
-        <!-- com.cubrid.common.configuration: XMLMemento (AbstractDataTypeMappingHelper) -->
         <dependency>
             <groupId>com.cubrid.cubridmigration</groupId>
             <artifactId>com.cubrid.common.configuration</artifactId>
             <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-
-        <!-- ===== 런타임에 필요한 전이 의존성 ===== -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.17.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.woodstox</groupId>
-            <artifactId>woodstox-core</artifactId>
-            <version>7.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.5.18</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- ===== 테스트 프레임워크 ===== -->
