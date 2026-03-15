@@ -87,7 +87,9 @@ jobs:
       - id: changed
         uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
         with:
-          files: "**/*.java"
+          files: |
+            **/*.java,
+            !tests/**/*.java
           write_output_files: true
       - uses: axel-op/googlejavaformat-action@c1134ebd196c4cbffb077f9476585b0be8b6afcd
         if: steps.changed.outputs.any_changed == 'true'
