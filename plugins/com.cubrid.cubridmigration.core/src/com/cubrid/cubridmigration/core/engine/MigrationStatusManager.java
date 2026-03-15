@@ -94,10 +94,7 @@ public class MigrationStatusManager {
         synchronized (lockObj) {
             String src = (owner == null ? "" : owner) + "." + source;
             DataMigrationStatus dms = dataMigrationStatus.get(src);
-            if (dms == null) {
-                dms = new DataMigrationStatus();
-                dms.setSource(src);
-                dataMigrationStatus.put(src, dms);
+            if (dms == null) {dms = new DataMigrationStatus();dms.setSource(src);dataMigrationStatus.put(src, dms);
             }
             dms.addTotalImpCount(count);
         }
