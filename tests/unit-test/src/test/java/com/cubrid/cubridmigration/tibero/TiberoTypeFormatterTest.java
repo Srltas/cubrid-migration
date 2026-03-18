@@ -42,6 +42,7 @@ import static com.cubrid.cubridmigration.testutil.TestColumnFactory.*;
 public class TiberoTypeFormatterTest {
 
     private static final TiberoDataTypeHelper HELPER = TiberoDataTypeHelper.getInstance(null);
+    private static final TiberoDataTypeHelper HEPER2 = TiberoDataTypeHelper.getInstance(null);
 
     @Nested
     @DisplayName("NUMBER format")
