@@ -34,6 +34,7 @@ import static com.cubrid.cubridmigration.tibero.meta.TiberoSqlConstants.*;
 import com.cubrid.common.log.LogUtil;
 import com.cubrid.cubridmigration.core.common.Closer;
 import com.cubrid.cubridmigration.core.common.DBUtils;
+import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.DBObjectFactory;
 import com.cubrid.cubridmigration.core.dbobject.PartitionInfo;
 import com.cubrid.cubridmigration.core.dbobject.PartitionTable;
@@ -42,24 +43,19 @@ import com.cubrid.cubridmigration.core.dbobject.Table;
 
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 class TiberoPartitionMetadataLoader {
-
-    interface PartitionDDLProvider {
-        String getPartitionDDL(Table table);
-    }
 
     private static final Logger LOG = LogUtil.getLogger(TiberoPartitionMetadataLoader.class);
 
     void buildPartitions(
-            final Connection conn,
-            final Schema schema,
-            final DBObjectFactory factory,
-            final PartitionDDLProvider partitionDDLProvider) {
+            final Connection conn, final Schema schema, final DBObjectFactory factory) {
         ResultSet rs = null;
         PreparedStatement stmt = null;
         try {
@@ -90,7 +86,6 @@ class TiberoPartitionMetadataLoader {
                 partitionInfo.setPartitionColumnCount(partitionColumnCount);
                 partitionInfo.setPartitionExp(null);
                 partitionInfo.setPartitionFunc(null);
-                partitionInfo.setDDL(partitionDDLProvider.getPartitionDDL(table));
                 if ("NONE".equals(subPartitionMethod)) {
                     subPartitionMethod = null;
                 }
@@ -193,8 +188,7 @@ class TiberoPartitionMetadataLoader {
 
         try {
             stmt = conn.prepareStatement(SQL_GET_PARTITIONS);
-            stmt.setString(1, schema.getName());
-            LOG.debug("[SQL]{}, 1={}", SQL_GET_PARTITIONS, schema.getName());
+            LOG.debug("[SQL]{}", SQL_GET_PARTITIONS);
 
             rs = stmt.executeQuery();
             while (rs.next()) {
@@ -207,14 +201,20 @@ class TiberoPartitionMetadataLoader {
                 }
 
                 String partitionName = rs.getString("PARTITION_NAME");
-                Reader reader = rs.getCharacterStream("HIGH_VALUE");
-                String partitionDesc = reader == null ? null : DBUtils.reader2String(reader);
+                String rawBound = readLongText(rs, "BOUND");
                 int partitionPosition = rs.getInt("PARTITION_POSITION");
 
                 PartitionInfo partitionInfo = table.getPartitionInfo();
                 if (partitionInfo == null) {
                     continue;
                 }
+                Column partitionColumn =
+                        partitionInfo.getPartitionColumns().isEmpty()
+                                ? null
+                                : partitionInfo.getPartitionColumns().get(0);
+                String partitionDesc =
+                        normalizePartitionDesc(
+                                partitionInfo.getPartitionMethod(), rawBound, partitionColumn);
 
                 PartitionTable partition = factory.createPartitionTable();
                 partition.setPartitionName(partitionName);
@@ -276,5 +276,72 @@ class TiberoPartitionMetadataLoader {
             Closer.close(rs);
             Closer.close(stmt);
         }
+    }
+
+    private String readLongText(ResultSet rs, String columnName) throws SQLException, IOException {
+        Reader reader = rs.getCharacterStream(columnName);
+        if (reader != null) {
+            return DBUtils.reader2String(reader);
+        }
+        return rs.getString(columnName);
+    }
+
+    private String normalizePartitionDesc(
+            String partitionMethod, String rawBound, Column partitionColumn) {
+        if (rawBound == null) {
+            return null;
+        }
+
+        String normalized = rawBound.trim();
+        if (normalized.isEmpty()) {
+            return normalized;
+        }
+
+        normalized = stripOuterParentheses(normalized);
+
+        if (PartitionInfo.PARTITION_METHOD_RANGE.equalsIgnoreCase(partitionMethod)) {
+            if ("MAXVALUE".equalsIgnoreCase(normalized)) {
+                return "MAXVALUE";
+            }
+            return normalizeRangeBound(normalized, partitionColumn);
+        }
+
+        if (PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(partitionMethod)) {
+            if ("DEFAULT".equalsIgnoreCase(normalized)) {
+                return "DEFAULT";
+            }
+            return normalized;
+        }
+
+        return normalized;
+    }
+
+    private String normalizeRangeBound(String normalized, Column partitionColumn) {
+        if (partitionColumn == null) {
+            return normalized;
+        }
+
+        String dataType = partitionColumn.getDataType();
+        if (dataType == null) {
+            return normalized;
+        }
+
+        String upperType = dataType.toUpperCase();
+        if (upperType.contains("DATE")
+                && !normalized.startsWith("DATE ")
+                && normalized.startsWith("'")
+                && normalized.endsWith("'")) {
+            return "DATE " + normalized;
+        }
+
+        return normalized;
+    }
+
+    private String stripOuterParentheses(String value) {
+        String result = value;
+        while (result.startsWith("(") && result.endsWith(")") && result.length() > 1) {
+            result = result.substring(1, result.length() - 1).trim();
+        }
+        return result;
     }
 }

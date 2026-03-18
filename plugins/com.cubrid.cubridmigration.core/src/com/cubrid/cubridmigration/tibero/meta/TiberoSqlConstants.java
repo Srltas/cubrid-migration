@@ -58,8 +58,8 @@ public final class TiberoSqlConstants {
             "SELECT T.* FROM ALL_PART_TABLES T WHERE T.OWNER=? ORDER BY TABLE_NAME";
 
     public static final String SQL_GET_PARTITIONS =
-            "SELECT T.TABLE_NAME, T.PARTITION_NAME, T.HIGH_VALUE, T.PARTITION_POSITION "
-                    + "FROM ALL_TAB_PARTITIONS T WHERE T.TABLE_OWNER=? "
+            "SELECT TABLE_NAME, PARTITION_NAME, BOUND, PARTITION_POSITION "
+                    + "FROM USER_TBL_PARTITIONS "
                     + "ORDER BY TABLE_NAME, PARTITION_POSITION";
 
     public static final String SQL_GET_SUB_PART_TABLES =

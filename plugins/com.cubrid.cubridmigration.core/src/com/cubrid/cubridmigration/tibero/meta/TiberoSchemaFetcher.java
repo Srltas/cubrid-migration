@@ -138,16 +138,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      */
     protected void buildPartitions(
             final Connection conn, final Catalog catalog, final Schema schema) {
-        partitionMetadataLoader.buildPartitions(
-                conn,
-                schema,
-                factory,
-                new TiberoPartitionMetadataLoader.PartitionDDLProvider() {
-                    @Override
-                    public String getPartitionDDL(Table table) {
-                        return getSourcePartitionDDL(table);
-                    }
-                });
+        partitionMetadataLoader.buildPartitions(conn, schema, factory);
     }
 
     /**

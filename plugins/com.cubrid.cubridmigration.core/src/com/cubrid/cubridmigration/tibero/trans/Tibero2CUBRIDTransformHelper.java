@@ -408,16 +408,16 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
             return null;
         }
 
-        String srcPartitionDDL = table.getPartitionInfo().getDDL();
         PartitionInfo partInfo = table.getPartitionInfo();
         String partitionMethod = partInfo.getPartitionMethod();
-        int partitionColumnCount = partInfo.getPartitionColumnCount();
         int partitionCount = partInfo.getPartitionCount();
         List<Column> partitionColumns = partInfo.getPartitionColumns();
         List<PartitionTable> partitions = partInfo.getPartitions();
+        int partitionColumnCount = partitionColumns == null ? 0 : partitionColumns.size();
+        int actualPartitionCount = partitions == null ? 0 : partitions.size();
 
-        if (partitionColumnCount == 0 || partitionCount == 0) {
-            return srcPartitionDDL;
+        if (partitionColumnCount == 0) {
+            return null;
         }
         StringBuilder ddl = new StringBuilder();
         ddl.append("PARTITION BY ");
@@ -428,7 +428,7 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         } else if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(partitionMethod)) {
             ddl.append(" HASH ");
         } else {
-            return srcPartitionDDL;
+            return null;
         }
         ddl.append("(");
         for (int i = 0; i < partitionColumnCount; i++) {
@@ -442,10 +442,17 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         ddl.append(") ");
 
         if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(partitionMethod)) {
-            ddl.append(" PARTITIONS ").append(partitionCount);
+            int hashPartitionCount = partitionCount > 0 ? partitionCount : actualPartitionCount;
+            if (hashPartitionCount <= 0) {
+                return null;
+            }
+            ddl.append(" PARTITIONS ").append(hashPartitionCount);
         } else {
+            if (actualPartitionCount == 0) {
+                return null;
+            }
             ddl.append("(").append(CommonUtils.newLine);
-            for (int i = 0; i < partitionCount; i++) {
+            for (int i = 0; i < actualPartitionCount; i++) {
                 PartitionTable partTable = partitions.get(i);
                 if (i > 0) {
                     ddl.append(",").append(CommonUtils.newLine);
@@ -461,9 +468,13 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
                         ddl.append(")");
                     }
                 } else if (PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(partitionMethod)) {
-                    ddl.append(" VALUES IN (");
-                    ddl.append(partTable.getPartitionDesc());
-                    ddl.append(")");
+                    if ("DEFAULT".equalsIgnoreCase(partTable.getPartitionDesc())) {
+                        ddl.append(" VALUES DEFAULT");
+                    } else {
+                        ddl.append(" VALUES IN (");
+                        ddl.append(partTable.getPartitionDesc());
+                        ddl.append(")");
+                    }
                 }
             }
             ddl.append(CommonUtils.newLine).append(")");

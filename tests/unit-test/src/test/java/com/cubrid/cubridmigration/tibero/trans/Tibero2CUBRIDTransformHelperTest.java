@@ -457,16 +457,15 @@ public class Tibero2CUBRIDTransformHelperTest {
         }
 
         @Test
-        @DisplayName("partitionColumnCount=0 -> return source DDL")
-        void zeroPartitionColumns_returnsSrcDDL() {
+        @DisplayName("partition columns missing -> null")
+        void zeroPartitionColumns_returnsNull() {
             Table table = new Table();
             PartitionInfo info = new PartitionInfo();
-            info.setDDL("ORIGINAL_DDL");
             info.setPartitionColumnCount(0);
             info.setPartitionCount(2);
             table.setPartitionInfo(info);
 
-            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isEqualTo("ORIGINAL_DDL");
+            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isNull();
         }
 
         @Test
@@ -543,11 +542,31 @@ public class Tibero2CUBRIDTransformHelperTest {
         }
 
         @Test
-        @DisplayName("unknown partition method -> return source DDL")
-        void unknownPartitionMethod_returnsSrcDDL() {
+        @DisplayName("LIST DEFAULT partition -> VALUES DEFAULT")
+        void listDefaultPartition_generatesDefaultDDL() {
             Table table = new Table();
             PartitionInfo info = new PartitionInfo();
-            info.setDDL("ORIGINAL_DDL");
+            info.setPartitionMethod("LIST");
+            info.setPartitionColumnCount(1);
+            info.setPartitionCount(1);
+            Column col = new Column();
+            col.setName("REGION");
+            info.setPartitionColumns(List.of(col));
+            PartitionTable p1 = new PartitionTable();
+            p1.setPartitionName("P_OTHER");
+            p1.setPartitionDesc("DEFAULT");
+            info.setPartitions(List.of(p1));
+            table.setPartitionInfo(info);
+
+            assertThat(HELPER.getToCUBRIDPartitionDDL(table))
+                    .contains("PARTITION P_OTHER VALUES DEFAULT");
+        }
+
+        @Test
+        @DisplayName("unknown partition method -> null")
+        void unknownPartitionMethod_returnsNull() {
+            Table table = new Table();
+            PartitionInfo info = new PartitionInfo();
             info.setPartitionMethod("UNKNOWN");
             info.setPartitionColumnCount(1);
             info.setPartitionCount(1);
@@ -557,7 +576,7 @@ public class Tibero2CUBRIDTransformHelperTest {
             info.setPartitions(List.of());
             table.setPartitionInfo(info);
 
-            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isEqualTo("ORIGINAL_DDL");
+            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isNull();
         }
     }
 
