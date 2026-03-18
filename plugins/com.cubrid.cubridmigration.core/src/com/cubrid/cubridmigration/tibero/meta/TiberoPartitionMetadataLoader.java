@@ -328,6 +328,12 @@ class TiberoPartitionMetadataLoader {
         }
 
         String upperType = dataType.toUpperCase();
+        if (upperType.contains("DATE") && normalized.regionMatches(true, 0, "TO_DATE(", 0, 8)) {
+            String literal = extractFirstQuotedLiteral(normalized);
+            if (literal != null) {
+                return "DATE '" + literal + "'";
+            }
+        }
         if (upperType.contains("DATE")
                 && !normalized.startsWith("DATE ")
                 && normalized.startsWith("'")
@@ -344,6 +350,18 @@ class TiberoPartitionMetadataLoader {
             result = result.substring(1, result.length() - 1).trim();
         }
         return result;
+    }
+
+    private String extractFirstQuotedLiteral(String value) {
+        int firstQuote = value.indexOf('\'');
+        if (firstQuote < 0 || firstQuote == value.length() - 1) {
+            return null;
+        }
+        int secondQuote = value.indexOf('\'', firstQuote + 1);
+        if (secondQuote <= firstQuote) {
+            return null;
+        }
+        return value.substring(firstQuote + 1, secondQuote);
     }
 
     private void refreshSourcePreviewDDLs(Schema schema) {

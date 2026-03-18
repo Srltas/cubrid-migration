@@ -30,6 +30,7 @@
 package com.cubrid.cubridmigration.tibero.meta;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -132,5 +133,116 @@ class TiberoPartitionMetadataLoaderTest {
         assertThat(partitionInfo.getPartitions()).hasSize(1);
         assertThat(partitionInfo.getPartitions().get(0).getPartitionDesc())
                 .isEqualTo("DATE '2025-01-01'");
+        assertThat(partitionInfo.getDDL()).contains("PARTITION BY RANGE(SALE_DATE)");
+    }
+
+    @Test
+    @DisplayName("buildPartitions() normalizes TO_DATE bounds and LIST tuple bounds")
+    void buildPartitions_normalizesCommonBoundShapes() throws Exception {
+        TiberoPartitionMetadataLoader loader = new TiberoPartitionMetadataLoader();
+        DBObjectFactory factory = new DBObjectFactory();
+
+        Schema schema = new Schema();
+        schema.setName("APP");
+
+        Table rangeTable = factory.createTable();
+        rangeTable.setName("CMT_RANGE_TO_DATE");
+        Column rangeColumn = factory.createColumn();
+        rangeColumn.setName("SALE_DATE");
+        rangeColumn.setDataType("DATE");
+        rangeTable.addColumn(rangeColumn);
+        schema.addTable(rangeTable);
+
+        Table listTable = factory.createTable();
+        listTable.setName("CMT_LIST_PART");
+        Column listColumn = factory.createColumn();
+        listColumn.setName("REGION");
+        listColumn.setDataType("VARCHAR2");
+        listTable.addColumn(listColumn);
+        schema.addTable(listTable);
+
+        Connection conn = mock(Connection.class);
+
+        PreparedStatement partTablesStmt = mock(PreparedStatement.class);
+        PreparedStatement partColumnsStmt = mock(PreparedStatement.class);
+        PreparedStatement subPartColumnsStmt = mock(PreparedStatement.class);
+        PreparedStatement partitionsStmt = mock(PreparedStatement.class);
+        PreparedStatement subPartitionsStmt = mock(PreparedStatement.class);
+
+        ResultSet partTablesRs = mock(ResultSet.class);
+        ResultSet partColumnsRs = mock(ResultSet.class);
+        ResultSet subPartColumnsRs = mock(ResultSet.class);
+        ResultSet partitionsRs = mock(ResultSet.class);
+        ResultSet subPartitionsRs = mock(ResultSet.class);
+
+        when(conn.prepareStatement(TiberoSqlConstants.SQL_GET_PART_TABLES))
+                .thenReturn(partTablesStmt);
+        when(conn.prepareStatement(TiberoSqlConstants.SQL_GET_PART_COLUMN))
+                .thenReturn(partColumnsStmt);
+        when(conn.prepareStatement(TiberoSqlConstants.SQL_GET_SUBPART_KEY_COLUMN))
+                .thenReturn(subPartColumnsStmt);
+        when(conn.prepareStatement(TiberoSqlConstants.SQL_GET_PARTITIONS))
+                .thenReturn(partitionsStmt);
+        when(conn.prepareStatement(TiberoSqlConstants.SQL_GET_SUB_PART_TABLES))
+                .thenReturn(subPartitionsStmt);
+
+        when(partTablesStmt.executeQuery()).thenReturn(partTablesRs);
+        when(partColumnsStmt.executeQuery()).thenReturn(partColumnsRs);
+        when(subPartColumnsStmt.executeQuery()).thenReturn(subPartColumnsRs);
+        when(partitionsStmt.executeQuery()).thenReturn(partitionsRs);
+        when(subPartitionsStmt.executeQuery()).thenReturn(subPartitionsRs);
+
+        when(partTablesRs.next()).thenReturn(true, true, false);
+        when(partTablesRs.getString("TABLE_NAME")).thenReturn("CMT_RANGE_TO_DATE", "CMT_LIST_PART");
+        when(partTablesRs.getString("PARTITIONING_TYPE")).thenReturn("RANGE", "LIST");
+        when(partTablesRs.getInt("PARTITION_COUNT")).thenReturn(1, 1);
+        when(partTablesRs.getInt("PARTITIONING_KEY_COUNT")).thenReturn(1, 1);
+        when(partTablesRs.getString("SUBPARTITIONING_TYPE")).thenReturn("NONE", "NONE");
+        when(partTablesRs.getInt("DEF_SUBPARTITION_COUNT")).thenReturn(0, 0);
+        when(partTablesRs.getInt("SUBPARTITIONING_KEY_COUNT")).thenReturn(0, 0);
+
+        when(partColumnsRs.next()).thenReturn(true, true, false);
+        when(partColumnsRs.getString("NAME")).thenReturn("CMT_LIST_PART", "CMT_RANGE_TO_DATE");
+        when(partColumnsRs.getString("COLUMN_NAME")).thenReturn("REGION", "SALE_DATE");
+
+        when(subPartColumnsRs.next()).thenReturn(false);
+
+        when(partitionsRs.next()).thenReturn(true, true, false);
+        when(partitionsRs.getString("TABLE_NAME")).thenReturn("CMT_RANGE_TO_DATE", "CMT_LIST_PART");
+        when(partitionsRs.getString("PARTITION_NAME")).thenReturn("P2025", "P_REGION");
+        when(partitionsRs.getCharacterStream("BOUND"))
+                .thenReturn(
+                        new StringReader("(TO_DATE('2025-01-01','YYYY-MM-DD'))"),
+                        new StringReader("(('EAST','WEST'))"));
+        when(partitionsRs.getInt("PARTITION_POSITION")).thenReturn(1, 1);
+
+        when(subPartitionsRs.next()).thenReturn(false);
+
+        loader.buildPartitions(conn, schema, factory);
+
+        assertAll(
+                () ->
+                        assertThat(
+                                        rangeTable
+                                                .getPartitionInfo()
+                                                .getPartitions()
+                                                .get(0)
+                                                .getPartitionDesc())
+                                .isEqualTo("DATE '2025-01-01'"),
+                () ->
+                        assertThat(rangeTable.getPartitionInfo().getDDL())
+                                .contains("DATE '2025-01-01'"),
+                () ->
+                        assertThat(
+                                        listTable
+                                                .getPartitionInfo()
+                                                .getPartitions()
+                                                .get(0)
+                                                .getPartitionDesc())
+                                .isEqualTo("'EAST','WEST'"),
+                () ->
+                        assertThat(listTable.getPartitionInfo().getDDL())
+                                .contains("PARTITION BY LIST(REGION)")
+                                .contains("VALUES ('EAST','WEST')"));
     }
 }
