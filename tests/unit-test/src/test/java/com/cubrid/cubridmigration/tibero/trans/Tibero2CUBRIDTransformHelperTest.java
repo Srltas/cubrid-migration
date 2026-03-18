@@ -444,6 +444,36 @@ public class Tibero2CUBRIDTransformHelperTest {
     @DisplayName("getToCUBRIDPartitionDDL()")
     class GetToCUBRIDPartitionDDL {
 
+        private Table tableWithPartitionInfo(PartitionInfo info) {
+            Table table = new Table();
+            table.setPartitionInfo(info);
+            return table;
+        }
+
+        private PartitionInfo partitionInfo(
+                String method, int partitionCount, String columnName, PartitionTable... partitions) {
+            PartitionInfo info = new PartitionInfo();
+            info.setPartitionMethod(method);
+            info.setPartitionCount(partitionCount);
+            info.setPartitionColumnCount(columnName == null ? 0 : 1);
+
+            if (columnName != null) {
+                Column column = new Column();
+                column.setName(columnName);
+                info.setPartitionColumns(List.of(column));
+            }
+
+            info.setPartitions(List.of(partitions));
+            return info;
+        }
+
+        private PartitionTable partition(String name, String desc) {
+            PartitionTable partition = new PartitionTable();
+            partition.setPartitionName(name);
+            partition.setPartitionDesc(desc);
+            return partition;
+        }
+
         @Test
         @DisplayName("table=null -> null")
         void nullTable_returnNull() {
@@ -459,28 +489,17 @@ public class Tibero2CUBRIDTransformHelperTest {
         @Test
         @DisplayName("partition columns missing -> null")
         void zeroPartitionColumns_returnsNull() {
-            Table table = new Table();
             PartitionInfo info = new PartitionInfo();
             info.setPartitionColumnCount(0);
             info.setPartitionCount(2);
-            table.setPartitionInfo(info);
 
-            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isNull();
+            assertThat(HELPER.getToCUBRIDPartitionDDL(tableWithPartitionInfo(info))).isNull();
         }
 
         @Test
         @DisplayName("HASH partition -> PARTITION BY HASH(COL) PARTITION N")
         void hashPartition_generatesHashDDL() {
-            Table table = new Table();
-            PartitionInfo info = new PartitionInfo();
-            info.setPartitionMethod("HASH");
-            info.setPartitionColumnCount(1);
-            info.setPartitionCount(4);
-            Column col = new Column();
-            col.setName("ID");
-            info.setPartitionColumns(List.of(col));
-            info.setPartitions(List.of());
-            table.setPartitionInfo(info);
+            Table table = tableWithPartitionInfo(partitionInfo("HASH", 4, "ID"));
 
             String ddl = HELPER.getToCUBRIDPartitionDDL(table);
 
@@ -493,22 +512,14 @@ public class Tibero2CUBRIDTransformHelperTest {
         @Test
         @DisplayName("RANGE partition -> handles VALUES LESS THAN and MAXVALUE")
         void rangePartition_generatesRangeDDL() {
-            Table table = new Table();
-            PartitionInfo info = new PartitionInfo();
-            info.setPartitionMethod("RANGE");
-            info.setPartitionColumnCount(1);
-            info.setPartitionCount(2);
-            Column col = new Column();
-            col.setName("SALARY");
-            info.setPartitionColumns(List.of(col));
-            PartitionTable p1 = new PartitionTable();
-            p1.setPartitionName("P_LOW");
-            p1.setPartitionDesc("1000");
-            PartitionTable p2 = new PartitionTable();
-            p2.setPartitionName("P_HIGH");
-            p2.setPartitionDesc("MAXVALUE");
-            info.setPartitions(List.of(p1, p2));
-            table.setPartitionInfo(info);
+            Table table =
+                    tableWithPartitionInfo(
+                            partitionInfo(
+                                    "RANGE",
+                                    2,
+                                    "SALARY",
+                                    partition("P_LOW", "1000"),
+                                    partition("P_HIGH", "MAXVALUE")));
 
             String ddl = HELPER.getToCUBRIDPartitionDDL(table);
 
@@ -521,19 +532,9 @@ public class Tibero2CUBRIDTransformHelperTest {
         @Test
         @DisplayName("LIST partition -> VALUES IN format")
         void listPartition_generatesListDDL() {
-            Table table = new Table();
-            PartitionInfo info = new PartitionInfo();
-            info.setPartitionMethod("LIST");
-            info.setPartitionColumnCount(1);
-            info.setPartitionCount(1);
-            Column col = new Column();
-            col.setName("REGION");
-            info.setPartitionColumns(List.of(col));
-            PartitionTable p1 = new PartitionTable();
-            p1.setPartitionName("P_SEOUL");
-            p1.setPartitionDesc("'SEOUL','BUSAN'");
-            info.setPartitions(List.of(p1));
-            table.setPartitionInfo(info);
+            Table table =
+                    tableWithPartitionInfo(
+                            partitionInfo("LIST", 1, "REGION", partition("P_SEOUL", "'SEOUL','BUSAN'")));
 
             String ddl = HELPER.getToCUBRIDPartitionDDL(table);
 
@@ -544,19 +545,9 @@ public class Tibero2CUBRIDTransformHelperTest {
         @Test
         @DisplayName("LIST DEFAULT partition -> null")
         void listDefaultPartition_returnsNull() {
-            Table table = new Table();
-            PartitionInfo info = new PartitionInfo();
-            info.setPartitionMethod("LIST");
-            info.setPartitionColumnCount(1);
-            info.setPartitionCount(1);
-            Column col = new Column();
-            col.setName("REGION");
-            info.setPartitionColumns(List.of(col));
-            PartitionTable p1 = new PartitionTable();
-            p1.setPartitionName("P_OTHER");
-            p1.setPartitionDesc("DEFAULT");
-            info.setPartitions(List.of(p1));
-            table.setPartitionInfo(info);
+            Table table =
+                    tableWithPartitionInfo(
+                            partitionInfo("LIST", 1, "REGION", partition("P_OTHER", "DEFAULT")));
 
             assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isNull();
         }
@@ -564,16 +555,7 @@ public class Tibero2CUBRIDTransformHelperTest {
         @Test
         @DisplayName("unknown partition method -> null")
         void unknownPartitionMethod_returnsNull() {
-            Table table = new Table();
-            PartitionInfo info = new PartitionInfo();
-            info.setPartitionMethod("UNKNOWN");
-            info.setPartitionColumnCount(1);
-            info.setPartitionCount(1);
-            Column col = new Column();
-            col.setName("ID");
-            info.setPartitionColumns(List.of(col));
-            info.setPartitions(List.of());
-            table.setPartitionInfo(info);
+            Table table = tableWithPartitionInfo(partitionInfo("UNKNOWN", 1, "ID"));
 
             assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isNull();
         }
