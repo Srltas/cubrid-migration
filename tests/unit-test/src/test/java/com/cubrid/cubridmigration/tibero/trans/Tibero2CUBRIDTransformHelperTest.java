@@ -542,8 +542,8 @@ public class Tibero2CUBRIDTransformHelperTest {
         }
 
         @Test
-        @DisplayName("LIST DEFAULT partition -> VALUES DEFAULT")
-        void listDefaultPartition_generatesDefaultDDL() {
+        @DisplayName("LIST DEFAULT partition -> null")
+        void listDefaultPartition_returnsNull() {
             Table table = new Table();
             PartitionInfo info = new PartitionInfo();
             info.setPartitionMethod("LIST");
@@ -558,8 +558,7 @@ public class Tibero2CUBRIDTransformHelperTest {
             info.setPartitions(List.of(p1));
             table.setPartitionInfo(info);
 
-            assertThat(HELPER.getToCUBRIDPartitionDDL(table))
-                    .contains("PARTITION P_OTHER VALUES DEFAULT");
+            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isNull();
         }
 
         @Test

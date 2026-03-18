@@ -469,12 +469,11 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
                     }
                 } else if (PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(partitionMethod)) {
                     if ("DEFAULT".equalsIgnoreCase(partTable.getPartitionDesc())) {
-                        ddl.append(" VALUES DEFAULT");
-                    } else {
-                        ddl.append(" VALUES IN (");
-                        ddl.append(partTable.getPartitionDesc());
-                        ddl.append(")");
+                        return null;
                     }
+                    ddl.append(" VALUES IN (");
+                    ddl.append(partTable.getPartitionDesc());
+                    ddl.append(")");
                 }
             }
             ddl.append(CommonUtils.newLine).append(")");

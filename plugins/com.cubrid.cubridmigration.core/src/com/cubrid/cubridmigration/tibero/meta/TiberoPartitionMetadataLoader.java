@@ -106,6 +106,7 @@ class TiberoPartitionMetadataLoader {
         addPartitionColumns(conn, schema);
         addPartitionTables(conn, schema, factory);
         addSubPartitionTables(conn, schema, factory);
+        refreshSourcePreviewDDLs(schema);
     }
 
     private void addPartitionColumns(final Connection conn, final Schema schema) {
@@ -343,5 +344,80 @@ class TiberoPartitionMetadataLoader {
             result = result.substring(1, result.length() - 1).trim();
         }
         return result;
+    }
+
+    private void refreshSourcePreviewDDLs(Schema schema) {
+        for (Table table : schema.getTables()) {
+            PartitionInfo partitionInfo = table.getPartitionInfo();
+            if (partitionInfo == null) {
+                continue;
+            }
+            partitionInfo.setDDL(buildSourcePartitionDDL(partitionInfo));
+        }
+    }
+
+    private String buildSourcePartitionDDL(PartitionInfo partitionInfo) {
+        if (partitionInfo.getPartitionColumns() == null
+                || partitionInfo.getPartitionColumns().isEmpty()) {
+            return null;
+        }
+
+        StringBuilder ddl = new StringBuilder();
+        ddl.append("PARTITION BY ");
+        if (PartitionInfo.PARTITION_METHOD_RANGE.equalsIgnoreCase(
+                partitionInfo.getPartitionMethod())) {
+            ddl.append("RANGE");
+        } else if (PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(
+                partitionInfo.getPartitionMethod())) {
+            ddl.append("LIST");
+        } else if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(
+                partitionInfo.getPartitionMethod())) {
+            ddl.append("HASH");
+        } else {
+            return null;
+        }
+
+        ddl.append("(");
+        for (int i = 0; i < partitionInfo.getPartitionColumns().size(); i++) {
+            if (i > 0) {
+                ddl.append(",");
+            }
+            ddl.append(partitionInfo.getPartitionColumns().get(i).getName());
+        }
+        ddl.append(")");
+
+        if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(
+                partitionInfo.getPartitionMethod())) {
+            ddl.append(" PARTITIONS ").append(partitionInfo.getPartitionCount());
+            return ddl.toString();
+        }
+
+        if (partitionInfo.getPartitions() == null || partitionInfo.getPartitions().isEmpty()) {
+            return ddl.toString();
+        }
+
+        ddl.append(" (").append(System.lineSeparator());
+        for (int i = 0; i < partitionInfo.getPartitions().size(); i++) {
+            PartitionTable partition = partitionInfo.getPartitions().get(i);
+            if (i > 0) {
+                ddl.append(",").append(System.lineSeparator());
+            }
+            ddl.append("PARTITION ").append(partition.getPartitionName());
+
+            if (PartitionInfo.PARTITION_METHOD_RANGE.equalsIgnoreCase(
+                    partitionInfo.getPartitionMethod())) {
+                ddl.append(" VALUES LESS THAN ");
+                if ("MAXVALUE".equalsIgnoreCase(partition.getPartitionDesc())) {
+                    ddl.append("MAXVALUE");
+                } else {
+                    ddl.append("(").append(partition.getPartitionDesc()).append(")");
+                }
+            } else if (PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(
+                    partitionInfo.getPartitionMethod())) {
+                ddl.append(" VALUES (").append(partition.getPartitionDesc()).append(")");
+            }
+        }
+        ddl.append(System.lineSeparator()).append(")");
+        return ddl.toString();
     }
 }
