@@ -168,7 +168,7 @@ public class PartitionMappingView extends AbstractMappingView {
         if (srcTable == null || srcTable.getPartitionInfo() == null) {
             return;
         }
-        final String srcDDL = srcTable.getPartitionInfo().getDDL();
+        final String srcDDL = resolvePreviewDDL(srcTable);
         txtSrcSQL.setText(srcDDL == null ? "" : srcDDL);
 
         targetTable = config.getTargetTableSchema(setc.getTarget());
@@ -179,6 +179,8 @@ public class PartitionMappingView extends AbstractMappingView {
             PartitionInfo pi = new PartitionInfo();
             pi.setDDL(srcDDL);
             targetTable.setPartitionInfo(pi);
+        } else if (StringUtils.isBlank(targetTable.getPartitionInfo().getDDL())) {
+            targetTable.getPartitionInfo().setDDL(resolvePreviewDDL(srcTable));
         }
         btnCreate.setEnabled(true);
         btnCreate.setSelection(setc.isCreatePartition());
@@ -221,5 +223,13 @@ public class PartitionMappingView extends AbstractMappingView {
         }
         btnCreate.setEnabled(selection);
         txtTargetSQL.setEditable(btnCreate.getEnabled() && btnCreate.getSelection() && selection);
+    }
+
+    private String resolvePreviewDDL(Table srcTable) {
+        String sourceDDL = srcTable.getPartitionInfo().getDDL();
+        if (StringUtils.isNotBlank(sourceDDL)) {
+            return sourceDDL;
+        }
+        return config.getDBTransformHelper().getToCUBRIDPartitionDDL(srcTable);
     }
 }
