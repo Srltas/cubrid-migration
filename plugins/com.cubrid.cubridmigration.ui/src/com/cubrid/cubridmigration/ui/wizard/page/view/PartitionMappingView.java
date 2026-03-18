@@ -182,8 +182,9 @@ public class PartitionMappingView extends AbstractMappingView {
         } else if (StringUtils.isBlank(targetTable.getPartitionInfo().getDDL())) {
             targetTable.getPartitionInfo().setDDL(resolvePreviewDDL(srcTable));
         }
-        btnCreate.setEnabled(true);
-        btnCreate.setSelection(setc.isCreatePartition());
+        boolean targetSupported = StringUtils.isNotBlank(targetTable.getPartitionInfo().getDDL());
+        btnCreate.setEnabled(targetSupported);
+        btnCreate.setSelection(targetSupported && setc.isCreatePartition());
         txtTargetSQL.setEditable(btnCreate.getEnabled() && btnCreate.getSelection());
         final String tarDDL = targetTable.getPartitionInfo().getDDL();
         txtTargetSQL.setText(tarDDL == null ? "" : tarDDL);

@@ -1678,8 +1678,12 @@ public class MigrationConfiguration {
         if (tt.getPartitionInfo() == null) {
             PartitionInfo pi = new PartitionInfo();
             DBTransformHelper tranformHelper = getDBTransformHelper();
-            pi.setDDL(tranformHelper.getToCUBRIDPartitionDDL(srcTable));
+            String targetPartitionDDL = tranformHelper.getToCUBRIDPartitionDDL(srcTable);
+            pi.setDDL(targetPartitionDDL);
             tt.setPartitionInfo(pi);
+            if (StringUtils.isBlank(targetPartitionDDL)) {
+                setc.setCreatePartition(false);
+            }
         }
     }
 
