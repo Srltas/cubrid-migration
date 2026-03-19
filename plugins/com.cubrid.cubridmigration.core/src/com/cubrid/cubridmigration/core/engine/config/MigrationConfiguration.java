@@ -1673,17 +1673,18 @@ public class MigrationConfiguration {
     private void buildTablePartitionCfg(SourceEntryTableConfig setc, Table srcTable, Table tt) {
         if (srcTable.getPartitionInfo() == null) {
             setc.setCreatePartition(false);
+            tt.setPartitionInfo(null);
             return;
         }
-        if (tt.getPartitionInfo() == null) {
-            PartitionInfo pi = new PartitionInfo();
+        PartitionInfo pi = tt.getPartitionInfo();
+        if (pi == null) {
+            pi = new PartitionInfo();
+            tt.setPartitionInfo(pi);
+        }
+        if (StringUtils.isBlank(pi.getDDL())) {
             DBTransformHelper tranformHelper = getDBTransformHelper();
             String targetPartitionDDL = tranformHelper.getToCUBRIDPartitionDDL(srcTable);
             pi.setDDL(targetPartitionDDL);
-            tt.setPartitionInfo(pi);
-            if (StringUtils.isBlank(targetPartitionDDL)) {
-                setc.setCreatePartition(false);
-            }
         }
     }
 

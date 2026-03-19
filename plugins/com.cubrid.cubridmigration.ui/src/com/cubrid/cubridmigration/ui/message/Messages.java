@@ -587,6 +587,7 @@ public class Messages extends NLS {
     public static String msgErrEmptyMax;
     public static String msgErrEmptyMin;
     public static String msgErrEmptyPartition;
+    public static String msgInfoPartitionDisabled;
     public static String msgErrEmptyRefTable;
     public static String msgErrEmptySchemaCheckbox;
     public static String msgErrEmptySchemaName;
@@ -685,6 +686,7 @@ public class Messages extends NLS {
     public static String msgWarning;
     public static String msgWarningImpossibleMigrationGrant;
     public static String msgWarningImpossibleMigrationSynonymGrant;
+    public static String msgWarnPartitionUnsupportedListDefault;
     public static String msgWarnTableRecreated;
     public static String msgWizardStep;
     public static String mysqlToCubrid;

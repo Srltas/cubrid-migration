@@ -189,7 +189,8 @@ class TiberoPartitionMetadataLoader {
 
         try {
             stmt = conn.prepareStatement(SQL_GET_PARTITIONS);
-            LOG.debug("[SQL]{}", SQL_GET_PARTITIONS);
+            stmt.setString(1, schema.getName());
+            LOG.debug("[SQL]{}, 1={}", SQL_GET_PARTITIONS, schema.getName());
 
             rs = stmt.executeQuery();
             while (rs.next()) {
@@ -203,7 +204,7 @@ class TiberoPartitionMetadataLoader {
 
                 String partitionName = rs.getString("PARTITION_NAME");
                 String rawBound = readLongText(rs, "BOUND");
-                int partitionPosition = rs.getInt("PARTITION_POSITION");
+                int partitionPosition = rs.getInt("PARTITION_NO");
 
                 PartitionInfo partitionInfo = table.getPartitionInfo();
                 if (partitionInfo == null) {
@@ -254,9 +255,8 @@ class TiberoPartitionMetadataLoader {
                 }
 
                 String subPartitionName = rs.getString("SUBPARTITION_NAME");
-                Reader reader = rs.getCharacterStream("HIGH_VALUE");
-                String subPartitionDesc = reader == null ? null : DBUtils.reader2String(reader);
-                int subPartitionPosition = rs.getInt("SUBPARTITION_POSITION");
+                String subPartitionDesc = readLongText(rs, "BOUND");
+                int subPartitionPosition = rs.getInt("SUBPARTITION_NO");
 
                 PartitionInfo partitionInfo = table.getPartitionInfo();
                 if (partitionInfo == null) {

@@ -39,6 +39,8 @@ import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.DBObject;
 import com.cubrid.cubridmigration.core.dbobject.FK;
 import com.cubrid.cubridmigration.core.dbobject.Index;
+import com.cubrid.cubridmigration.core.dbobject.PartitionInfo;
+import com.cubrid.cubridmigration.core.dbobject.PartitionTable;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
 import com.cubrid.cubridmigration.core.dbobject.Sequence;
 import com.cubrid.cubridmigration.core.dbobject.Synonym;
@@ -424,6 +426,13 @@ public class MigrationCfgUtils {
         StringBuffer sbConfirm = new StringBuffer();
         StringBuffer sbNoPkTable = new StringBuffer();
         StringBuffer sbpkConfirm = new StringBuffer();
+        if (hasListDefaultPartition(srcTable)) {
+            sbWarn.append(
+                            Messages.bind(
+                                    Messages.msgWarnPartitionUnsupportedListDefault,
+                                    setc.getTarget()))
+                    .append(LINE_SEP);
+        }
         // If there is no PK in the source table, output a warning.
         if (!srcTable.hasPK()) {
             if (config.getSrcCatalog().getSchemas().size() > 1) {
@@ -1277,5 +1286,22 @@ public class MigrationCfgUtils {
             }
         }
         return sb.toString();
+    }
+
+    private static boolean hasListDefaultPartition(Table srcTable) {
+        if (srcTable == null || srcTable.getPartitionInfo() == null) {
+            return false;
+        }
+        PartitionInfo partitionInfo = srcTable.getPartitionInfo();
+        if (!PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(
+                partitionInfo.getPartitionMethod())) {
+            return false;
+        }
+        for (PartitionTable partition : partitionInfo.getPartitions()) {
+            if ("DEFAULT".equalsIgnoreCase(partition.getPartitionDesc())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
