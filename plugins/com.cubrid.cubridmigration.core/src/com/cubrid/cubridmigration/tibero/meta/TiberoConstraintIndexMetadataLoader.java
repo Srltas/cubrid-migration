@@ -83,14 +83,6 @@ class TiberoConstraintIndexMetadataLoader {
                         primaryKey.addColumn(col.getName());
                     }
                 }
-
-                if (primaryKey != null) {
-                    final String primaryKeyName = primaryKey.getName();
-                    if (primaryKeyName != null) {
-                        table.getIndexes()
-                                .removeIf(idx -> primaryKeyName.equalsIgnoreCase(idx.getName()));
-                    }
-                }
             }
         }
     }

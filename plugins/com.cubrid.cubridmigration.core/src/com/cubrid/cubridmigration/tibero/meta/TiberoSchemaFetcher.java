@@ -42,6 +42,7 @@ import com.cubrid.cubridmigration.core.dbmetadata.IBuildSchemaFilter;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.DBObjectFactory;
+import com.cubrid.cubridmigration.core.dbobject.PK;
 import com.cubrid.cubridmigration.core.dbobject.PlcsqlFunction;
 import com.cubrid.cubridmigration.core.dbobject.PlcsqlProcedure;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
@@ -440,6 +441,10 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
             final Connection conn, final Catalog catalog, final Schema schema, final Table table)
             throws SQLException {
         constraintIndexMetadataLoader.buildTableIndexes(conn, schema, table, factory);
+        PK pk = table.getPk();
+        if (pk != null && pk.getName() != null) {
+            table.removeIndex(pk.getName());
+        }
 
         setUniquColumnByIndex(table);
     }
