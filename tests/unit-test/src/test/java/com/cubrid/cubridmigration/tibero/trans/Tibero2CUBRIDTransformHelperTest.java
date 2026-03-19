@@ -543,13 +543,14 @@ public class Tibero2CUBRIDTransformHelperTest {
         }
 
         @Test
-        @DisplayName("LIST DEFAULT partition -> null")
-        void listDefaultPartition_returnsNull() {
+        @DisplayName("LIST DEFAULT partition -> keeps DEFAULT literal")
+        void listDefaultPartition_generatesDDL() {
             Table table =
                     tableWithPartitionInfo(
                             partitionInfo("LIST", 1, "REGION", partition("P_OTHER", "DEFAULT")));
 
-            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isNull();
+            assertThat(HELPER.getToCUBRIDPartitionDDL(table))
+                    .contains("PARTITION P_OTHER VALUES IN (DEFAULT)");
         }
 
         @Test
