@@ -31,6 +31,10 @@ package com.cubrid.cubridmigration.tibero.meta;
 
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Column;
+import com.cubrid.cubridmigration.core.dbobject.Index;
+import com.cubrid.cubridmigration.core.dbobject.PK;
+import com.cubrid.cubridmigration.core.dbobject.Schema;
+import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.datatype.DataType;
 import com.cubrid.cubridmigration.tibero.TiberoDataTypeHelper;
 
@@ -38,6 +42,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.Collections;
@@ -46,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -116,6 +123,52 @@ class TiberoSchemaFetcherTest {
 
     }
 
+    @Test
+    @DisplayName("buildTableIndexes() removes duplicate PK index after index metadata is loaded")
+    void buildTableIndexes_removesPkNamedIndexAfterLoading() throws Exception {
+        TiberoSchemaFetcher fetcher = new TiberoSchemaFetcher();
+        Connection conn = mock(Connection.class);
+        PreparedStatement indexStmt = mock(PreparedStatement.class);
+        PreparedStatement columnStmt = mock(PreparedStatement.class);
+        ResultSet indexRs = mock(ResultSet.class);
+        ResultSet pkColumnsRs = mock(ResultSet.class);
+        ResultSet keepColumnsRs = mock(ResultSet.class);
+
+        when(conn.prepareStatement(anyString())).thenReturn(indexStmt, columnStmt);
+        when(indexStmt.executeQuery()).thenReturn(indexRs);
+        when(columnStmt.executeQuery()).thenReturn(pkColumnsRs, keepColumnsRs);
+
+        when(indexRs.next()).thenReturn(true, true, false);
+        when(indexRs.getString("INDEX_NAME")).thenReturn("PK_EMP", "IDX_CODE");
+        when(indexRs.getString("INDEX_TYPE")).thenReturn("NORMAL", "NORMAL");
+        when(indexRs.getString("UNIQUENESS")).thenReturn("UNIQUE", "NONUNIQUE");
+
+        when(pkColumnsRs.next()).thenReturn(true, false);
+        when(pkColumnsRs.getString("COLUMN_NAME")).thenReturn("ID");
+        when(pkColumnsRs.getString("COLUMN_EXPRESSION")).thenReturn(null);
+        when(pkColumnsRs.getString("DESCEND")).thenReturn("A");
+
+        when(keepColumnsRs.next()).thenReturn(true, false);
+        when(keepColumnsRs.getString("COLUMN_NAME")).thenReturn("CODE");
+        when(keepColumnsRs.getString("COLUMN_EXPRESSION")).thenReturn(null);
+        when(keepColumnsRs.getString("DESCEND")).thenReturn("A");
+
+        Schema schema = new Schema();
+        schema.setName("HR");
+        Table table = new Table(schema);
+        table.setName("EMP");
+        table.addColumn(createColumn("ID"));
+        table.addColumn(createColumn("CODE"));
+        PK pk = new PK(table);
+        pk.setName("PK_EMP");
+        pk.addColumn("ID");
+        table.setPk(pk);
+
+        fetcher.buildTableIndexes(conn, new Catalog(), schema, table);
+
+        assertThat(table.getIndexes()).extracting(Index::getName).containsExactly("IDX_CODE");
+    }
+
     private void invokeFillColumnMetadata(
             TiberoSchemaFetcher fetcher,
             Catalog catalog,
@@ -144,5 +197,11 @@ class TiberoSchemaFetcherTest {
         supportedTypes.put("VARCHAR", Collections.singletonList(varchar));
         catalog.setSupportedDataType(supportedTypes);
         return catalog;
+    }
+
+    private Column createColumn(String name) {
+        Column column = new Column();
+        column.setName(name);
+        return column;
     }
 }

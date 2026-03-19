@@ -64,8 +64,8 @@ class TiberoConstraintIndexMetadataLoaderTest {
     class BuildTablePK {
 
         @Test
-        @DisplayName("composite PK is built and same-name index is removed")
-        void compositePk_builtAndSameNameIndexRemoved() throws Exception {
+        @DisplayName("composite PK is built")
+        void compositePk_built() throws Exception {
             Connection conn = mock(Connection.class);
             PreparedStatement stmt = mock(PreparedStatement.class);
             ResultSet rs = mock(ResultSet.class);
@@ -90,7 +90,8 @@ class TiberoConstraintIndexMetadataLoaderTest {
             assertThat(pk).isNotNull();
             assertThat(pk.getName()).isEqualTo("PK_EMP");
             assertThat(pk.getPkColumns()).containsExactly("ID", "CODE");
-            assertThat(table.getIndexes()).extracting(Index::getName).containsExactly("IDX_CODE");
+            assertThat(table.getIndexes()).extracting(Index::getName)
+                    .containsExactly("PK_EMP", "IDX_CODE");
         }
     }
 
