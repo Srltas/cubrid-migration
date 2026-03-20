@@ -82,6 +82,8 @@ public class TiberoDataTypeMappingHelperTest {
             "CHAR",
             "CLOB",
             "DATE",
+            "FLOAT",
+            "INTEGER",
             "INTERVAL DAY TO SECOND",
             "INTERVAL YEAR TO MONTH",
             "JSON",
@@ -90,14 +92,15 @@ public class TiberoDataTypeMappingHelperTest {
             "NCHAR",
             "NCLOB",
             "NVARCHAR",
+            "NVARCHAR2",
             "RAW",
             "TIME",
             "TIMESTAMP",
             "TIMESTAMP WITH LOCAL TIME ZONE",
             "TIMESTAMP WITH TIME ZONE",
             "VARCHAR",
+            "VARCHAR2",
             "XMLTYPE",
-            // No ROWID mapping in Tibero2CUBRID.xml.
         })
         void expectedKeys_existInXmlConfig(String expectedKey) {
             assertThat(HELPER.getXmlConfigMap())
@@ -230,15 +233,14 @@ public class TiberoDataTypeMappingHelperTest {
         }
 
         @Test
-        @DisplayName("BLOB has bit varying blob varchar targets")
+        @DisplayName("BLOB has bit varying and blob targets")
         void blob_hasExpectedTargets() {
             assertAvailableTargets(
                     "BLOB",
                     null,
                     null,
                     tuple("bit varying", "1073741823", null),
-                    tuple("blob", null, null),
-                    tuple("varchar", "1073741823", null));
+                    tuple("blob", null, null));
         }
 
         @Test
@@ -260,28 +262,42 @@ public class TiberoDataTypeMappingHelperTest {
         }
 
         @Test
-        @DisplayName("DATE has datetime and timestamp targets")
+        @DisplayName("DATE has datetime and varchar targets")
         void date_hasExpectedTargets() {
             assertAvailableTargets(
                     "DATE",
                     null,
                     null,
                     tuple("datetime", null, null),
-                    tuple("timestamp", null, null));
+                    tuple("varchar", "19", null));
+        }
+
+        @Test
+        @DisplayName("FLOAT has numeric and double targets")
+        void float_hasExpectedTargets() {
+            assertAvailableTargets(
+                    "FLOAT", null, null, tuple("numeric", null, null), tuple("double", null, null));
+        }
+
+        @Test
+        @DisplayName("INTEGER has numeric and int targets")
+        void integer_hasExpectedTargets() {
+            assertAvailableTargets(
+                    "INTEGER", null, null, tuple("numeric", null, null), tuple("int", null, null));
         }
 
         @Test
         @DisplayName("INTERVAL DAY TO SECOND has varchar target")
         void intervalDayToSecond_hasExpectedTargets() {
             assertAvailableTargets(
-                    "INTERVAL DAY TO SECOND", null, null, tuple("varchar", "255", null));
+                    "INTERVAL DAY TO SECOND", null, null, tuple("varchar", "64", null));
         }
 
         @Test
         @DisplayName("INTERVAL YEAR TO MONTH has varchar target")
         void intervalYearToMonth_hasExpectedTargets() {
             assertAvailableTargets(
-                    "INTERVAL YEAR TO MONTH", null, null, tuple("varchar", "255", null));
+                    "INTERVAL YEAR TO MONTH", null, null, tuple("varchar", "16", null));
         }
 
         @Test
@@ -341,7 +357,7 @@ public class TiberoDataTypeMappingHelperTest {
                     tuple("numeric", "38", "15"),
                     tuple("int", null, null),
                     tuple("bigint", null, null),
-                    tuple("varchar", "78", null));
+                    tuple("varchar", "133", null));
         }
 
         @Test
@@ -354,45 +370,58 @@ public class TiberoDataTypeMappingHelperTest {
                     tuple("numeric", "p", "s"),
                     tuple("int", null, null),
                     tuple("bigint", null, null),
-                    tuple("varchar", "78", null));
+                    tuple("varchar", "133", null));
         }
 
         @Test
-        @DisplayName("RAW has bit varying target")
+        @DisplayName("RAW has bit varying and blob targets")
         void raw_hasExpectedTargets() {
-            assertAvailableTargets("RAW", "10", null, tuple("bit varying", "n", null));
+            assertAvailableTargets(
+                    "RAW",
+                    "10",
+                    null,
+                    tuple("bit varying", "n", null),
+                    tuple("blob", null, null));
         }
 
         @Test
-        @DisplayName("TIME has varchar and time targets")
+        @DisplayName("TIME has time and varchar targets")
         void time_hasExpectedTargets() {
             assertAvailableTargets(
-                    "TIME", null, null, tuple("varchar", "32", null), tuple("time", null, null));
+                    "TIME", null, null, tuple("time", null, null), tuple("varchar", "18", null));
         }
 
         @Test
-        @DisplayName("TIMESTAMP has datetime and timestamp targets")
+        @DisplayName("TIMESTAMP has datetime and varchar targets")
         void timestamp_hasExpectedTargets() {
             assertAvailableTargets(
                     "TIMESTAMP",
                     null,
                     null,
                     tuple("datetime", null, null),
-                    tuple("timestamp", null, null));
+                    tuple("varchar", "29", null));
         }
 
         @Test
-        @DisplayName("TIMESTAMP WITH LOCAL TIME ZONE has varchar target")
+        @DisplayName("TIMESTAMP WITH LOCAL TIME ZONE has datetimeltz and varchar targets")
         void timestampWithLocalTimeZone_hasExpectedTargets() {
             assertAvailableTargets(
-                    "TIMESTAMP WITH LOCAL TIME ZONE", null, null, tuple("varchar", "100", null));
+                    "TIMESTAMP WITH LOCAL TIME ZONE",
+                    null,
+                    null,
+                    tuple("datetimeltz", null, null),
+                    tuple("varchar", "29", null));
         }
 
         @Test
-        @DisplayName("TIMESTAMP WITH TIME ZONE has varchar target")
+        @DisplayName("TIMESTAMP WITH TIME ZONE has datetimetz and varchar targets")
         void timestampWithTimeZone_hasExpectedTargets() {
             assertAvailableTargets(
-                    "TIMESTAMP WITH TIME ZONE", null, null, tuple("varchar", "100", null));
+                    "TIMESTAMP WITH TIME ZONE",
+                    null,
+                    null,
+                    tuple("datetimetz", null, null),
+                    tuple("varchar", "128", null));
         }
 
         @Test

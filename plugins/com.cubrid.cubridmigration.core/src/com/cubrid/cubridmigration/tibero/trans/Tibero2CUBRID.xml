@@ -66,11 +66,6 @@
             <precision></precision>
             <scale></scale>
         </TargetDataType>
-        <TargetDataType>
-            <type>varchar</type>
-            <precision>1073741823</precision>
-            <scale></scale>
-        </TargetDataType>
     </DataTypeMapping>
 
     <DataTypeMapping>
@@ -121,8 +116,8 @@
             <scale></scale>
         </TargetDataType>
         <TargetDataType>
-            <type>timestamp</type>
-            <precision></precision>
+            <type>varchar</type>
+            <precision>19</precision>
             <scale></scale>
         </TargetDataType>
     </DataTypeMapping>
@@ -135,7 +130,7 @@
         </SourceDataType>
         <TargetDataType>
             <type>varchar</type>
-            <precision>255</precision>
+            <precision>64</precision>
             <scale></scale>
         </TargetDataType>
     </DataTypeMapping>
@@ -148,7 +143,7 @@
         </SourceDataType>
         <TargetDataType>
             <type>varchar</type>
-            <precision>255</precision>
+            <precision>16</precision>
             <scale></scale>
         </TargetDataType>
     </DataTypeMapping>
@@ -266,7 +261,7 @@
         </TargetDataType>
         <TargetDataType>
             <type>varchar</type>
-            <precision>78</precision>
+            <precision>133</precision>
             <scale></scale>
         </TargetDataType>
     </DataTypeMapping>
@@ -294,7 +289,43 @@
         </TargetDataType>
         <TargetDataType>
             <type>varchar</type>
-            <precision>78</precision>
+            <precision>133</precision>
+            <scale></scale>
+        </TargetDataType>
+    </DataTypeMapping>
+
+    <DataTypeMapping>
+        <SourceDataType>
+            <type>INTEGER</type>
+            <precision></precision>
+            <scale></scale>
+        </SourceDataType>
+        <TargetDataType>
+            <type>numeric</type>
+            <precision></precision>
+            <scale></scale>
+        </TargetDataType>
+        <TargetDataType>
+            <type>int</type>
+            <precision></precision>
+            <scale></scale>
+        </TargetDataType>
+    </DataTypeMapping>
+
+    <DataTypeMapping>
+        <SourceDataType>
+            <type>FLOAT</type>
+            <precision></precision>
+            <scale></scale>
+        </SourceDataType>
+        <TargetDataType>
+            <type>numeric</type>
+            <precision></precision>
+            <scale></scale>
+        </TargetDataType>
+        <TargetDataType>
+            <type>double</type>
+            <precision></precision>
             <scale></scale>
         </TargetDataType>
     </DataTypeMapping>
@@ -302,6 +333,19 @@
     <DataTypeMapping>
         <SourceDataType>
             <type>NVARCHAR</type>
+            <precision>n</precision>
+            <scale></scale>
+        </SourceDataType>
+        <TargetDataType>
+            <type>varchar</type>
+            <precision>n</precision>
+            <scale></scale>
+        </TargetDataType>
+    </DataTypeMapping>
+
+    <DataTypeMapping>
+        <SourceDataType>
+            <type>NVARCHAR2</type>
             <precision>n</precision>
             <scale></scale>
         </SourceDataType>
@@ -323,6 +367,11 @@
             <precision>n</precision>
             <scale></scale>
         </TargetDataType>
+        <TargetDataType>
+            <type>blob</type>
+            <precision></precision>
+            <scale></scale>
+        </TargetDataType>
     </DataTypeMapping>
 
     <DataTypeMapping>
@@ -332,13 +381,13 @@
             <scale></scale>
         </SourceDataType>
         <TargetDataType>
-            <type>varchar</type>
-            <precision>32</precision>
+            <type>time</type>
+            <precision></precision>
             <scale></scale>
         </TargetDataType>
         <TargetDataType>
-            <type>time</type>
-            <precision></precision>
+            <type>varchar</type>
+            <precision>18</precision>
             <scale></scale>
         </TargetDataType>
     </DataTypeMapping>
@@ -355,8 +404,8 @@
             <scale></scale>
         </TargetDataType>
         <TargetDataType>
-            <type>timestamp</type>
-            <precision></precision>
+            <type>varchar</type>
+            <precision>29</precision>
             <scale></scale>
         </TargetDataType>
     </DataTypeMapping>
@@ -368,8 +417,13 @@
             <scale></scale>
         </SourceDataType>
         <TargetDataType>
+            <type>datetimeltz</type>
+            <precision></precision>
+            <scale></scale>
+        </TargetDataType>
+        <TargetDataType>
             <type>varchar</type>
-            <precision>100</precision>
+            <precision>29</precision>
             <scale></scale>
         </TargetDataType>
     </DataTypeMapping>
@@ -381,8 +435,13 @@
             <scale></scale>
         </SourceDataType>
         <TargetDataType>
+            <type>datetimetz</type>
+            <precision></precision>
+            <scale></scale>
+        </TargetDataType>
+        <TargetDataType>
             <type>varchar</type>
-            <precision>100</precision>
+            <precision>128</precision>
             <scale></scale>
         </TargetDataType>
     </DataTypeMapping>
@@ -390,6 +449,19 @@
     <DataTypeMapping>
         <SourceDataType>
             <type>VARCHAR</type>
+            <precision>n</precision>
+            <scale></scale>
+        </SourceDataType>
+        <TargetDataType>
+            <type>varchar</type>
+            <precision>n</precision>
+            <scale></scale>
+        </TargetDataType>
+    </DataTypeMapping>
+
+    <DataTypeMapping>
+        <SourceDataType>
+            <type>VARCHAR2</type>
             <precision>n</precision>
             <scale></scale>
         </SourceDataType>
