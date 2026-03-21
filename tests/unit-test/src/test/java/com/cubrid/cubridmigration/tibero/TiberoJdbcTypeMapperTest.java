@@ -50,15 +50,15 @@ public class TiberoJdbcTypeMapperTest {
     class IsUnsupportedJdbcType {
 
         @Test
-        @DisplayName("ROWID -> true for unsupported type")
-        void rowid_returnTrue() {
-            assertThat(TiberoJdbcTypeMapper.isUnsupportedJdbcType("ROWID")).isTrue();
+        @DisplayName("ROWID -> false")
+        void rowid_returnFalse() {
+            assertThat(TiberoJdbcTypeMapper.isUnsupportedJdbcType("ROWID")).isFalse();
         }
 
         @Test
-        @DisplayName("rowid lowercase -> true")
-        void rowid_lowercase_returnTrue() {
-            assertThat(TiberoJdbcTypeMapper.isUnsupportedJdbcType("rowid")).isTrue();
+        @DisplayName("rowid lowercase -> false")
+        void rowid_lowercase_returnFalse() {
+            assertThat(TiberoJdbcTypeMapper.isUnsupportedJdbcType("rowid")).isFalse();
         }
 
         @ParameterizedTest(name = "[{index}] \"{0}\" -> false for supported type")
@@ -98,8 +98,14 @@ public class TiberoJdbcTypeMapperTest {
                     .isEqualTo(Types.DOUBLE);
         }
 
+        @Test
+        @DisplayName("ROWID -> Types.VARCHAR")
+        void rowid_returnVarchar() {
+            assertThat(TiberoJdbcTypeMapper.getFixedJdbcTypeId("ROWID")).isEqualTo(Types.VARCHAR);
+        }
+
         @ParameterizedTest(name = "[{index}] \"{0}\" -> null for non-fixed type")
-        @ValueSource(strings = {"VARCHAR2", "NUMBER", "CLOB", "BLOB", "DATE", "TIMESTAMP", "ROWID"})
+        @ValueSource(strings = {"VARCHAR2", "NUMBER", "CLOB", "BLOB", "DATE", "TIMESTAMP"})
         void nonFixedTypes_returnsNull(String dataType) {
             assertThat(TiberoJdbcTypeMapper.getFixedJdbcTypeId(dataType)).isNull();
         }

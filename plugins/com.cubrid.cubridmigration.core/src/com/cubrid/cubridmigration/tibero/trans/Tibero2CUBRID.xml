@@ -376,6 +376,19 @@
 
     <DataTypeMapping>
         <SourceDataType>
+            <type>ROWID</type>
+            <precision></precision>
+            <scale></scale>
+        </SourceDataType>
+        <TargetDataType>
+            <type>varchar</type>
+            <precision>32</precision>
+            <scale></scale>
+        </TargetDataType>
+    </DataTypeMapping>
+
+    <DataTypeMapping>
+        <SourceDataType>
             <type>TIME</type>
             <precision></precision>
             <scale></scale>

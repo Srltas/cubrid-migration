@@ -94,6 +94,7 @@ public class TiberoDataTypeMappingHelperTest {
             "NVARCHAR",
             "NVARCHAR2",
             "RAW",
+            "ROWID",
             "TIME",
             "TIMESTAMP",
             "TIMESTAMP WITH LOCAL TIME ZONE",
@@ -378,6 +379,12 @@ public class TiberoDataTypeMappingHelperTest {
         void raw_hasExpectedTargets() {
             assertAvailableTargets(
                     "RAW", "10", null, tuple("bit varying", "n", null), tuple("blob", null, null));
+        }
+
+        @Test
+        @DisplayName("ROWID has varchar target")
+        void rowid_hasExpectedTargets() {
+            assertAvailableTargets("ROWID", null, null, tuple("varchar", "32", null));
         }
 
         @Test

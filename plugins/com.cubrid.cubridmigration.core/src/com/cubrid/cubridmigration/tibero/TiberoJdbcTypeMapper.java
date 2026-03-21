@@ -50,7 +50,7 @@ public final class TiberoJdbcTypeMapper {
      * @return true if unsupported, false otherwise
      */
     public static boolean isUnsupportedJdbcType(String dataType) {
-        return "ROWID".equalsIgnoreCase(dataType);
+        return false;
     }
 
     /**
@@ -97,6 +97,7 @@ public final class TiberoJdbcTypeMapper {
         Map<String, Integer> fixedTypes = new HashMap<String, Integer>();
         fixedTypes.put("BINARY_FLOAT", Types.FLOAT);
         fixedTypes.put("BINARY_DOUBLE", Types.DOUBLE);
+        fixedTypes.put("ROWID", Types.VARCHAR);
         return Collections.unmodifiableMap(fixedTypes);
     }
 }

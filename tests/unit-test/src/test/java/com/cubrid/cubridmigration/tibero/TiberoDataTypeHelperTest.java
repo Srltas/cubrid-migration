@@ -195,13 +195,13 @@ public class TiberoDataTypeHelperTest {
         }
 
         @Test
-        @DisplayName("unsupported ROWID -> null")
-        void unsupportedRowid_returnsNull() {
+        @DisplayName("ROWID -> VARCHAR")
+        void rowid_returnsVarchar() {
             Integer jdbcType =
                     TiberoDataTypeHelper.getInstance(null)
                             .getJdbcDataTypeID(new Catalog(), "ROWID", null, null);
 
-            assertThat(jdbcType).isNull();
+            assertThat(jdbcType).isEqualTo(Types.VARCHAR);
         }
 
         @Test
