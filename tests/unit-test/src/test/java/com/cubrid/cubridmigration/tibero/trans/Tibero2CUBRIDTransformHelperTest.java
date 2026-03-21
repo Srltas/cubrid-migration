@@ -82,8 +82,18 @@ public class Tibero2CUBRIDTransformHelperTest {
         @CsvSource({
             "DATE,      SYSDATE,      DATETIME, SYS_DATETIME",
             "DATE,      SYSTIME,      DATETIME, SYS_TIME",
-            "TIMESTAMP, SYSTIMESTAMP, DATETIME, SYS_TIMESTAMP",
+            "TIME,      CURRENT_TIME, TIME,     CURRENT_TIME",
+            "TIME,      SYSTIME,      TIME,     SYS_TIME",
+            "TIMESTAMP, SYSTIMESTAMP, DATETIME, SYS_DATETIME",
             "DATE,      CURRENT_DATE, DATETIME, CURRENT_DATETIME",
+            "TIMESTAMP, CURRENT_TIMESTAMP, DATETIME, CURRENT_DATETIME",
+            "TIMESTAMP, LOCALTIMESTAMP, DATETIME, CURRENT_DATETIME",
+            "TIMESTAMP WITH TIME ZONE, SYSTIMESTAMP, DATETIMETZ, 'FROM_TZ(SYS_DATETIME,"
+                    + " DBTIMEZONE())'",
+            "TIMESTAMP WITH TIME ZONE, CURRENT_TIMESTAMP, DATETIMETZ, 'FROM_TZ(CURRENT_DATETIME,"
+                    + " SESSIONTIMEZONE())'",
+            "TIMESTAMP WITH LOCAL TIME ZONE, SYSTIMESTAMP, DATETIMELTZ, SYS_DATETIME",
+            "TIMESTAMP WITH LOCAL TIME ZONE, CURRENT_TIMESTAMP, DATETIMELTZ, CURRENT_DATETIME",
         })
         @DisplayName("datetime column Tibero date function -> CUBRID function")
         void datetimeColumn_dateTimeFunction_converted(
@@ -101,6 +111,7 @@ public class Tibero2CUBRIDTransformHelperTest {
         @ParameterizedTest(name = "[{index}] {0} column | {1} -> {3}")
         @CsvSource({
             "DATE, sysdate, DATETIME, SYS_DATETIME",
+            "TIME, current_time, TIME, CURRENT_TIME",
         })
         @DisplayName("datetime column date function is converted case-insensitively")
         void datetimeColumn_dateTimeFunctionConvertedCaseInsensitively(
@@ -117,8 +128,8 @@ public class Tibero2CUBRIDTransformHelperTest {
 
         @ParameterizedTest(name = "[{index}] {0} column | {1} remains as is")
         @CsvSource({
-            "TIMESTAMP, LOCALTIMESTAMP,   DATETIME, LOCALTIMESTAMP",
-            "DATE,      CURRENT_TIMESTAMP, DATETIME, CURRENT_TIMESTAMP",
+            "TIME, CURRENT_TIMESTAMP, TIME, CURRENT_TIMESTAMP",
+            "TIME, LOCALTIMESTAMP, TIME, LOCALTIMESTAMP",
         })
         @DisplayName("datetime column recognized date function without mapping remains unchanged")
         void datetimeColumn_recognizedDateFunctionWithoutMapping_remainsUnchanged(
@@ -186,6 +197,35 @@ public class Tibero2CUBRIDTransformHelperTest {
             HELPER.adjustDefaultValue(src, cub);
 
             assertThat(cub.getDefaultValue()).isEqualTo(expected);
+        }
+
+        @ParameterizedTest(name = "[{index}] DATETIMETZ column | {0}")
+        @MethodSource(
+                "com.cubrid.cubridmigration.tibero.trans.Tibero2CUBRIDTransformHelperTest#toDateTimeTzConversionCases")
+        @DisplayName("DATETIMETZ type wraps TO_DATE/TO_TIMESTAMP with FROM_TZ")
+        void dateTimeTzColumn_toDateConverted(String input, String expected) {
+            Column src = createColumn("TIMESTAMP WITH TIME ZONE");
+            src.setDefaultValue(input);
+            Column cub = createColumn("DATETIMETZ");
+
+            HELPER.adjustDefaultValue(src, cub);
+
+            assertThat(cub.getDefaultValue()).isEqualTo(expected);
+        }
+
+        @Test
+        @DisplayName(
+                "TO_TIMESTAMP_TZ remains unchanged without a documented CUBRID parser equivalent")
+        void toTimestampTz_remainsUnchanged() {
+            Column src = createColumn("TIMESTAMP WITH TIME ZONE");
+            src.setDefaultValue("to_timestamp_tz('2024-01-01 +09:00','YYYY-MM-DD TZH:TZM')");
+            Column cub = createColumn("DATETIMETZ");
+
+            HELPER.adjustDefaultValue(src, cub);
+
+            assertThat(cub.getDefaultValue())
+                    .isEqualTo("TO_TIMESTAMP_TZ('2024-01-01 +09:00','YYYY-MM-DD TZH:TZM')");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
         }
 
         @Test
@@ -451,7 +491,10 @@ public class Tibero2CUBRIDTransformHelperTest {
         }
 
         private PartitionInfo partitionInfo(
-                String method, int partitionCount, String columnName, PartitionTable... partitions) {
+                String method,
+                int partitionCount,
+                String columnName,
+                PartitionTable... partitions) {
             PartitionInfo info = new PartitionInfo();
             info.setPartitionMethod(method);
             info.setPartitionCount(partitionCount);
@@ -534,7 +577,8 @@ public class Tibero2CUBRIDTransformHelperTest {
         void listPartition_generatesListDDL() {
             Table table =
                     tableWithPartitionInfo(
-                            partitionInfo("LIST", 1, "REGION", partition("P_SEOUL", "'SEOUL','BUSAN'")));
+                            partitionInfo(
+                                    "LIST", 1, "REGION", partition("P_SEOUL", "'SEOUL','BUSAN'")));
 
             String ddl = HELPER.getToCUBRIDPartitionDDL(table);
 
@@ -570,5 +614,15 @@ public class Tibero2CUBRIDTransformHelperTest {
                 Arguments.of(
                         "TO_TIMESTAMP('2024-01-01','YYYY-MM-DD')",
                         "TO_DATETIME('2024-01-01','YYYY-MM-DD')"));
+    }
+
+    static Stream<Arguments> toDateTimeTzConversionCases() {
+        return Stream.of(
+                Arguments.of(
+                        "TO_DATE('2024-01-01','YYYY-MM-DD')",
+                        "FROM_TZ(TO_DATETIME('2024-01-01','YYYY-MM-DD'), SESSIONTIMEZONE())"),
+                Arguments.of(
+                        "TO_TIMESTAMP('2024-01-01','YYYY-MM-DD')",
+                        "FROM_TZ(TO_DATETIME('2024-01-01','YYYY-MM-DD'), SESSIONTIMEZONE())"));
     }
 }

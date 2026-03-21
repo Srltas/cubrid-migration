@@ -253,8 +253,7 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
             return;
         }
 
-        if ((dataType.indexOf("TIMESTAMP") > -1 || "DATE".equalsIgnoreCase(dataType))
-                && isDefaultDateTimeFunction(defaultValue)) {
+        if (isDateTimeSourceType(dataType) && isDefaultDateTimeFunction(defaultValue)) {
             defaultValue = convertFunctionInDefaultValue(defaultValue, cubridColumn.getDataType());
             cubridColumn.setDefaultValue(defaultValue);
             return;
@@ -277,16 +276,31 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
      */
     private String convertFunctionInDefaultValue(String defaultValue, String dataType) {
         String upperCaseDefaultValue = defaultValue.toUpperCase(Locale.US);
+        String normalizedDataType = StringUtils.upperCase(dataType);
+
+        if ("TIME".equals(normalizedDataType)) {
+            switch (upperCaseDefaultValue) {
+                case "SYSTIME":
+                    return "SYS_TIME";
+                case "CURRENT_TIME":
+                    return "CURRENT_TIME";
+                default:
+                    return upperCaseDefaultValue;
+            }
+        }
 
         switch (upperCaseDefaultValue) {
             case "SYSDATE":
-                return "SYS_DATETIME";
+                return convertCurrentDateTimeFunction(true, normalizedDataType);
             case "SYSTIME":
                 return "SYS_TIME";
             case "SYSTIMESTAMP":
-                return "SYS_TIMESTAMP";
+                return convertCurrentDateTimeFunction(true, normalizedDataType);
             case "CURRENT_DATE":
-                return "CURRENT_DATETIME";
+                return convertCurrentDateTimeFunction(false, normalizedDataType);
+            case "CURRENT_TIMESTAMP":
+            case "LOCALTIMESTAMP":
+                return convertCurrentDateTimeFunction(false, normalizedDataType);
         }
 
         if ("DATETIME".equalsIgnoreCase(dataType)) {
@@ -294,7 +308,33 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
                 return upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME");
             }
             if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
-                return upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP_TZ", "TO_DATETIMETZ");
+                return upperCaseDefaultValue;
+            }
+            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
+                return upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME");
+            }
+        }
+        if ("DATETIMETZ".equalsIgnoreCase(dataType)) {
+            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
+                return upperCaseDefaultValue;
+            }
+            if (upperCaseDefaultValue.startsWith("TO_DATE")) {
+                return wrapWithFromTz(
+                        upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME"),
+                        "SESSIONTIMEZONE()");
+            }
+            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
+                return wrapWithFromTz(
+                        upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME"),
+                        "SESSIONTIMEZONE()");
+            }
+        }
+        if ("DATETIMELTZ".equalsIgnoreCase(dataType)) {
+            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
+                return upperCaseDefaultValue;
+            }
+            if (upperCaseDefaultValue.startsWith("TO_DATE")) {
+                return upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME");
             }
             if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
                 return upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME");
@@ -302,6 +342,22 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         }
 
         return defaultValue;
+    }
+
+    private String convertCurrentDateTimeFunction(boolean serverTime, String dataType) {
+        if ("DATETIMETZ".equals(dataType)) {
+            return serverTime
+                    ? "FROM_TZ(SYS_DATETIME, DBTIMEZONE())"
+                    : "FROM_TZ(CURRENT_DATETIME, SESSIONTIMEZONE())";
+        }
+        if ("DATETIME".equals(dataType) || "DATETIMELTZ".equals(dataType)) {
+            return serverTime ? "SYS_DATETIME" : "CURRENT_DATETIME";
+        }
+        return serverTime ? "SYS_TIMESTAMP" : "CURRENT_TIMESTAMP";
+    }
+
+    private String wrapWithFromTz(String dateTimeExpression, String timezoneFunction) {
+        return "FROM_TZ(" + dateTimeExpression + ", " + timezoneFunction + ")";
     }
 
     /**
@@ -341,6 +397,16 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         }
 
         return false;
+    }
+
+    private boolean isDateTimeSourceType(String dataType) {
+        if (dataType == null) {
+            return false;
+        }
+        String upperCaseDataType = dataType.toUpperCase(Locale.US);
+        return "DATE".equals(upperCaseDataType)
+                || "TIME".equals(upperCaseDataType)
+                || upperCaseDataType.contains("TIMESTAMP");
     }
 
     /**
