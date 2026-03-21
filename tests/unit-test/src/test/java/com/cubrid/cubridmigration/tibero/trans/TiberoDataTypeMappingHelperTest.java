@@ -142,9 +142,9 @@ public class TiberoDataTypeMappingHelperTest {
             }
 
             @Test
-            @DisplayName("NUMBER, precision=\"0\" -> \"NUMBER_p_s\"")
-            void zeroPrecision_returnsNumberPs() {
-                assertThat(HELPER.getMapKey("NUMBER", "0", "0")).isEqualTo("NUMBER_p_s");
+            @DisplayName("NUMBER, precision=\"0\" -> \"NUMBER\"")
+            void zeroPrecision_returnsNumber() {
+                assertThat(HELPER.getMapKey("NUMBER", "0", "0")).isEqualTo("NUMBER");
             }
 
             @Test
@@ -377,11 +377,7 @@ public class TiberoDataTypeMappingHelperTest {
         @DisplayName("RAW has bit varying and blob targets")
         void raw_hasExpectedTargets() {
             assertAvailableTargets(
-                    "RAW",
-                    "10",
-                    null,
-                    tuple("bit varying", "n", null),
-                    tuple("blob", null, null));
+                    "RAW", "10", null, tuple("bit varying", "n", null), tuple("blob", null, null));
         }
 
         @Test

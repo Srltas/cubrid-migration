@@ -328,6 +328,19 @@ public class Tibero2CUBRIDTransformHelperTest {
 
             assertThat(cub.getDefaultValue()).isEqualTo("(USER)");
         }
+
+        @Test
+        @DisplayName("NUMBER without declared precision/scale uses default numeric(38,15) mapping")
+        void numberWithoutDeclaredPrecision_usesDefaultNumeric3815() {
+            Column src = createColumn("COL", "NUMBER", 0, 0);
+
+            Column cub = HELPER.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("numeric");
+            assertThat(cub.getPrecision()).isEqualTo(38);
+            assertThat(cub.getScale()).isEqualTo(15);
+            assertThat(cub.getShownDataType()).isEqualTo("numeric(38,15)");
+        }
     }
 
     @Nested
