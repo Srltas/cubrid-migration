@@ -168,6 +168,7 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         CUBRIDDataTypeHelper dataTypeHelper = CUBRIDDataTypeHelper.getInstance(null);
         if (dataTypeHelper.isString(cubCol.getDataType())
                 && StringUtils.isNotEmpty(cubCol.getDefaultValue())
+                && !cubCol.isDefaultIsExpression()
                 && !cubCol.getDefaultValue().startsWith("'")
                 && !cubCol.getDefaultValue().startsWith("(")) {
             cubCol.setDefaultValue("'" + cubCol.getDefaultValue() + "'");
@@ -254,8 +255,16 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
             return;
         }
 
+        if (isTimezoneFunctionDefault(defaultValue)) {
+            defaultValue = convertFunctionInDefaultValue(defaultValue, cubridColumn.getDataType());
+            cubridColumn.setDefaultIsExpression(true);
+            cubridColumn.setDefaultValue(defaultValue);
+            return;
+        }
+
         if (isDateTimeSourceType(dataType) && isDefaultDateTimeFunction(defaultValue)) {
             defaultValue = convertFunctionInDefaultValue(defaultValue, cubridColumn.getDataType());
+            cubridColumn.setDefaultIsExpression(true);
             cubridColumn.setDefaultValue(defaultValue);
             return;
         }
@@ -398,6 +407,12 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         }
 
         return false;
+    }
+
+    private boolean isTimezoneFunctionDefault(String defaultValue) {
+        String upperCaseDefaultValue = defaultValue.toUpperCase(Locale.US);
+        return upperCaseDefaultValue.startsWith("DBTIMEZONE")
+                || upperCaseDefaultValue.startsWith("SESSIONTIMEZONE");
     }
 
     private boolean isDateTimeSourceType(String dataType) {

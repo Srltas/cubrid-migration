@@ -40,6 +40,8 @@ import com.cubrid.cubridmigration.core.dbobject.PartitionTable;
 import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.dbobject.View;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
+import com.cubrid.cubridmigration.core.mapping.model.MapItem;
+import com.cubrid.cubridmigration.core.mapping.model.MapObject;
 import com.cubrid.cubridmigration.core.mapping.model.VerifyInfo;
 import com.cubrid.cubridmigration.cubrid.trans.ToCUBRIDDataConverterFacade;
 
@@ -105,7 +107,7 @@ public class Tibero2CUBRIDTransformHelperTest {
             HELPER.adjustDefaultValue(src, cub);
 
             assertThat(cub.getDefaultValue()).isEqualTo(cubridFn);
-            assertThat(cub.isDefaultIsExpression()).isFalse();
+            assertThat(cub.isDefaultIsExpression()).isTrue();
         }
 
         @ParameterizedTest(name = "[{index}] {0} column | {1} -> {3}")
@@ -123,7 +125,7 @@ public class Tibero2CUBRIDTransformHelperTest {
             HELPER.adjustDefaultValue(src, cub);
 
             assertThat(cub.getDefaultValue()).isEqualTo(cubridFn);
-            assertThat(cub.isDefaultIsExpression()).isFalse();
+            assertThat(cub.isDefaultIsExpression()).isTrue();
         }
 
         @ParameterizedTest(name = "[{index}] {0} column | {1} remains as is")
@@ -141,7 +143,7 @@ public class Tibero2CUBRIDTransformHelperTest {
             HELPER.adjustDefaultValue(src, cub);
 
             assertThat(cub.getDefaultValue()).isEqualTo(expected);
-            assertThat(cub.isDefaultIsExpression()).isFalse();
+            assertThat(cub.isDefaultIsExpression()).isTrue();
         }
 
         @ParameterizedTest(name = "[{index}] {0} column | {1} -> {2}")
@@ -164,7 +166,7 @@ public class Tibero2CUBRIDTransformHelperTest {
             } else {
                 assertThat(cub.getDefaultValue()).isNull();
             }
-            assertThat(cub.isDefaultIsExpression()).isFalse();
+            assertThat(cub.isDefaultIsExpression()).isEqualTo(converted);
         }
 
         @ParameterizedTest(name = "[{index}] expression \"{0}\" -> isExpression=true")
@@ -349,6 +351,64 @@ public class Tibero2CUBRIDTransformHelperTest {
             Column cub = HELPER.getCUBRIDColumn(src, new MigrationConfiguration());
 
             assertThat(cub.getDefaultValue()).isEqualTo("(USER)");
+        }
+
+        @Test
+        @DisplayName("date timezone function mapped to varchar stays unquoted")
+        void dateTimezoneFunctionMappedToVarchar_staysUnquoted() {
+            Tibero2CUBRIDTransformHelper helper = createDateToVarcharHelper("64");
+            Column src = createColumn("TZ_COL", "DATE", null, null);
+            src.setDefaultValue("DBTIMEZONE");
+
+            Column cub = helper.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("varchar");
+            assertThat(cub.getPrecision()).isEqualTo(64);
+            assertThat(cub.getDefaultValue()).isEqualTo("DBTIMEZONE");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
+        }
+
+        @Test
+        @DisplayName("session timezone function mapped to varchar stays unquoted")
+        void sessionTimezoneFunctionMappedToVarchar_staysUnquoted() {
+            Tibero2CUBRIDTransformHelper helper = createDateToVarcharHelper("64");
+            Column src = createColumn("TZ_COL", "DATE", null, null);
+            src.setDefaultValue("SESSIONTIMEZONE");
+
+            Column cub = helper.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("varchar");
+            assertThat(cub.getPrecision()).isEqualTo(64);
+            assertThat(cub.getDefaultValue()).isEqualTo("SESSIONTIMEZONE");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
+        }
+
+        @Test
+        @DisplayName("varchar default DBTIMEZONE stays unquoted")
+        void varcharDefaultDbTimezone_staysUnquoted() {
+            Column src = createColumn("TZ_COL", "VARCHAR2", 64, null);
+            src.setDefaultValue("DBTIMEZONE");
+
+            Column cub = HELPER.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("varchar");
+            assertThat(cub.getPrecision()).isEqualTo(64);
+            assertThat(cub.getDefaultValue()).isEqualTo("DBTIMEZONE");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
+        }
+
+        @Test
+        @DisplayName("varchar default SESSIONTIMEZONE stays unquoted")
+        void varcharDefaultSessionTimezone_staysUnquoted() {
+            Column src = createColumn("TZ_COL", "VARCHAR2", 64, null);
+            src.setDefaultValue("SESSIONTIMEZONE");
+
+            Column cub = HELPER.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("varchar");
+            assertThat(cub.getPrecision()).isEqualTo(64);
+            assertThat(cub.getDefaultValue()).isEqualTo("SESSIONTIMEZONE");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
         }
 
         @Test
@@ -659,5 +719,25 @@ public class Tibero2CUBRIDTransformHelperTest {
                 Arguments.of(
                         "TO_TIMESTAMP('2024-01-01','YYYY-MM-DD')",
                         "FROM_TZ(TO_DATETIME('2024-01-01','YYYY-MM-DD'), SESSIONTIMEZONE())"));
+    }
+
+    private static Tibero2CUBRIDTransformHelper createDateToVarcharHelper(String precision) {
+        TiberoDataTypeMappingHelper mappingHelper = new TiberoDataTypeMappingHelper();
+
+        MapObject source = new MapObject();
+        source.setDatatype("DATE");
+        source.setPrecision("");
+        source.setScale("");
+
+        MapObject target = new MapObject();
+        target.setDatatype("varchar");
+        target.setPrecision(precision);
+        target.setScale("");
+
+        MapItem item = new MapItem(mappingHelper, source, target);
+        mappingHelper.getPreferenceConfigMap().put("DATE", item);
+
+        return new Tibero2CUBRIDTransformHelper(
+                mappingHelper, ToCUBRIDDataConverterFacade.getIntance());
     }
 }
