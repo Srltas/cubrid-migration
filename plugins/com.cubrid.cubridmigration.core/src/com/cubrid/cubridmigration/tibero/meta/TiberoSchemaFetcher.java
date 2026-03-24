@@ -86,7 +86,9 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
 
     private static final List<Object> COLUMNS_RESET1 =
             CommonUtils.createListWithArray(
-                    new Object[] {"CHAR", "NCHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "LONG"});
+                    new Object[] {
+                        "CHAR", "NCHAR", "VARCHAR", "VARCHAR2", "NVARCHAR", "NVARCHAR2", "LONG"
+                    });
 
     private static final List<Object> COLUMNS_RESET2 =
             CommonUtils.createListWithArray(new Object[] {"RAW", "LONG RAW"});
@@ -656,6 +658,11 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
         if (column.getByteLength() <= 0 && tiberoByteLength > 0) {
             column.setByteLength(tiberoByteLength);
         }
+        if (isTiberoNationalString(column.getDataType()) && tiberoCharLength > 0) {
+            column.setCharLength(tiberoCharLength);
+            column.setPrecision(tiberoCharLength);
+            return;
+        }
         if (column.getPrecision() > 0) {
             return;
         }
@@ -676,6 +683,12 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
                 column.setPrecision(column.getByteLength());
             }
         }
+    }
+
+    private boolean isTiberoNationalString(String dataType) {
+        return "NCHAR".equals(dataType)
+                || "NVARCHAR".equals(dataType)
+                || "NVARCHAR2".equals(dataType);
     }
 
     private void mergeTiberoColumnScale(Column column, Integer tiberoScale) {

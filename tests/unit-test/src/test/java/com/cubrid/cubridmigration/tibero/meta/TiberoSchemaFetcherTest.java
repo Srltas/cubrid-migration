@@ -29,13 +29,18 @@
  */
 package com.cubrid.cubridmigration.tibero.meta;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.cubrid.cubridmigration.core.datatype.DataType;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.Index;
 import com.cubrid.cubridmigration.core.dbobject.PK;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
 import com.cubrid.cubridmigration.core.dbobject.Table;
-import com.cubrid.cubridmigration.core.datatype.DataType;
 import com.cubrid.cubridmigration.tibero.TiberoDataTypeHelper;
 
 import org.junit.jupiter.api.DisplayName;
@@ -51,16 +56,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 @DisplayName("TiberoSchemaFetcher")
 class TiberoSchemaFetcherTest {
 
     @Test
-    @DisplayName("fillColumnMetadata() falls back to DATA_LENGTH when CHAR_LENGTH is zero for VARCHAR")
+    @DisplayName(
+            "fillColumnMetadata() falls back to DATA_LENGTH when CHAR_LENGTH is zero for VARCHAR")
     void fillColumnMetadata_usesByteLengthWhenCharLengthIsZero() throws Exception {
         TiberoSchemaFetcher fetcher = new TiberoSchemaFetcher();
         Catalog catalog = createCatalogWithVarcharType();
@@ -90,7 +91,8 @@ class TiberoSchemaFetcherTest {
     }
 
     @Test
-    @DisplayName("fillColumnMetadata() preserves JDBC precision when Tibero length metadata is empty")
+    @DisplayName(
+            "fillColumnMetadata() preserves JDBC precision when Tibero length metadata is empty")
     void fillColumnMetadata_preservesOriginalPrecisionWhenLengthsAreMissing() throws Exception {
         TiberoSchemaFetcher fetcher = new TiberoSchemaFetcher();
         Catalog catalog = createCatalogWithVarcharType();
@@ -120,7 +122,30 @@ class TiberoSchemaFetcherTest {
         assertThat(column.getCharLength()).isEqualTo(100);
         assertThat(column.getByteLength()).isEqualTo(100);
         assertThat(column.getShownDataType()).isEqualTo("VARCHAR(100)");
+    }
 
+    @Test
+    @DisplayName(
+            "fillColumnMetadata() uses CHAR_LENGTH for NCHAR even when JDBC precision is"
+                + " byte-based")
+    void fillColumnMetadata_usesCharLengthForNchar() throws Exception {
+        assertNationalStringPrecision("NCHAR", Types.NCHAR);
+    }
+
+    @Test
+    @DisplayName(
+            "fillColumnMetadata() uses CHAR_LENGTH for NVARCHAR even when JDBC precision is"
+                + " byte-based")
+    void fillColumnMetadata_usesCharLengthForNvarchar() throws Exception {
+        assertNationalStringPrecision("NVARCHAR", Types.NVARCHAR);
+    }
+
+    @Test
+    @DisplayName(
+            "fillColumnMetadata() uses CHAR_LENGTH for NVARCHAR2 even when JDBC precision is"
+                + " byte-based")
+    void fillColumnMetadata_usesCharLengthForNvarchar2() throws Exception {
+        assertNationalStringPrecision("NVARCHAR2", Types.NVARCHAR);
     }
 
     @Test
@@ -197,6 +222,55 @@ class TiberoSchemaFetcherTest {
         supportedTypes.put("VARCHAR", Collections.singletonList(varchar));
         catalog.setSupportedDataType(supportedTypes);
         return catalog;
+    }
+
+    private Catalog createCatalogWithStringTypes() {
+        Catalog catalog = createCatalogWithVarcharType();
+
+        DataType nchar = new DataType();
+        nchar.setTypeName("NCHAR");
+        nchar.setJdbcDataTypeID(Types.NCHAR);
+
+        DataType nvarchar = new DataType();
+        nvarchar.setTypeName("NVARCHAR");
+        nvarchar.setJdbcDataTypeID(Types.NVARCHAR);
+
+        catalog.getSupportedDataType().put("NCHAR", Collections.singletonList(nchar));
+        catalog.getSupportedDataType().put("NVARCHAR", Collections.singletonList(nvarchar));
+        catalog.getSupportedDataType().put("NVARCHAR2", Collections.singletonList(nvarchar));
+        return catalog;
+    }
+
+    private void assertNationalStringPrecision(String dataType, int jdbcType) throws Exception {
+        TiberoSchemaFetcher fetcher = new TiberoSchemaFetcher();
+        Catalog catalog = createCatalogWithStringTypes();
+        ResultSet rs = mock(ResultSet.class);
+        TiberoDataTypeHelper helper = TiberoDataTypeHelper.getInstance(null);
+
+        Column column = new Column();
+        column.setName("NAME");
+        column.setDataType(dataType);
+        column.setPrecision(20);
+        column.setCharLength(20);
+        column.setByteLength(20);
+        column.setJdbcIDOfDataType(jdbcType);
+
+        when(rs.getString("DATA_TYPE")).thenReturn(dataType);
+        when(rs.getString("DATA_PRECISION")).thenReturn(null);
+        when(rs.getString("DATA_SCALE")).thenReturn(null);
+        when(rs.getInt("DATA_LENGTH")).thenReturn(20);
+        when(rs.getInt("CHAR_LENGTH")).thenReturn(10);
+        when(rs.getString("CHAR_USED")).thenReturn("C");
+        when(rs.getString("NULLABLE")).thenReturn("Y");
+        when(rs.getString("DATA_DEFAULT")).thenReturn(null);
+        when(rs.getString("COMMENTS")).thenReturn(null);
+
+        invokeFillColumnMetadata(fetcher, catalog, column, rs, helper);
+
+        assertThat(column.getPrecision()).isEqualTo(10);
+        assertThat(column.getCharLength()).isEqualTo(10);
+        assertThat(column.getByteLength()).isEqualTo(20);
+        assertThat(column.getShownDataType()).isEqualTo(dataType + "(10 CHAR)");
     }
 
     private Column createColumn(String name) {
