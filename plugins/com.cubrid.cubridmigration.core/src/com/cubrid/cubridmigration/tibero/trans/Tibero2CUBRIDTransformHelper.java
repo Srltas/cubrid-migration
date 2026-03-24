@@ -111,7 +111,8 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
             cubColumn.setJdbcIDOfDataType(DataTypeConstant.CUBRID_DT_VARCHAR);
             return;
         }
-        if (cubDTHelper.isBinary(cubColumn.getDataType())) {
+        if ("RAW".equalsIgnoreCase(srcColumn.getDataType())
+                && cubDTHelper.isBinary(cubColumn.getDataType())) {
             expectedPrecision = Math.min(expectedPrecision * 8, DataTypeConstant.CUBRID_MAXSIZE);
             cubColumn.setPrecision((int) expectedPrecision);
         }

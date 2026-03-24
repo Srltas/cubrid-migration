@@ -289,14 +289,36 @@ public class Tibero2CUBRIDTransformHelperTest {
         }
 
         @Test
-        @DisplayName("binary type -> precision is scaled by bytes to bits")
-        void binaryType_precisionScaledToBits() {
+        @DisplayName("RAW to bit varying -> precision is scaled by bytes to bits")
+        void rawBinaryType_precisionScaledToBits() {
             Column src = createColumn("RAW", 8, null);
             Column cub = createColumn("bit varying", 8, null);
 
             HELPER.adjustPrecision(src, cub, CONFIG);
 
             assertThat(cub.getPrecision()).isEqualTo(64);
+        }
+
+        @Test
+        @DisplayName("BLOB to bit varying -> precision stays as configured")
+        void blobToBitVarying_precisionRemainsUnchanged() {
+            Column src = createColumn("BLOB", null, null);
+            Column cub = createColumn("bit varying", 100, null);
+
+            HELPER.adjustPrecision(src, cub, CONFIG);
+
+            assertThat(cub.getPrecision()).isEqualTo(100);
+        }
+
+        @Test
+        @DisplayName("LONG RAW to bit varying -> precision stays as configured")
+        void longRawToBitVarying_precisionRemainsUnchanged() {
+            Column src = createColumn("LONG RAW", null, null);
+            Column cub = createColumn("bit varying", 100, null);
+
+            HELPER.adjustPrecision(src, cub, CONFIG);
+
+            assertThat(cub.getPrecision()).isEqualTo(100);
         }
     }
 
