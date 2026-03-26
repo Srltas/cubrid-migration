@@ -678,10 +678,8 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
             } else if (column.getByteLength() > 0) {
                 column.setPrecision(column.getByteLength());
             }
-        } else if (COLUMNS_RESET2.indexOf(dataType) >= 0) {
-            if (column.getByteLength() > 0) {
-                column.setPrecision(column.getByteLength());
-            }
+        } else if (COLUMNS_RESET2.indexOf(dataType) >= 0 && column.getByteLength() > 0) {
+            column.setPrecision(column.getByteLength());
         }
     }
 
