@@ -305,10 +305,11 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
             case "SYSTIME":
                 return "SYS_TIME";
             case "SYSTIMESTAMP":
-                return convertCurrentDateTimeFunction(true, normalizedDataType);
+                return upperCaseDefaultValue;
             case "CURRENT_DATE":
                 return convertCurrentDateTimeFunction(false, normalizedDataType);
             case "CURRENT_TIMESTAMP":
+                return upperCaseDefaultValue;
             case "LOCALTIMESTAMP":
                 return convertCurrentDateTimeFunction(false, normalizedDataType);
         }
