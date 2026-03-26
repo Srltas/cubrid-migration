@@ -127,7 +127,7 @@ class TiberoSchemaFetcherTest {
     @Test
     @DisplayName(
             "fillColumnMetadata() uses CHAR_LENGTH for NCHAR even when JDBC precision is"
-                + " byte-based")
+                    + " byte-based")
     void fillColumnMetadata_usesCharLengthForNchar() throws Exception {
         assertNationalStringPrecision("NCHAR", Types.NCHAR);
     }
@@ -135,7 +135,7 @@ class TiberoSchemaFetcherTest {
     @Test
     @DisplayName(
             "fillColumnMetadata() uses CHAR_LENGTH for NVARCHAR even when JDBC precision is"
-                + " byte-based")
+                    + " byte-based")
     void fillColumnMetadata_usesCharLengthForNvarchar() throws Exception {
         assertNationalStringPrecision("NVARCHAR", Types.NVARCHAR);
     }
@@ -143,7 +143,7 @@ class TiberoSchemaFetcherTest {
     @Test
     @DisplayName(
             "fillColumnMetadata() uses CHAR_LENGTH for NVARCHAR2 even when JDBC precision is"
-                + " byte-based")
+                    + " byte-based")
     void fillColumnMetadata_usesCharLengthForNvarchar2() throws Exception {
         assertNationalStringPrecision("NVARCHAR2", Types.NVARCHAR);
     }

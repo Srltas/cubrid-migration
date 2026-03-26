@@ -151,9 +151,11 @@ class TiberoPartitionMetadataLoaderTest {
             stubStrings(partTablesRs, "PARTITIONING_TYPE", partitionMethods);
             stubInts(partTablesRs, "PARTITION_COUNT", partitionCounts);
             stubInts(partTablesRs, "PARTITIONING_KEY_COUNT", partitionKeyCounts);
-            stubStrings(partTablesRs, "SUBPARTITIONING_TYPE", repeat("NONE", partTableNames.size()));
+            stubStrings(
+                    partTablesRs, "SUBPARTITIONING_TYPE", repeat("NONE", partTableNames.size()));
             stubInts(partTablesRs, "DEF_SUBPARTITION_COUNT", repeatInt(0, partTableNames.size()));
-            stubInts(partTablesRs, "SUBPARTITIONING_KEY_COUNT", repeatInt(0, partTableNames.size()));
+            stubInts(
+                    partTablesRs, "SUBPARTITIONING_KEY_COUNT", repeatInt(0, partTableNames.size()));
 
             stubStrings(partColumnsRs, "NAME", partColumnTableNames);
             stubStrings(partColumnsRs, "COLUMN_NAME", partColumnNames);
@@ -202,8 +204,8 @@ class TiberoPartitionMetadataLoaderTest {
             }
         }
 
-        private static void stubReaders(
-                ResultSet rs, String columnName, List<StringReader> values) throws Exception {
+        private static void stubReaders(ResultSet rs, String columnName, List<StringReader> values)
+                throws Exception {
             OngoingStubbing<java.io.Reader> stubbing = when(rs.getCharacterStream(columnName));
             for (StringReader value : values) {
                 stubbing = stubbing.thenReturn(value);
@@ -218,7 +220,8 @@ class TiberoPartitionMetadataLoaderTest {
             }
         }
 
-        private static void stubInts(ResultSet rs, String columnName, int[] values) throws Exception {
+        private static void stubInts(ResultSet rs, String columnName, int[] values)
+                throws Exception {
             OngoingStubbing<Integer> stubbing = when(rs.getInt(columnName));
             for (int value : values) {
                 stubbing = stubbing.thenReturn(value);
@@ -280,10 +283,7 @@ class TiberoPartitionMetadataLoaderTest {
         context.addPartitionKeyRow("CMT_RANGE_TO_DATE", "SALE_DATE");
 
         context.addPartitionRow(
-                "CMT_RANGE_TO_DATE",
-                "P2025",
-                "(TO_DATE('2025-01-01','YYYY-MM-DD'))",
-                1);
+                "CMT_RANGE_TO_DATE", "P2025", "(TO_DATE('2025-01-01','YYYY-MM-DD'))", 1);
         context.addPartitionRow("CMT_LIST_PART", "P_REGION", "(('EAST','WEST'))", 1);
 
         context.execute();

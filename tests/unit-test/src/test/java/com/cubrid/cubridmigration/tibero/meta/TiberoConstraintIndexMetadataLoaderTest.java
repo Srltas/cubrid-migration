@@ -90,7 +90,8 @@ class TiberoConstraintIndexMetadataLoaderTest {
             assertThat(pk).isNotNull();
             assertThat(pk.getName()).isEqualTo("PK_EMP");
             assertThat(pk.getPkColumns()).containsExactly("ID", "CODE");
-            assertThat(table.getIndexes()).extracting(Index::getName)
+            assertThat(table.getIndexes())
+                    .extracting(Index::getName)
                     .containsExactly("PK_EMP", "IDX_CODE");
         }
     }
@@ -162,7 +163,7 @@ class TiberoConstraintIndexMetadataLoaderTest {
         @Test
         @DisplayName(
                 "indexes are built with reverse flag, expression columns, and empty indexes"
-                    + " removed")
+                        + " removed")
         void indexes_builtAndEmptyIndexesRemoved() throws Exception {
             Connection conn = mock(Connection.class);
             PreparedStatement indexStmt = mock(PreparedStatement.class);
