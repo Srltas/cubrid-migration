@@ -70,10 +70,10 @@ public class TiberoJdbcTypeMapperTest {
         }
 
         @Test
-        @DisplayName("TIMESTAMP WITH TIME ZONE -> Types.TIMESTAMP")
+        @DisplayName("TIMESTAMP WITH TIME ZONE -> Types.TIMESTAMP_WITH_TIMEZONE")
         void timestampWithTimeZone_returnTimestamp() {
             assertThat(TiberoJdbcTypeMapper.getFixedJdbcTypeId("TIMESTAMP WITH TIME ZONE"))
-                    .isEqualTo(Types.TIMESTAMP);
+                    .isEqualTo(Types.TIMESTAMP_WITH_TIMEZONE);
         }
 
         @Test

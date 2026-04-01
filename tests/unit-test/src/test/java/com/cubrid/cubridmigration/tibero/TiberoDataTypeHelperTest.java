@@ -217,14 +217,14 @@ public class TiberoDataTypeHelperTest {
         }
 
         @Test
-        @DisplayName("TIMESTAMP WITH TIME ZONE -> fixed TIMESTAMP")
+        @DisplayName("TIMESTAMP WITH TIME ZONE -> fixed TIMESTAMP_WITH_TIMEZONE")
         void timestampWithTimeZone_returnsFixedJdbcType() {
             Integer jdbcType =
                     TiberoDataTypeHelper.getInstance(null)
                             .getJdbcDataTypeID(
                                     new Catalog(), "TIMESTAMP(6) WITH TIME ZONE", null, null);
 
-            assertThat(jdbcType).isEqualTo(Types.TIMESTAMP);
+            assertThat(jdbcType).isEqualTo(Types.TIMESTAMP_WITH_TIMEZONE);
         }
 
         @Test
