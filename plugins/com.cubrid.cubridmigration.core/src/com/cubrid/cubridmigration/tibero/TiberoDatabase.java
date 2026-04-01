@@ -100,7 +100,6 @@ public class TiberoDatabase extends DatabaseType {
                 Properties props = new Properties();
                 props.put("user", conParam.getConUser());
                 props.put("password", conParam.getConPassword());
-                props.put("characterencoding", conParam.getCharset());
 
                 Connection conn;
                 if (StringUtils.isBlank(conParam.getUserJDBCURL())) {
