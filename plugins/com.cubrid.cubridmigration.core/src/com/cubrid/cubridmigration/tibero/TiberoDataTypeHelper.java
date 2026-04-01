@@ -117,10 +117,6 @@ public final class TiberoDataTypeHelper extends DBDataTypeHelper {
             return TiberoJdbcTypeMapper.getNumberType(precision, scale);
         }
 
-        if (TiberoJdbcTypeMapper.isUnsupportedJdbcType(key)) {
-            return null;
-        }
-
         Integer fixedType = TiberoJdbcTypeMapper.getFixedJdbcTypeId(key);
         if (fixedType != null) {
             return fixedType;

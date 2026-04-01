@@ -44,16 +44,6 @@ public final class TiberoJdbcTypeMapper {
     }
 
     /**
-     * Determine if the given data type is an unsupported JDBC type for migration.
-     *
-     * @param dataType String
-     * @return true if unsupported, false otherwise
-     */
-    public static boolean isUnsupportedJdbcType(String dataType) {
-        return false;
-    }
-
-    /**
      * Get the JDBC Type ID for fixed/known Tibero data types.
      *
      * @param dataType String

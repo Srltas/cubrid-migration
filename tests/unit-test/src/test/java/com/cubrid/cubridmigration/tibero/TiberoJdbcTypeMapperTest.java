@@ -46,41 +46,6 @@ import java.util.stream.Stream;
 public class TiberoJdbcTypeMapperTest {
 
     @Nested
-    @DisplayName("isUnsupportedJdbcType()")
-    class IsUnsupportedJdbcType {
-
-        @Test
-        @DisplayName("ROWID -> false")
-        void rowid_returnFalse() {
-            assertThat(TiberoJdbcTypeMapper.isUnsupportedJdbcType("ROWID")).isFalse();
-        }
-
-        @Test
-        @DisplayName("rowid lowercase -> false")
-        void rowid_lowercase_returnFalse() {
-            assertThat(TiberoJdbcTypeMapper.isUnsupportedJdbcType("rowid")).isFalse();
-        }
-
-        @ParameterizedTest(name = "[{index}] \"{0}\" -> false for supported type")
-        @ValueSource(
-                strings = {
-                    "VARCHAR2",
-                    "NUMBER",
-                    "CLOB",
-                    "BLOB",
-                    "DATE",
-                    "TIMESTAMP",
-                    "BINARY_FLOAT",
-                    "BINARY_DOUBLE",
-                    "CHAR",
-                    "NCHAR"
-                })
-        void supportedTypes_returnsFalse(String dataType) {
-            assertThat(TiberoJdbcTypeMapper.isUnsupportedJdbcType(dataType)).isFalse();
-        }
-    }
-
-    @Nested
     @DisplayName("getFixedJdbcTypeId()")
     class GetFixedJdbcTypeId {
 
