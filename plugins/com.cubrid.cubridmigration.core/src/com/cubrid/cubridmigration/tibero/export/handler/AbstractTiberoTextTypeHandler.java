@@ -52,10 +52,9 @@ public abstract class AbstractTiberoTextTypeHandler extends ClobTypeHandler {
         final String colName = column.getName();
         try {
             return readTextValue(rs.getObject(colName), rs, colName);
+        } catch (SQLException e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof SQLException) {
-                throw (SQLException) e;
-            }
             throw new SQLException(buildReadErrorMessage(colName), e);
         }
     }

@@ -67,10 +67,9 @@ public class TiberoJsonTypeHandler extends AbstractTiberoTextTypeHandler {
                 return readFromInputStreamValue((InputStream) value, rs, colName);
             }
             return readTextValue(value, rs, colName);
+        } catch (SQLException e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof SQLException) {
-                throw (SQLException) e;
-            }
             throw new SQLException(buildReadErrorMessage(colName), e);
         }
     }
