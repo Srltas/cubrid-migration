@@ -289,16 +289,37 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         String normalizedDataType = StringUtils.upperCase(dataType);
 
         if ("TIME".equals(normalizedDataType)) {
-            switch (upperCaseDefaultValue) {
-                case "SYSTIME":
-                    return "SYS_TIME";
-                case "CURRENT_TIME":
-                    return "CURRENT_TIME";
-                default:
-                    return upperCaseDefaultValue;
-            }
+            return convertTimeDefaultValue(upperCaseDefaultValue);
         }
 
+        String convertedFunction =
+                convertCurrentDateTimeDefaultValue(upperCaseDefaultValue, normalizedDataType);
+        if (convertedFunction != null) {
+            return convertedFunction;
+        }
+
+        String convertedLiteral =
+                convertDateTimeLiteralDefaultValue(upperCaseDefaultValue, normalizedDataType);
+        if (convertedLiteral != null) {
+            return convertedLiteral;
+        }
+
+        return defaultValue;
+    }
+
+    private String convertTimeDefaultValue(String upperCaseDefaultValue) {
+        switch (upperCaseDefaultValue) {
+            case "SYSTIME":
+                return "SYS_TIME";
+            case "CURRENT_TIME":
+                return "CURRENT_TIME";
+            default:
+                return upperCaseDefaultValue;
+        }
+    }
+
+    private String convertCurrentDateTimeDefaultValue(
+            String upperCaseDefaultValue, String normalizedDataType) {
         switch (upperCaseDefaultValue) {
             case "SYSDATE":
                 return convertCurrentDateTimeFunction(true, normalizedDataType);
@@ -312,47 +333,44 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
                 return upperCaseDefaultValue;
             case "LOCALTIMESTAMP":
                 return convertCurrentDateTimeFunction(false, normalizedDataType);
+            default:
+                return null;
         }
+    }
 
-        if ("DATETIME".equalsIgnoreCase(dataType)) {
-            if (upperCaseDefaultValue.startsWith("TO_DATE")) {
-                return upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME");
-            }
-            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
-                return upperCaseDefaultValue;
-            }
-            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
-                return upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME");
-            }
+    private String convertDateTimeLiteralDefaultValue(
+            String upperCaseDefaultValue, String normalizedDataType) {
+        if ("DATETIME".equals(normalizedDataType) || "DATETIMELTZ".equals(normalizedDataType)) {
+            return convertDateTimeLiteral(upperCaseDefaultValue);
         }
-        if ("DATETIMETZ".equalsIgnoreCase(dataType)) {
-            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
-                return upperCaseDefaultValue;
-            }
-            if (upperCaseDefaultValue.startsWith("TO_DATE")) {
-                return wrapWithFromTz(
-                        upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME"),
-                        "SESSIONTIMEZONE()");
-            }
-            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
-                return wrapWithFromTz(
-                        upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME"),
-                        "SESSIONTIMEZONE()");
-            }
+        if ("DATETIMETZ".equals(normalizedDataType)) {
+            return convertDateTimeTzLiteral(upperCaseDefaultValue);
         }
-        if ("DATETIMELTZ".equalsIgnoreCase(dataType)) {
-            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
-                return upperCaseDefaultValue;
-            }
-            if (upperCaseDefaultValue.startsWith("TO_DATE")) {
-                return upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME");
-            }
-            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
-                return upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME");
-            }
-        }
+        return null;
+    }
 
-        return defaultValue;
+    private String convertDateTimeLiteral(String upperCaseDefaultValue) {
+        if (upperCaseDefaultValue.startsWith("TO_DATE")) {
+            return upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME");
+        }
+        if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
+            return upperCaseDefaultValue;
+        }
+        if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
+            return upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME");
+        }
+        return null;
+    }
+
+    private String convertDateTimeTzLiteral(String upperCaseDefaultValue) {
+        if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
+            return upperCaseDefaultValue;
+        }
+        String dateTimeLiteral = convertDateTimeLiteral(upperCaseDefaultValue);
+        if (dateTimeLiteral == null) {
+            return null;
+        }
+        return wrapWithFromTz(dateTimeLiteral, "SESSIONTIMEZONE()");
     }
 
     private String convertCurrentDateTimeFunction(boolean serverTime, String dataType) {
@@ -493,71 +511,98 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
 
         PartitionInfo partInfo = table.getPartitionInfo();
         String partitionMethod = partInfo.getPartitionMethod();
-        int partitionCount = partInfo.getPartitionCount();
         List<Column> partitionColumns = partInfo.getPartitionColumns();
-        List<PartitionTable> partitions = partInfo.getPartitions();
-        int partitionColumnCount = partitionColumns == null ? 0 : partitionColumns.size();
-        int actualPartitionCount = partitions == null ? 0 : partitions.size();
+        if (partitionColumns == null || partitionColumns.isEmpty()) {
+            return null;
+        }
 
-        if (partitionColumnCount == 0) {
+        String cubridPartitionMethod = getCUBRIDPartitionMethod(partitionMethod);
+        if (cubridPartitionMethod == null) {
             return null;
         }
+
         StringBuilder ddl = new StringBuilder();
-        ddl.append("PARTITION BY ");
-        if (PartitionInfo.PARTITION_METHOD_RANGE.equalsIgnoreCase(partitionMethod)) {
-            ddl.append(" RANGE ");
-        } else if (PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(partitionMethod)) {
-            ddl.append(" LIST ");
-        } else if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(partitionMethod)) {
-            ddl.append(" HASH ");
-        } else {
-            return null;
+        ddl.append("PARTITION BY ").append(cubridPartitionMethod).append(" ");
+        appendPartitionColumns(ddl, partitionColumns);
+        if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(partitionMethod)) {
+            return appendHashPartitionDDL(ddl, partInfo);
         }
+        return appendRangeOrListPartitionDDL(ddl, partInfo, partitionMethod);
+    }
+
+    private String getCUBRIDPartitionMethod(String partitionMethod) {
+        if (PartitionInfo.PARTITION_METHOD_RANGE.equalsIgnoreCase(partitionMethod)) {
+            return "RANGE";
+        }
+        if (PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(partitionMethod)) {
+            return "LIST";
+        }
+        if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(partitionMethod)) {
+            return "HASH";
+        }
+        return null;
+    }
+
+    private void appendPartitionColumns(StringBuilder ddl, List<Column> partitionColumns) {
         ddl.append("(");
-        for (int i = 0; i < partitionColumnCount; i++) {
-            Column column = partitionColumns.get(i);
-            String colName = column.getName();
+        for (int i = 0; i < partitionColumns.size(); i++) {
             if (i > 0) {
                 ddl.append(",");
             }
-            ddl.append(colName);
+            ddl.append(partitionColumns.get(i).getName());
         }
         ddl.append(") ");
+    }
 
-        if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(partitionMethod)) {
-            int hashPartitionCount = partitionCount > 0 ? partitionCount : actualPartitionCount;
-            if (hashPartitionCount <= 0) {
-                return null;
-            }
-            ddl.append(" PARTITIONS ").append(hashPartitionCount);
-        } else {
-            if (actualPartitionCount == 0) {
-                return null;
-            }
-            ddl.append("(").append(CommonUtils.newLine);
-            for (int i = 0; i < actualPartitionCount; i++) {
-                PartitionTable partTable = partitions.get(i);
-                if (i > 0) {
-                    ddl.append(",").append(CommonUtils.newLine);
-                }
-                ddl.append("PARTITION ").append(partTable.getPartitionName());
-                if (PartitionInfo.PARTITION_METHOD_RANGE.equalsIgnoreCase(partitionMethod)) {
-                    ddl.append(" VALUES LESS THAN ");
-                    if ("MAXVALUE".equalsIgnoreCase(partTable.getPartitionDesc())) {
-                        ddl.append(partTable.getPartitionDesc());
-                    } else {
-                        ddl.append("(");
-                        ddl.append(partTable.getPartitionDesc());
-                        ddl.append(")");
-                    }
-                } else if (PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(partitionMethod)) {
-                    ddl.append(" VALUES IN (");
-                    ddl.append(partTable.getPartitionDesc());
-                    ddl.append(")");
-                }
-            }
-            ddl.append(CommonUtils.newLine).append(")");
+    private String appendHashPartitionDDL(StringBuilder ddl, PartitionInfo partInfo) {
+        List<PartitionTable> partitions = partInfo.getPartitions();
+        int actualPartitionCount = partitions == null ? 0 : partitions.size();
+        int hashPartitionCount =
+                partInfo.getPartitionCount() > 0
+                        ? partInfo.getPartitionCount()
+                        : actualPartitionCount;
+        if (hashPartitionCount <= 0) {
+            return null;
         }
+        ddl.append(" PARTITIONS ").append(hashPartitionCount);
         return ddl.toString();
+    }
+
+    private String appendRangeOrListPartitionDDL(
+            StringBuilder ddl, PartitionInfo partInfo, String partitionMethod) {
+        List<PartitionTable> partitions = partInfo.getPartitions();
+        if (partitions == null || partitions.isEmpty()) {
+            return null;
+        }
+        ddl.append("(").append(CommonUtils.newLine);
+        for (int i = 0; i < partitions.size(); i++) {
+            if (i > 0) {
+                ddl.append(",").append(CommonUtils.newLine);
+            }
+            appendPartitionDefinition(ddl, partitions.get(i), partitionMethod);
+        }
+        ddl.append(CommonUtils.newLine).append(")");
+        return ddl.toString();
+    }
+
+    private void appendPartitionDefinition(
+            StringBuilder ddl, PartitionTable partTable, String partitionMethod) {
+        ddl.append("PARTITION ").append(partTable.getPartitionName());
+        if (PartitionInfo.PARTITION_METHOD_RANGE.equalsIgnoreCase(partitionMethod)) {
+            appendRangePartitionValues(ddl, partTable);
+            return;
+        }
+        if (PartitionInfo.PARTITION_METHOD_LIST.equalsIgnoreCase(partitionMethod)) {
+            ddl.append(" VALUES IN (").append(partTable.getPartitionDesc()).append(")");
+        }
+    }
+
+    private void appendRangePartitionValues(StringBuilder ddl, PartitionTable partTable) {
+        ddl.append(" VALUES LESS THAN ");
+        if ("MAXVALUE".equalsIgnoreCase(partTable.getPartitionDesc())) {
+            ddl.append(partTable.getPartitionDesc());
+            return;
+        }
+        ddl.append("(").append(partTable.getPartitionDesc()).append(")");
     }
 }
