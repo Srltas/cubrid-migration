@@ -44,7 +44,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @DisplayName("TiberoXmlTypeHandler")
-public class TiberoXmlTypeHandlerText {
+public class TiberoXmlTypeHandlerTest {
 
     private static final TiberoXmlTypeHandler HANDLER = new TiberoXmlTypeHandler();
 
