@@ -42,6 +42,7 @@ import com.cubrid.cubridmigration.core.dbmetadata.IBuildSchemaFilter;
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.DBObjectFactory;
+import com.cubrid.cubridmigration.core.dbobject.PK;
 import com.cubrid.cubridmigration.core.dbobject.PlcsqlFunction;
 import com.cubrid.cubridmigration.core.dbobject.PlcsqlProcedure;
 import com.cubrid.cubridmigration.core.dbobject.Schema;
@@ -85,7 +86,9 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
 
     private static final List<Object> COLUMNS_RESET1 =
             CommonUtils.createListWithArray(
-                    new Object[] {"CHAR", "NCHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "LONG"});
+                    new Object[] {
+                        "CHAR", "NCHAR", "VARCHAR", "VARCHAR2", "NVARCHAR", "NVARCHAR2", "LONG"
+                    });
 
     private static final List<Object> COLUMNS_RESET2 =
             CommonUtils.createListWithArray(new Object[] {"RAW", "LONG RAW"});
@@ -107,6 +110,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @return Catalog
      * @throws SQLException e
      */
+    @Override
     public Catalog buildCatalog(final Connection conn, ConnParameters cp, IBuildSchemaFilter filter)
             throws SQLException {
         final Catalog catalog = super.buildCatalog(conn, cp, filter);
@@ -137,15 +141,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      */
     protected void buildPartitions(
             final Connection conn, final Catalog catalog, final Schema schema) {
-        partitionMetadataLoader.buildPartitions(
-                conn,
-                schema,
-                factory,
-                new TiberoPartitionMetadataLoader.PartitionDDLProvider() {
-                    public String getPartitionDDL(Table table) {
-                        return getSourcePartitionDDL(table);
-                    }
-                });
+        partitionMetadataLoader.buildPartitions(conn, schema, factory);
     }
 
     /**
@@ -157,6 +153,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param filter IBuildSchemaFilter
      * @throws SQLException e
      */
+    @Override
     protected void buildProcedures(
             Connection conn, Catalog catalog, Schema schema, IBuildSchemaFilter filter)
             throws SQLException {
@@ -194,6 +191,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param filter IBuildSchemaFilter
      * @throws SQLException e
      */
+    @Override
     protected void buildSequence(
             final Connection conn,
             final Catalog catalog,
@@ -241,6 +239,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
         }
     }
 
+    @Override
     protected void buildSynonym(
             Connection conn, Catalog catlog, Schema schema, IBuildSchemaFilter filter)
             throws SQLException {
@@ -282,6 +281,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @return SourceTable
      * @throws SQLException e
      */
+    @Override
     public Table buildSQLTable(ResultSetMetaData resultSetMeta) throws SQLException {
         TiberoDataTypeHelper dtHelper = TiberoDataTypeHelper.getInstance(null);
         Table sourceTable = super.buildSQLTable(resultSetMeta);
@@ -301,6 +301,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param table Table
      * @throws SQLException e
      */
+    @Override
     protected void buildTableColumns(
             final Connection conn, final Catalog catalog, final Schema schema, final Table table)
             throws SQLException {
@@ -348,17 +349,16 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
         String dataType = rs.getString("DATA_TYPE");
         column.setDataType(dataType);
 
-        column.setByteLength(rs.getInt("DATA_LENGTH"));
         String precisionStr = rs.getString("DATA_PRECISION");
-        Integer precision = precisionStr == null ? null : rs.getInt("DATA_PRECISION");
-        column.setPrecision(precision);
+        Integer tiberoPrecision = precisionStr == null ? null : rs.getInt("DATA_PRECISION");
         String scaleStr = rs.getString("DATA_SCALE");
-        Integer scale = scaleStr == null ? null : rs.getInt("DATA_SCALE");
-        column.setScale(scale);
+        Integer tiberoScale = scaleStr == null ? null : rs.getInt("DATA_SCALE");
+        int tiberoByteLength = rs.getInt("DATA_LENGTH");
+        int tiberoCharLength = rs.getInt("CHAR_LENGTH");
 
-        column.setJdbcIDOfDataType(dtHelper.getJdbcDataTypeID(catalog, dataType, precision, scale));
+        column.setJdbcIDOfDataType(
+                dtHelper.getJdbcDataTypeID(catalog, dataType, tiberoPrecision, tiberoScale));
 
-        column.setByteLength(rs.getInt("DATA_LENGTH"));
         column.setNullable(!"N".equalsIgnoreCase(rs.getString("NULLABLE")));
 
         String defaultValue = rs.getString("DATA_DEFAULT");
@@ -371,9 +371,9 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
             column.setDefaultValue(defaultValue);
         }
 
-        column.setCharLength(rs.getInt("CHAR_LENGTH"));
         column.setCharUsed(rs.getString("CHAR_USED"));
-        resetTiberoColumnPrecision(column);
+        mergeTiberoColumnLength(column, tiberoPrecision, tiberoCharLength, tiberoByteLength);
+        mergeTiberoColumnScale(column, tiberoScale);
 
         column.setShownDataType(dtHelper.getShownDataType(column));
         String comment = rs.getString("COMMENTS");
@@ -422,6 +422,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param table Table
      * @throws SQLException e
      */
+    @Override
     protected void buildTableFKs(
             final Connection conn, final Catalog catalog, final Schema schema, final Table table)
             throws SQLException {
@@ -437,10 +438,15 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param table Table
      * @throws SQLException e
      */
+    @Override
     protected void buildTableIndexes(
             final Connection conn, final Catalog catalog, final Schema schema, final Table table)
             throws SQLException {
         constraintIndexMetadataLoader.buildTableIndexes(conn, schema, table, factory);
+        PK pk = table.getPk();
+        if (pk != null && pk.getName() != null) {
+            table.removeIndex(pk.getName());
+        }
 
         setUniquColumnByIndex(table);
     }
@@ -454,6 +460,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param filter IBuildSchemaFilter
      * @throws SQLException e
      */
+    @Override
     protected void buildTriggers(
             Connection conn, Catalog catalog, Schema schema, IBuildSchemaFilter filter)
             throws SQLException {
@@ -471,6 +478,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param view View
      * @throws SQLException e
      */
+    @Override
     protected void buildViewColumns(
             final Connection conn, final Catalog catalog, final Schema schema, final View view)
             throws SQLException {
@@ -494,6 +502,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param filter IBuildSchemaFilter
      * @throws SQLException e
      */
+    @Override
     protected void buildGrant(
             Connection conn, Catalog catalog, Schema schema, IBuildSchemaFilter filter)
             throws SQLException {
@@ -527,6 +536,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @return List<String>
      * @throws SQLException e
      */
+    @Override
     protected List<String> getAllTableNames(
             final Connection conn, final Catalog catalog, final Schema schema) throws SQLException {
         final DatabaseMetaData metaData = conn.getMetaData();
@@ -563,6 +573,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @return List<String>
      * @throws SQLException e
      */
+    @Override
     protected List<String> getAllViewNames(
             final Connection conn, final Catalog catalog, final Schema schema) throws SQLException {
         List<String> viewNameList = new ArrayList<String>();
@@ -592,6 +603,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
         }
     }
 
+    @Override
     protected DBExportHelper getExportHelper() {
         return DatabaseType.TIBERO.getExportHelper();
     }
@@ -604,6 +616,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @param objectName String
      * @return processed comment
      */
+    @Override
     protected String getTableComment(Connection conn, String schemaName, String objectName) {
         String comment =
                 commentQueryLoader.getTableComment(
@@ -611,6 +624,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
         return comment == null ? null : commentEditor(comment);
     }
 
+    @Override
     protected String getViewComment(Connection conn, String schemaName, String viewName) {
         String comment =
                 commentQueryLoader.getViewComment(
@@ -636,15 +650,51 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      *
      * @param column Column
      */
-    private void resetTiberoColumnPrecision(Column column) {
-        if (column.getPrecision() == null || column.getPrecision() == 0) {
-            String dataType = column.getDataType();
+    private void mergeTiberoColumnLength(
+            Column column, Integer tiberoPrecision, int tiberoCharLength, int tiberoByteLength) {
+        if (column.getCharLength() <= 0 && tiberoCharLength > 0) {
+            column.setCharLength(tiberoCharLength);
+        }
+        if (column.getByteLength() <= 0 && tiberoByteLength > 0) {
+            column.setByteLength(tiberoByteLength);
+        }
+        if (isTiberoNationalString(column.getDataType()) && tiberoCharLength > 0) {
+            column.setCharLength(tiberoCharLength);
+            column.setPrecision(tiberoCharLength);
+            return;
+        }
+        if (column.getPrecision() > 0) {
+            return;
+        }
+        if (tiberoPrecision != null && tiberoPrecision > 0) {
+            column.setPrecision(tiberoPrecision);
+            return;
+        }
 
-            if (COLUMNS_RESET1.indexOf(dataType) >= 0) {
+        String dataType = column.getDataType();
+        if (COLUMNS_RESET1.indexOf(dataType) >= 0) {
+            if (column.getCharLength() > 0) {
                 column.setPrecision(column.getCharLength());
-            } else if (COLUMNS_RESET2.indexOf(dataType) >= 0) {
+            } else if (column.getByteLength() > 0) {
                 column.setPrecision(column.getByteLength());
             }
+        } else if (COLUMNS_RESET2.indexOf(dataType) >= 0 && column.getByteLength() > 0) {
+            column.setPrecision(column.getByteLength());
+        }
+    }
+
+    private boolean isTiberoNationalString(String dataType) {
+        return "NCHAR".equals(dataType)
+                || "NVARCHAR".equals(dataType)
+                || "NVARCHAR2".equals(dataType);
+    }
+
+    private void mergeTiberoColumnScale(Column column, Integer tiberoScale) {
+        if (column.getScale() != 0 || tiberoScale == null) {
+            return;
+        }
+        if (tiberoScale != 0) {
+            column.setScale(tiberoScale);
         }
     }
 
@@ -698,6 +748,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      * @return schema names
      * @throws SQLException ex;
      */
+    @Override
     protected List<String> getSchemaNames(Connection conn, ConnParameters cp) throws SQLException {
         List<String> schemaNames = new ArrayList<String>();
         String sql = "SELECT OWNER FROM USER_TAB_PRIVS WHERE PRIVILEGE='SELECT' GROUP BY OWNER";
@@ -726,6 +777,7 @@ public final class TiberoSchemaFetcher extends AbstractJDBCSchemaFetcher {
      *
      * @return DatabaseType
      */
+    @Override
     public DatabaseType getDBType() {
         return DatabaseType.TIBERO;
     }

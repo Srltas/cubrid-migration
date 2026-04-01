@@ -66,7 +66,10 @@ public class TiberoDataTypeMappingHelper extends AbstractDataTypeMappingHelper {
      * @return key String
      */
     private String getNumberMappingKey(String precision) {
-        if (isPOrNumeric(precision)) {
+        if (isUnspecifiedNumberPrecision(precision)) {
+            return "NUMBER";
+        }
+        if (isPOrPositiveNumeric(precision)) {
             return "NUMBER" + MAP_KEY_SEPARATOR + "p" + MAP_KEY_SEPARATOR + "s";
         }
         return "NUMBER";
@@ -78,7 +81,21 @@ public class TiberoDataTypeMappingHelper extends AbstractDataTypeMappingHelper {
      * @param str String
      * @return boolean
      */
-    private boolean isPOrNumeric(String str) {
-        return str != null && ("p".equalsIgnoreCase(str) || str.matches("^-?\\d+$"));
+    private boolean isUnspecifiedNumberPrecision(String str) {
+        return str == null || String.valueOf(str).trim().isEmpty() || "0".equals(str.trim());
+    }
+
+    /**
+     * Check if the string is "p" or a positive numeric value.
+     *
+     * @param str String
+     * @return boolean
+     */
+    private boolean isPOrPositiveNumeric(String str) {
+        if (str == null) {
+            return false;
+        }
+        String trimmed = str.trim();
+        return "p".equalsIgnoreCase(trimmed) || trimmed.matches("^[1-9]\\d*$");
     }
 }

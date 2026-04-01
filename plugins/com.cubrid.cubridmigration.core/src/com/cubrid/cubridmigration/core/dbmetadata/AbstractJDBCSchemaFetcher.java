@@ -1161,6 +1161,9 @@ public abstract class AbstractJDBCSchemaFetcher implements IDependOnDatabaseType
      */
     protected String getSourcePartitionDDL(Table sourceTable) {
         String ddl = sourceTable.getDDL();
+        if (ddl == null) {
+            return "";
+        }
         if (ddl.indexOf("PARTITION BY") > -1) {
             return ddl.substring(ddl.indexOf("PARTITION BY"), ddl.length());
         }

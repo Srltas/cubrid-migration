@@ -40,6 +40,8 @@ import com.cubrid.cubridmigration.core.dbobject.PartitionTable;
 import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.dbobject.View;
 import com.cubrid.cubridmigration.core.engine.config.MigrationConfiguration;
+import com.cubrid.cubridmigration.core.mapping.model.MapItem;
+import com.cubrid.cubridmigration.core.mapping.model.MapObject;
 import com.cubrid.cubridmigration.core.mapping.model.VerifyInfo;
 import com.cubrid.cubridmigration.cubrid.trans.ToCUBRIDDataConverterFacade;
 
@@ -82,8 +84,16 @@ public class Tibero2CUBRIDTransformHelperTest {
         @CsvSource({
             "DATE,      SYSDATE,      DATETIME, SYS_DATETIME",
             "DATE,      SYSTIME,      DATETIME, SYS_TIME",
-            "TIMESTAMP, SYSTIMESTAMP, DATETIME, SYS_TIMESTAMP",
+            "TIME,      CURRENT_TIME, TIME,     CURRENT_TIME",
+            "TIME,      SYSTIME,      TIME,     SYS_TIME",
+            "TIMESTAMP, SYSTIMESTAMP, DATETIME, SYSTIMESTAMP",
             "DATE,      CURRENT_DATE, DATETIME, CURRENT_DATETIME",
+            "TIMESTAMP, CURRENT_TIMESTAMP, DATETIME, CURRENT_TIMESTAMP",
+            "TIMESTAMP, LOCALTIMESTAMP, DATETIME, CURRENT_DATETIME",
+            "TIMESTAMP WITH TIME ZONE, SYSTIMESTAMP, DATETIMETZ, SYSTIMESTAMP",
+            "TIMESTAMP WITH TIME ZONE, CURRENT_TIMESTAMP, DATETIMETZ, CURRENT_TIMESTAMP",
+            "TIMESTAMP WITH LOCAL TIME ZONE, SYSTIMESTAMP, DATETIMELTZ, SYSTIMESTAMP",
+            "TIMESTAMP WITH LOCAL TIME ZONE, CURRENT_TIMESTAMP, DATETIMELTZ, CURRENT_TIMESTAMP",
         })
         @DisplayName("datetime column Tibero date function -> CUBRID function")
         void datetimeColumn_dateTimeFunction_converted(
@@ -95,12 +105,13 @@ public class Tibero2CUBRIDTransformHelperTest {
             HELPER.adjustDefaultValue(src, cub);
 
             assertThat(cub.getDefaultValue()).isEqualTo(cubridFn);
-            assertThat(cub.isDefaultIsExpression()).isFalse();
+            assertThat(cub.isDefaultIsExpression()).isTrue();
         }
 
         @ParameterizedTest(name = "[{index}] {0} column | {1} -> {3}")
         @CsvSource({
             "DATE, sysdate, DATETIME, SYS_DATETIME",
+            "TIME, current_time, TIME, CURRENT_TIME",
         })
         @DisplayName("datetime column date function is converted case-insensitively")
         void datetimeColumn_dateTimeFunctionConvertedCaseInsensitively(
@@ -112,13 +123,13 @@ public class Tibero2CUBRIDTransformHelperTest {
             HELPER.adjustDefaultValue(src, cub);
 
             assertThat(cub.getDefaultValue()).isEqualTo(cubridFn);
-            assertThat(cub.isDefaultIsExpression()).isFalse();
+            assertThat(cub.isDefaultIsExpression()).isTrue();
         }
 
         @ParameterizedTest(name = "[{index}] {0} column | {1} remains as is")
         @CsvSource({
-            "TIMESTAMP, LOCALTIMESTAMP,   DATETIME, LOCALTIMESTAMP",
-            "DATE,      CURRENT_TIMESTAMP, DATETIME, CURRENT_TIMESTAMP",
+            "TIME, CURRENT_TIMESTAMP, TIME, CURRENT_TIMESTAMP",
+            "TIME, LOCALTIMESTAMP, TIME, LOCALTIMESTAMP",
         })
         @DisplayName("datetime column recognized date function without mapping remains unchanged")
         void datetimeColumn_recognizedDateFunctionWithoutMapping_remainsUnchanged(
@@ -130,7 +141,7 @@ public class Tibero2CUBRIDTransformHelperTest {
             HELPER.adjustDefaultValue(src, cub);
 
             assertThat(cub.getDefaultValue()).isEqualTo(expected);
-            assertThat(cub.isDefaultIsExpression()).isFalse();
+            assertThat(cub.isDefaultIsExpression()).isTrue();
         }
 
         @ParameterizedTest(name = "[{index}] {0} column | {1} -> {2}")
@@ -153,7 +164,7 @@ public class Tibero2CUBRIDTransformHelperTest {
             } else {
                 assertThat(cub.getDefaultValue()).isNull();
             }
-            assertThat(cub.isDefaultIsExpression()).isFalse();
+            assertThat(cub.isDefaultIsExpression()).isEqualTo(converted);
         }
 
         @ParameterizedTest(name = "[{index}] expression \"{0}\" -> isExpression=true")
@@ -186,6 +197,35 @@ public class Tibero2CUBRIDTransformHelperTest {
             HELPER.adjustDefaultValue(src, cub);
 
             assertThat(cub.getDefaultValue()).isEqualTo(expected);
+        }
+
+        @ParameterizedTest(name = "[{index}] DATETIMETZ column | {0}")
+        @MethodSource(
+                "com.cubrid.cubridmigration.tibero.trans.Tibero2CUBRIDTransformHelperTest#toDateTimeTzConversionCases")
+        @DisplayName("DATETIMETZ type wraps TO_DATE/TO_TIMESTAMP with FROM_TZ")
+        void dateTimeTzColumn_toDateConverted(String input, String expected) {
+            Column src = createColumn("TIMESTAMP WITH TIME ZONE");
+            src.setDefaultValue(input);
+            Column cub = createColumn("DATETIMETZ");
+
+            HELPER.adjustDefaultValue(src, cub);
+
+            assertThat(cub.getDefaultValue()).isEqualTo(expected);
+        }
+
+        @Test
+        @DisplayName(
+                "TO_TIMESTAMP_TZ remains unchanged without a documented CUBRID parser equivalent")
+        void toTimestampTz_remainsUnchanged() {
+            Column src = createColumn("TIMESTAMP WITH TIME ZONE");
+            src.setDefaultValue("to_timestamp_tz('2024-01-01 +09:00','YYYY-MM-DD TZH:TZM')");
+            Column cub = createColumn("DATETIMETZ");
+
+            HELPER.adjustDefaultValue(src, cub);
+
+            assertThat(cub.getDefaultValue())
+                    .isEqualTo("TO_TIMESTAMP_TZ('2024-01-01 +09:00','YYYY-MM-DD TZH:TZM')");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
         }
 
         @Test
@@ -249,14 +289,36 @@ public class Tibero2CUBRIDTransformHelperTest {
         }
 
         @Test
-        @DisplayName("binary type -> precision is scaled by bytes to bits")
-        void binaryType_precisionScaledToBits() {
+        @DisplayName("RAW to bit varying -> precision is scaled by bytes to bits")
+        void rawBinaryType_precisionScaledToBits() {
             Column src = createColumn("RAW", 8, null);
             Column cub = createColumn("bit varying", 8, null);
 
             HELPER.adjustPrecision(src, cub, CONFIG);
 
             assertThat(cub.getPrecision()).isEqualTo(64);
+        }
+
+        @Test
+        @DisplayName("BLOB to bit varying -> precision stays as configured")
+        void blobToBitVarying_precisionRemainsUnchanged() {
+            Column src = createColumn("BLOB", null, null);
+            Column cub = createColumn("bit varying", 100, null);
+
+            HELPER.adjustPrecision(src, cub, CONFIG);
+
+            assertThat(cub.getPrecision()).isEqualTo(100);
+        }
+
+        @Test
+        @DisplayName("LONG RAW to bit varying -> precision stays as configured")
+        void longRawToBitVarying_precisionRemainsUnchanged() {
+            Column src = createColumn("LONG RAW", null, null);
+            Column cub = createColumn("bit varying", 100, null);
+
+            HELPER.adjustPrecision(src, cub, CONFIG);
+
+            assertThat(cub.getPrecision()).isEqualTo(100);
         }
     }
 
@@ -287,6 +349,77 @@ public class Tibero2CUBRIDTransformHelperTest {
             Column cub = HELPER.getCUBRIDColumn(src, new MigrationConfiguration());
 
             assertThat(cub.getDefaultValue()).isEqualTo("(USER)");
+        }
+
+        @Test
+        @DisplayName("date timezone function mapped to varchar stays unquoted")
+        void dateTimezoneFunctionMappedToVarchar_staysUnquoted() {
+            Tibero2CUBRIDTransformHelper helper = createDateToVarcharHelper("64");
+            Column src = createColumn("TZ_COL", "DATE", null, null);
+            src.setDefaultValue("DBTIMEZONE");
+
+            Column cub = helper.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("varchar");
+            assertThat(cub.getPrecision()).isEqualTo(64);
+            assertThat(cub.getDefaultValue()).isEqualTo("DBTIMEZONE");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
+        }
+
+        @Test
+        @DisplayName("session timezone function mapped to varchar stays unquoted")
+        void sessionTimezoneFunctionMappedToVarchar_staysUnquoted() {
+            Tibero2CUBRIDTransformHelper helper = createDateToVarcharHelper("64");
+            Column src = createColumn("TZ_COL", "DATE", null, null);
+            src.setDefaultValue("SESSIONTIMEZONE");
+
+            Column cub = helper.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("varchar");
+            assertThat(cub.getPrecision()).isEqualTo(64);
+            assertThat(cub.getDefaultValue()).isEqualTo("SESSIONTIMEZONE");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
+        }
+
+        @Test
+        @DisplayName("varchar default DBTIMEZONE stays unquoted")
+        void varcharDefaultDbTimezone_staysUnquoted() {
+            Column src = createColumn("TZ_COL", "VARCHAR2", 64, null);
+            src.setDefaultValue("DBTIMEZONE");
+
+            Column cub = HELPER.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("varchar");
+            assertThat(cub.getPrecision()).isEqualTo(64);
+            assertThat(cub.getDefaultValue()).isEqualTo("DBTIMEZONE");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
+        }
+
+        @Test
+        @DisplayName("varchar default SESSIONTIMEZONE stays unquoted")
+        void varcharDefaultSessionTimezone_staysUnquoted() {
+            Column src = createColumn("TZ_COL", "VARCHAR2", 64, null);
+            src.setDefaultValue("SESSIONTIMEZONE");
+
+            Column cub = HELPER.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("varchar");
+            assertThat(cub.getPrecision()).isEqualTo(64);
+            assertThat(cub.getDefaultValue()).isEqualTo("SESSIONTIMEZONE");
+            assertThat(cub.isDefaultIsExpression()).isTrue();
+        }
+
+        @Test
+        @DisplayName("NUMBER without declared precision/scale uses default numeric(38,15) mapping")
+        void numberWithoutDeclaredPrecision_usesDefaultNumeric3815() {
+            Column src = createColumn("COL", "NUMBER", 0, 0);
+
+            Column cub = HELPER.getCUBRIDColumn(src, new MigrationConfiguration());
+
+            assertThat(cub.getDataType()).isEqualTo("numeric");
+            assertThat(cub.getPrecision()).isEqualTo(38);
+            assertThat(cub.getScale()).isEqualTo(15);
+            assertThat(cub.getShownDataType()).isEqualTo("numeric(38,15)");
         }
     }
 
@@ -444,6 +577,39 @@ public class Tibero2CUBRIDTransformHelperTest {
     @DisplayName("getToCUBRIDPartitionDDL()")
     class GetToCUBRIDPartitionDDL {
 
+        private Table tableWithPartitionInfo(PartitionInfo info) {
+            Table table = new Table();
+            table.setPartitionInfo(info);
+            return table;
+        }
+
+        private PartitionInfo partitionInfo(
+                String method,
+                int partitionCount,
+                String columnName,
+                PartitionTable... partitions) {
+            PartitionInfo info = new PartitionInfo();
+            info.setPartitionMethod(method);
+            info.setPartitionCount(partitionCount);
+            info.setPartitionColumnCount(columnName == null ? 0 : 1);
+
+            if (columnName != null) {
+                Column column = new Column();
+                column.setName(columnName);
+                info.setPartitionColumns(List.of(column));
+            }
+
+            info.setPartitions(List.of(partitions));
+            return info;
+        }
+
+        private PartitionTable partition(String name, String desc) {
+            PartitionTable partition = new PartitionTable();
+            partition.setPartitionName(name);
+            partition.setPartitionDesc(desc);
+            return partition;
+        }
+
         @Test
         @DisplayName("table=null -> null")
         void nullTable_returnNull() {
@@ -457,31 +623,19 @@ public class Tibero2CUBRIDTransformHelperTest {
         }
 
         @Test
-        @DisplayName("partitionColumnCount=0 -> return source DDL")
-        void zeroPartitionColumns_returnsSrcDDL() {
-            Table table = new Table();
+        @DisplayName("partition columns missing -> null")
+        void zeroPartitionColumns_returnsNull() {
             PartitionInfo info = new PartitionInfo();
-            info.setDDL("ORIGINAL_DDL");
             info.setPartitionColumnCount(0);
             info.setPartitionCount(2);
-            table.setPartitionInfo(info);
 
-            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isEqualTo("ORIGINAL_DDL");
+            assertThat(HELPER.getToCUBRIDPartitionDDL(tableWithPartitionInfo(info))).isNull();
         }
 
         @Test
         @DisplayName("HASH partition -> PARTITION BY HASH(COL) PARTITION N")
         void hashPartition_generatesHashDDL() {
-            Table table = new Table();
-            PartitionInfo info = new PartitionInfo();
-            info.setPartitionMethod("HASH");
-            info.setPartitionColumnCount(1);
-            info.setPartitionCount(4);
-            Column col = new Column();
-            col.setName("ID");
-            info.setPartitionColumns(List.of(col));
-            info.setPartitions(List.of());
-            table.setPartitionInfo(info);
+            Table table = tableWithPartitionInfo(partitionInfo("HASH", 4, "ID"));
 
             String ddl = HELPER.getToCUBRIDPartitionDDL(table);
 
@@ -494,22 +648,14 @@ public class Tibero2CUBRIDTransformHelperTest {
         @Test
         @DisplayName("RANGE partition -> handles VALUES LESS THAN and MAXVALUE")
         void rangePartition_generatesRangeDDL() {
-            Table table = new Table();
-            PartitionInfo info = new PartitionInfo();
-            info.setPartitionMethod("RANGE");
-            info.setPartitionColumnCount(1);
-            info.setPartitionCount(2);
-            Column col = new Column();
-            col.setName("SALARY");
-            info.setPartitionColumns(List.of(col));
-            PartitionTable p1 = new PartitionTable();
-            p1.setPartitionName("P_LOW");
-            p1.setPartitionDesc("1000");
-            PartitionTable p2 = new PartitionTable();
-            p2.setPartitionName("P_HIGH");
-            p2.setPartitionDesc("MAXVALUE");
-            info.setPartitions(List.of(p1, p2));
-            table.setPartitionInfo(info);
+            Table table =
+                    tableWithPartitionInfo(
+                            partitionInfo(
+                                    "RANGE",
+                                    2,
+                                    "SALARY",
+                                    partition("P_LOW", "1000"),
+                                    partition("P_HIGH", "MAXVALUE")));
 
             String ddl = HELPER.getToCUBRIDPartitionDDL(table);
 
@@ -522,19 +668,10 @@ public class Tibero2CUBRIDTransformHelperTest {
         @Test
         @DisplayName("LIST partition -> VALUES IN format")
         void listPartition_generatesListDDL() {
-            Table table = new Table();
-            PartitionInfo info = new PartitionInfo();
-            info.setPartitionMethod("LIST");
-            info.setPartitionColumnCount(1);
-            info.setPartitionCount(1);
-            Column col = new Column();
-            col.setName("REGION");
-            info.setPartitionColumns(List.of(col));
-            PartitionTable p1 = new PartitionTable();
-            p1.setPartitionName("P_SEOUL");
-            p1.setPartitionDesc("'SEOUL','BUSAN'");
-            info.setPartitions(List.of(p1));
-            table.setPartitionInfo(info);
+            Table table =
+                    tableWithPartitionInfo(
+                            partitionInfo(
+                                    "LIST", 1, "REGION", partition("P_SEOUL", "'SEOUL','BUSAN'")));
 
             String ddl = HELPER.getToCUBRIDPartitionDDL(table);
 
@@ -543,21 +680,22 @@ public class Tibero2CUBRIDTransformHelperTest {
         }
 
         @Test
-        @DisplayName("unknown partition method -> return source DDL")
-        void unknownPartitionMethod_returnsSrcDDL() {
-            Table table = new Table();
-            PartitionInfo info = new PartitionInfo();
-            info.setDDL("ORIGINAL_DDL");
-            info.setPartitionMethod("UNKNOWN");
-            info.setPartitionColumnCount(1);
-            info.setPartitionCount(1);
-            Column col = new Column();
-            col.setName("ID");
-            info.setPartitionColumns(List.of(col));
-            info.setPartitions(List.of());
-            table.setPartitionInfo(info);
+        @DisplayName("LIST DEFAULT partition -> keeps DEFAULT literal")
+        void listDefaultPartition_generatesDDL() {
+            Table table =
+                    tableWithPartitionInfo(
+                            partitionInfo("LIST", 1, "REGION", partition("P_OTHER", "DEFAULT")));
 
-            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isEqualTo("ORIGINAL_DDL");
+            assertThat(HELPER.getToCUBRIDPartitionDDL(table))
+                    .contains("PARTITION P_OTHER VALUES IN (DEFAULT)");
+        }
+
+        @Test
+        @DisplayName("unknown partition method -> null")
+        void unknownPartitionMethod_returnsNull() {
+            Table table = tableWithPartitionInfo(partitionInfo("UNKNOWN", 1, "ID"));
+
+            assertThat(HELPER.getToCUBRIDPartitionDDL(table)).isNull();
         }
     }
 
@@ -569,5 +707,35 @@ public class Tibero2CUBRIDTransformHelperTest {
                 Arguments.of(
                         "TO_TIMESTAMP('2024-01-01','YYYY-MM-DD')",
                         "TO_DATETIME('2024-01-01','YYYY-MM-DD')"));
+    }
+
+    static Stream<Arguments> toDateTimeTzConversionCases() {
+        return Stream.of(
+                Arguments.of(
+                        "TO_DATE('2024-01-01','YYYY-MM-DD')",
+                        "FROM_TZ(TO_DATETIME('2024-01-01','YYYY-MM-DD'), SESSIONTIMEZONE())"),
+                Arguments.of(
+                        "TO_TIMESTAMP('2024-01-01','YYYY-MM-DD')",
+                        "FROM_TZ(TO_DATETIME('2024-01-01','YYYY-MM-DD'), SESSIONTIMEZONE())"));
+    }
+
+    private static Tibero2CUBRIDTransformHelper createDateToVarcharHelper(String precision) {
+        TiberoDataTypeMappingHelper mappingHelper = new TiberoDataTypeMappingHelper();
+
+        MapObject source = new MapObject();
+        source.setDatatype("DATE");
+        source.setPrecision("");
+        source.setScale("");
+
+        MapObject target = new MapObject();
+        target.setDatatype("varchar");
+        target.setPrecision(precision);
+        target.setScale("");
+
+        MapItem item = new MapItem(mappingHelper, source, target);
+        mappingHelper.getPreferenceConfigMap().put("DATE", item);
+
+        return new Tibero2CUBRIDTransformHelper(
+                mappingHelper, ToCUBRIDDataConverterFacade.getIntance());
     }
 }

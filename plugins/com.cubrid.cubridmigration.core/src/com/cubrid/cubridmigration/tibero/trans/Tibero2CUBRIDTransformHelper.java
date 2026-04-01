@@ -111,7 +111,8 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
             cubColumn.setJdbcIDOfDataType(DataTypeConstant.CUBRID_DT_VARCHAR);
             return;
         }
-        if (cubDTHelper.isBinary(cubColumn.getDataType())) {
+        if ("RAW".equalsIgnoreCase(srcColumn.getDataType())
+                && cubDTHelper.isBinary(cubColumn.getDataType())) {
             expectedPrecision = Math.min(expectedPrecision * 8, DataTypeConstant.CUBRID_MAXSIZE);
             cubColumn.setPrecision((int) expectedPrecision);
         }
@@ -167,6 +168,7 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         CUBRIDDataTypeHelper dataTypeHelper = CUBRIDDataTypeHelper.getInstance(null);
         if (dataTypeHelper.isString(cubCol.getDataType())
                 && StringUtils.isNotEmpty(cubCol.getDefaultValue())
+                && !cubCol.isDefaultIsExpression()
                 && !cubCol.getDefaultValue().startsWith("'")
                 && !cubCol.getDefaultValue().startsWith("(")) {
             cubCol.setDefaultValue("'" + cubCol.getDefaultValue() + "'");
@@ -253,9 +255,16 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
             return;
         }
 
-        if ((dataType.indexOf("TIMESTAMP") > -1 || "DATE".equalsIgnoreCase(dataType))
-                && isDefaultDateTimeFunction(defaultValue)) {
+        if (isTimezoneFunctionDefault(defaultValue)) {
             defaultValue = convertFunctionInDefaultValue(defaultValue, cubridColumn.getDataType());
+            cubridColumn.setDefaultIsExpression(true);
+            cubridColumn.setDefaultValue(defaultValue);
+            return;
+        }
+
+        if (isDateTimeSourceType(dataType) && isDefaultDateTimeFunction(defaultValue)) {
+            defaultValue = convertFunctionInDefaultValue(defaultValue, cubridColumn.getDataType());
+            cubridColumn.setDefaultIsExpression(true);
             cubridColumn.setDefaultValue(defaultValue);
             return;
         }
@@ -277,16 +286,32 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
      */
     private String convertFunctionInDefaultValue(String defaultValue, String dataType) {
         String upperCaseDefaultValue = defaultValue.toUpperCase(Locale.US);
+        String normalizedDataType = StringUtils.upperCase(dataType);
+
+        if ("TIME".equals(normalizedDataType)) {
+            switch (upperCaseDefaultValue) {
+                case "SYSTIME":
+                    return "SYS_TIME";
+                case "CURRENT_TIME":
+                    return "CURRENT_TIME";
+                default:
+                    return upperCaseDefaultValue;
+            }
+        }
 
         switch (upperCaseDefaultValue) {
             case "SYSDATE":
-                return "SYS_DATETIME";
+                return convertCurrentDateTimeFunction(true, normalizedDataType);
             case "SYSTIME":
                 return "SYS_TIME";
             case "SYSTIMESTAMP":
-                return "SYS_TIMESTAMP";
+                return upperCaseDefaultValue;
             case "CURRENT_DATE":
-                return "CURRENT_DATETIME";
+                return convertCurrentDateTimeFunction(false, normalizedDataType);
+            case "CURRENT_TIMESTAMP":
+                return upperCaseDefaultValue;
+            case "LOCALTIMESTAMP":
+                return convertCurrentDateTimeFunction(false, normalizedDataType);
         }
 
         if ("DATETIME".equalsIgnoreCase(dataType)) {
@@ -294,7 +319,33 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
                 return upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME");
             }
             if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
-                return upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP_TZ", "TO_DATETIMETZ");
+                return upperCaseDefaultValue;
+            }
+            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
+                return upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME");
+            }
+        }
+        if ("DATETIMETZ".equalsIgnoreCase(dataType)) {
+            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
+                return upperCaseDefaultValue;
+            }
+            if (upperCaseDefaultValue.startsWith("TO_DATE")) {
+                return wrapWithFromTz(
+                        upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME"),
+                        "SESSIONTIMEZONE()");
+            }
+            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
+                return wrapWithFromTz(
+                        upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME"),
+                        "SESSIONTIMEZONE()");
+            }
+        }
+        if ("DATETIMELTZ".equalsIgnoreCase(dataType)) {
+            if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP_TZ")) {
+                return upperCaseDefaultValue;
+            }
+            if (upperCaseDefaultValue.startsWith("TO_DATE")) {
+                return upperCaseDefaultValue.replaceFirst("(?i)TO_DATE", "TO_DATETIME");
             }
             if (upperCaseDefaultValue.startsWith("TO_TIMESTAMP")) {
                 return upperCaseDefaultValue.replaceFirst("(?i)TO_TIMESTAMP", "TO_DATETIME");
@@ -302,6 +353,22 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         }
 
         return defaultValue;
+    }
+
+    private String convertCurrentDateTimeFunction(boolean serverTime, String dataType) {
+        if ("DATETIMETZ".equals(dataType)) {
+            return serverTime
+                    ? "FROM_TZ(SYS_DATETIME, DBTIMEZONE())"
+                    : "FROM_TZ(CURRENT_DATETIME, SESSIONTIMEZONE())";
+        }
+        if ("DATETIME".equals(dataType) || "DATETIMELTZ".equals(dataType)) {
+            return serverTime ? "SYS_DATETIME" : "CURRENT_DATETIME";
+        }
+        return serverTime ? "SYS_TIMESTAMP" : "CURRENT_TIMESTAMP";
+    }
+
+    private String wrapWithFromTz(String dateTimeExpression, String timezoneFunction) {
+        return "FROM_TZ(" + dateTimeExpression + ", " + timezoneFunction + ")";
     }
 
     /**
@@ -341,6 +408,22 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         }
 
         return false;
+    }
+
+    private boolean isTimezoneFunctionDefault(String defaultValue) {
+        String upperCaseDefaultValue = defaultValue.toUpperCase(Locale.US);
+        return upperCaseDefaultValue.startsWith("DBTIMEZONE")
+                || upperCaseDefaultValue.startsWith("SESSIONTIMEZONE");
+    }
+
+    private boolean isDateTimeSourceType(String dataType) {
+        if (dataType == null) {
+            return false;
+        }
+        String upperCaseDataType = dataType.toUpperCase(Locale.US);
+        return "DATE".equals(upperCaseDataType)
+                || "TIME".equals(upperCaseDataType)
+                || upperCaseDataType.contains("TIMESTAMP");
     }
 
     /**
@@ -408,16 +491,16 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
             return null;
         }
 
-        String srcPartitionDDL = table.getPartitionInfo().getDDL();
         PartitionInfo partInfo = table.getPartitionInfo();
         String partitionMethod = partInfo.getPartitionMethod();
-        int partitionColumnCount = partInfo.getPartitionColumnCount();
         int partitionCount = partInfo.getPartitionCount();
         List<Column> partitionColumns = partInfo.getPartitionColumns();
         List<PartitionTable> partitions = partInfo.getPartitions();
+        int partitionColumnCount = partitionColumns == null ? 0 : partitionColumns.size();
+        int actualPartitionCount = partitions == null ? 0 : partitions.size();
 
-        if (partitionColumnCount == 0 || partitionCount == 0) {
-            return srcPartitionDDL;
+        if (partitionColumnCount == 0) {
+            return null;
         }
         StringBuilder ddl = new StringBuilder();
         ddl.append("PARTITION BY ");
@@ -428,7 +511,7 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         } else if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(partitionMethod)) {
             ddl.append(" HASH ");
         } else {
-            return srcPartitionDDL;
+            return null;
         }
         ddl.append("(");
         for (int i = 0; i < partitionColumnCount; i++) {
@@ -442,10 +525,17 @@ public class Tibero2CUBRIDTransformHelper extends DBTransformHelper {
         ddl.append(") ");
 
         if (PartitionInfo.PARTITION_METHOD_HASH.equalsIgnoreCase(partitionMethod)) {
-            ddl.append(" PARTITIONS ").append(partitionCount);
+            int hashPartitionCount = partitionCount > 0 ? partitionCount : actualPartitionCount;
+            if (hashPartitionCount <= 0) {
+                return null;
+            }
+            ddl.append(" PARTITIONS ").append(hashPartitionCount);
         } else {
+            if (actualPartitionCount == 0) {
+                return null;
+            }
             ddl.append("(").append(CommonUtils.newLine);
-            for (int i = 0; i < partitionCount; i++) {
+            for (int i = 0; i < actualPartitionCount; i++) {
                 PartitionTable partTable = partitions.get(i);
                 if (i > 0) {
                     ddl.append(",").append(CommonUtils.newLine);

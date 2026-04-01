@@ -92,7 +92,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
@@ -1673,13 +1672,18 @@ public class MigrationConfiguration {
     private void buildTablePartitionCfg(SourceEntryTableConfig setc, Table srcTable, Table tt) {
         if (srcTable.getPartitionInfo() == null) {
             setc.setCreatePartition(false);
+            tt.setPartitionInfo(null);
             return;
         }
-        if (tt.getPartitionInfo() == null) {
-            PartitionInfo pi = new PartitionInfo();
-            DBTransformHelper tranformHelper = getDBTransformHelper();
-            pi.setDDL(tranformHelper.getToCUBRIDPartitionDDL(srcTable));
+        PartitionInfo pi = tt.getPartitionInfo();
+        if (pi == null) {
+            pi = new PartitionInfo();
             tt.setPartitionInfo(pi);
+        }
+        if (StringUtils.isBlank(pi.getDDL())) {
+            DBTransformHelper tranformHelper = getDBTransformHelper();
+            String targetPartitionDDL = tranformHelper.getToCUBRIDPartitionDDL(srcTable);
+            pi.setDDL(targetPartitionDDL);
         }
     }
 
@@ -2357,8 +2361,8 @@ public class MigrationConfiguration {
         for (SourcePlcsqlProcedureConfig spc : spcs) {
             PlcsqlProcedure targetProc =
                     getTargetPlcsqlProcedureSchema(spc.getOwner(), spc.getName());
-            if (Objects.isNull(targetProc.getHeaderDDL())
-                    && Objects.isNull(targetProc.getBodyDDL())) {
+            if (StringUtils.isBlank(targetProc.getHeaderDDL())
+                    || StringUtils.isBlank(targetProc.getBodyDDL())) {
                 ProcedureDDL procedureDDL =
                         PlConvOracleToCubrid.getProcedureDDL(spc.getSourceDDL(), changeDataType);
                 targetProc.setHeaderDDL(procedureDDL.getHeader());
@@ -2370,8 +2374,8 @@ public class MigrationConfiguration {
         for (SourcePlcsqlFunctionConfig fpc : fpcs) {
             PlcsqlFunction targetFunc =
                     getTargetPlcsqlFunctionSchema(fpc.getOwner(), fpc.getName());
-            if (Objects.isNull(targetFunc.getHeaderDDL())
-                    && Objects.isNull(targetFunc.getBodyDDL())) {
+            if (StringUtils.isBlank(targetFunc.getHeaderDDL())
+                    || StringUtils.isBlank(targetFunc.getBodyDDL())) {
                 ProcedureDDL procedureDDL =
                         PlConvOracleToCubrid.getProcedureDDL(fpc.getSourceDDL(), changeDataType);
                 targetFunc.setHeaderDDL(procedureDDL.getHeader());
