@@ -59,6 +59,9 @@ import java.sql.Types;
 /** a class help to export Tibero data and verify Tibero sql statement */
 public class TiberoExportHelper extends DBExportHelper {
     private static final Logger LOG = LogUtil.getLogger(TiberoExportHelper.class);
+    private static final String SEQUENCE_LAST_NUMBER_SQL =
+            "SELECT S.LAST_NUMBER,S.SEQUENCE_OWNER FROM ALL_SEQUENCES S "
+                    + "WHERE S.SEQUENCE_NAME=? ORDER BY S.SEQUENCE_OWNER";
 
     /** constructor */
     public TiberoExportHelper() {
@@ -135,10 +138,6 @@ public class TiberoExportHelper extends DBExportHelper {
     public DatabaseType getDBType() {
         return DatabaseType.TIBERO;
     }
-
-    private static final String SEQUENCE_LAST_NUMBER_SQL =
-            "SELECT S.LAST_NUMBER,S.SEQUENCE_OWNER FROM ALL_SEQUENCES S "
-                    + "WHERE S.SEQUENCE_NAME=? ORDER BY S.SEQUENCE_OWNER";
 
     /**
      * Retrieves the current value of input serial.

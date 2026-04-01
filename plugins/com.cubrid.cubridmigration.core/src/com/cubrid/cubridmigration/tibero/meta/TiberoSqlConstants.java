@@ -31,11 +31,6 @@ package com.cubrid.cubridmigration.tibero.meta;
 
 /** TiberoSqlConstants contains all SQL statements used by TiberoSchemaFetcher and its loaders. */
 public final class TiberoSqlConstants {
-
-    private TiberoSqlConstants() {
-        // Prevent instantiation
-    }
-
     public static final String SQL_GET_COLUMNS =
             "SELECT T.COLUMN_NAME, T.DATA_TYPE, T.DATA_LENGTH, T.DATA_PRECISION, T.DATA_SCALE,"
                 + " T.NULLABLE, T.DATA_DEFAULT, T.CHAR_LENGTH, T.CHAR_USED, T.COLUMN_ID, C.COMMENTS"
@@ -156,4 +151,8 @@ public final class TiberoSqlConstants {
                     + " AND p.procedure_name IS NULL"
                     + " WHERE o.owner = ?"
                     + " AND o.object_type IN ('PROCEDURE', 'FUNCTION')";
+
+    private TiberoSqlConstants() {
+        // Prevent instantiation
+    }
 }
