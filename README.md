@@ -1,7 +1,7 @@
 # ![Migration Icon](docs/migration_icon.svg) CUBRID Migration Toolkit (CMT)
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](plugins/com.cubrid.cubridmigration.app/src/com/cubrid/cubridmigration/app/copyright.txt)  [![Release](https://img.shields.io/github/v/release/CUBRID/cubrid-migration)](https://github.com/CUBRID/cubrid-migration/releases)
-
+E2E_TEST
 **CUBRID Migration Toolkit (CMT)** is a comprehensive software tool designed to migrate data and schemas from various source databases to the CUBRID Database Server.
 
 The tool automatically maps complex schemas and data from source databases to CUBRID-compatible formats. It also allows for detailed customization before the migration process starts, enabling users to manually adjust data types and column attributes to fit their specific needs.
