@@ -7,8 +7,7 @@ on:
       - 'release/**'
   pull_request:
     branches:
-      - develop
-      - 'release/**'
+      - '**'
   schedule:
     # Nightly at 2:00 AM UTC
     - cron: '0 2 * * *'
