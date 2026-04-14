@@ -30,5 +30,5 @@ tests/unit-test/logs/
 
 ## E2E test
 
-e2e/target/
-e2e/e2e-test.properties
+tests/e2e/target/
+tests/e2e/e2e-test.properties

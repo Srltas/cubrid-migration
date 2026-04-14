@@ -47,7 +47,7 @@ pipeline {
 
         stage('E2E Test') {
             steps {
-                dir('e2e') {
+                dir('tests/e2e') {
                     sh '''
                         mvn test \
                             -Dmaven.test.failure.ignore=true \
@@ -61,7 +61,7 @@ pipeline {
 
     post {
         always {
-            dir('e2e') {
+            dir('tests/e2e') {
                 junit allowEmptyResults: true,
                     testResults: 'target/surefire-reports/*.xml'
 

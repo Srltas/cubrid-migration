@@ -42,7 +42,7 @@ jobs:
           echo "Console provisioned: $(ls cmt-console/migration.sh)"
 
       - name: Run E2E Tests
-        working-directory: e2e
+        working-directory: tests/e2e
         env:
           NO_COLOR: '1'
           CLICOLOR: '0'
@@ -58,7 +58,7 @@ jobs:
         if: always()
         with:
           name: E2E Test Results
-          path: e2e/target/surefire-reports/*.xml
+          path: tests/e2e/target/surefire-reports/*.xml
           reporter: java-junit
           fail-on-error: false
 
@@ -68,7 +68,7 @@ jobs:
         with:
           name: e2e-artifacts
           path: |
-            e2e/target/e2e/**/diff.patch
-            e2e/target/e2e/**/actual.log
-            e2e/target/e2e/**/expected.log
+            tests/e2e/target/e2e/**/diff.patch
+            tests/e2e/target/e2e/**/actual.log
+            tests/e2e/target/e2e/**/expected.log
           if-no-files-found: ignore
