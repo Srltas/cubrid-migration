@@ -27,3 +27,8 @@ target/
 
 testd
 tests/unit-test/logs/
+
+## E2E test
+
+e2e/target/
+e2e/e2e-test.properties

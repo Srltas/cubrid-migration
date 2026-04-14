@@ -45,15 +45,6 @@ pipeline {
             }
         }
 
-        stage('Checkout E2E') {
-            steps {
-                dir('e2e') {
-                    git url: 'https://github.com/Srltas/cmt_e2e_poc.git',
-                        branch: 'main'
-                }
-            }
-        }
-
         stage('E2E Test') {
             steps {
                 dir('e2e') {

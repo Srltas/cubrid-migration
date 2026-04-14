@@ -43,6 +43,11 @@ jobs:
               continue
             fi
 
+            # E2E test code is excluded from license header checks
+            case "$f" in
+            e2e/*) continue ;;
+            esac
+
             ext=$(expr $f : ".*\(\..*\)")
             case $ext in
             .java) true;;

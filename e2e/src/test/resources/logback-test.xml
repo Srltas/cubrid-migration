@@ -1,0 +1,23 @@
+<configuration>
+    <!-- 1. 콘솔 출력 규칙(Appender) 정의 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 2. 메모리(List)에 로그를 저장하는 특별한 Appender 정의 -->
+    <appender name="LIST" class="ch.qos.logback.core.read.ListAppender">
+    </appender>
+
+    <!-- 3. 우리 프로젝트(com.cmt.e2e)에 대한 로거 설정 -->
+    <logger name="com.cmt.e2e" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="LIST" />
+    </logger>
+
+    <!-- 4. 최상위(root) 로거 설정 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

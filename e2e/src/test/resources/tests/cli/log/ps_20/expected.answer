@@ -1,0 +1,24 @@
+Thank you for using CUBRID Migration Toolkit(CMT) Console.
+
+Reading migration history file: <1758883298370.mh>
+
+2025-09-26 19:41:38.443 Migration started at 2025-09-26 19:41:38
+2025-09-26 19:41:38.488 Create table[PUBLIC.athlete] successfully.
+2025-09-26 19:41:38.489 Create table[PUBLIC.code] successfully.
+2025-09-26 19:41:38.490 Create table[PUBLIC.event] successfully.
+2025-09-26 19:41:38.491 Create table[PUBLIC.game] successfully.
+2025-09-26 19:41:38.492 Create table[PUBLIC.history] successfully.
+2025-09-26 19:41:38.493 Create table[PUBLIC.nation] successfully.
+2025-09-26 19:41:38.494 Create table[PUBLIC.olympic] successfully.
+2025-09-26 19:41:38.495 Create table[PUBLIC.participant] successfully.
+2025-09-26 19:41:38.495 Create table[PUBLIC.record] successfully.
+2025-09-26 19:41:38.496 Create table[PUBLIC.stadium] successfully.
+2025-09-26 19:41:39.501 Create sequence[event_no] successfully.
+2025-09-26 19:41:39.505 Create sequence[stadium_no] successfully.
+2025-09-26 19:41:40.516 Begin to export records of table[code].
+2025-09-26 19:41:40.517 Begin to export records of table[game].
+2025-09-26 19:41:40.518 Begin to export records of table[athlete].
+2025-09-26 19:41:40.518 Begin to export records of table[event].
+2025-09-26 19:41:40.521 Exported 6 records from table [code] successfully.
+2025-09-26 19:41:40.524 Begin to export records of table[history].
+<Press [enter] to continue...>

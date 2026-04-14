@@ -1,0 +1,226 @@
+Thank you for using CUBRID Migration Toolkit(CMT) Console.
+
+Reading migration history file: <1758883298370.mh>
+
+[Overview]
+    [schema]
+           Total:[0]
+        Exported:[0]
+        Imported:[0]
+    [table]
+           Total:[10]
+        Exported:[10]
+        Imported:[10]
+    [view]
+           Total:[0]
+        Exported:[0]
+        Imported:[0]
+    [primary key]
+           Total:[10]
+        Exported:[10]
+        Imported:[10]
+    [foreign key]
+           Total:[4]
+        Exported:[4]
+        Imported:[4]
+    [index]
+           Total:[0]
+        Exported:[0]
+        Imported:[0]
+    [sequence]
+           Total:[2]
+        Exported:[2]
+        Imported:[2]
+    [synonym]
+           Total:[0]
+        Exported:[0]
+        Imported:[0]
+    [trigger]
+           Total:[0]
+        Exported:[0]
+        Imported:[0]
+    [plcsql_function]
+           Total:[0]
+        Exported:[0]
+        Imported:[0]
+    [plcsql_procedure]
+           Total:[0]
+        Exported:[0]
+        Imported:[0]
+    [grant]
+           Total:[0]
+        Exported:[0]
+        Imported:[0]
+    [record]
+           Total:[19202]
+        Exported:[19202]
+        Imported:[19202]
+
+[Schema migration]
+    [table]PUBLIC.athlete:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[athlete](
+[code] int AUTO_INCREMENT (16694,1),
+[name] varchar(40) NOT NULL,
+[gender] char(1),
+[nation_code] char(3),
+[event] varchar(30)
+) REUSE_OID
+;]
+    [table]PUBLIC.code:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[code](
+[s_name] char(1),
+[f_name] varchar(6)
+) REUSE_OID
+;]
+    [table]PUBLIC.event:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[event](
+[code] int,
+[sports] varchar(50),
+[name] varchar(50),
+[gender] char(1),
+[players] int
+) REUSE_OID
+;]
+    [table]PUBLIC.game:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[game](
+[host_year] int,
+[event_code] int,
+[athlete_code] int,
+[stadium_code] int NOT NULL,
+[nation_code] char(3),
+[medal] char(1),
+[game_date] date
+) REUSE_OID
+;]
+    [table]PUBLIC.history:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[history](
+[event_code] int,
+[athlete] varchar(40),
+[host_year] int,
+[score] varchar(10),
+[unit] varchar(5)
+) REUSE_OID
+;]
+    [table]PUBLIC.nation:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[nation](
+[code] char(3),
+[name] varchar(40) NOT NULL,
+[continent] varchar(10),
+[capital] varchar(30)
+) REUSE_OID
+;]
+    [table]PUBLIC.olympic:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[olympic](
+[host_year] int,
+[host_nation] varchar(40) NOT NULL,
+[host_city] varchar(20) NOT NULL,
+[opening_date] date NOT NULL,
+[closing_date] date NOT NULL,
+[mascot] varchar(20),
+[slogan] varchar(40),
+[introduction] varchar(1500)
+) REUSE_OID
+;]
+    [table]PUBLIC.participant:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[participant](
+[host_year] int,
+[nation_code] char(3),
+[gold] int DEFAULT 0,
+[silver] int DEFAULT 0,
+[bronze] int DEFAULT 0
+) REUSE_OID
+;]
+    [table]PUBLIC.record:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[record](
+[host_year] int,
+[event_code] int,
+[athlete_code] int,
+[medal] char(1),
+[score] varchar(20),
+[unit] varchar(5)
+) REUSE_OID
+;]
+    [table]PUBLIC.stadium:[successfully]
+        DDL:[CREATE TABLE [PUBLIC].[stadium](
+[code] int,
+[nation_code] char(3) NOT NULL,
+[name] varchar(50) NOT NULL,
+[area] numeric(10,2),
+[seats] int,
+[address] varchar(100)
+) REUSE_OID
+;]
+    [sequence]event_no:[successfully]
+        DDL:[CREATE SERIAL [PUBLIC].[event_no] START WITH 20422 INCREMENT BY 1 NOMINVALUE  NOMAXVALUE  NOCYCLE CACHE 2]
+    [sequence]stadium_no:[successfully]
+        DDL:[CREATE SERIAL [PUBLIC].[stadium_no] START WITH 30141 INCREMENT BY 1 NOMINVALUE  NOMAXVALUE  NOCYCLE CACHE 2]
+    [primary key]primary key of athlete:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[athlete] ADD PRIMARY KEY([code])]
+    [primary key]primary key of code:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[code] ADD PRIMARY KEY([s_name])]
+    [primary key]primary key of event:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[event] ADD PRIMARY KEY([code])]
+    [primary key]primary key of game:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[game] ADD PRIMARY KEY([host_year],[event_code],[athlete_code])]
+    [primary key]primary key of history:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[history] ADD PRIMARY KEY([event_code],[athlete])]
+    [primary key]primary key of nation:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[nation] ADD PRIMARY KEY([code])]
+    [primary key]primary key of olympic:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[olympic] ADD PRIMARY KEY([host_year])]
+    [primary key]primary key of participant:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[participant] ADD PRIMARY KEY([host_year],[nation_code])]
+    [primary key]primary key of record:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[record] ADD PRIMARY KEY([host_year],[event_code],[athlete_code],[medal])]
+    [primary key]primary key of stadium:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[stadium] ADD PRIMARY KEY([code])]
+    [foreign key]fk_game_athlete_code:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[game] ADD CONSTRAINT [fk_game_athlete_code] FOREIGN KEY ([athlete_code]) REFERENCES [PUBLIC].[athlete]([code]) ON DELETE RESTRICT ON UPDATE RESTRICT]
+    [foreign key]fk_game_event_code:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[game] ADD CONSTRAINT [fk_game_event_code] FOREIGN KEY ([event_code]) REFERENCES [PUBLIC].[event]([code]) ON DELETE RESTRICT ON UPDATE RESTRICT]
+    [foreign key]fk_participant_nation_code:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[participant] ADD CONSTRAINT [fk_participant_nation_code] FOREIGN KEY ([nation_code]) REFERENCES [PUBLIC].[nation]([code]) ON DELETE RESTRICT ON UPDATE RESTRICT]
+    [foreign key]fk_participant_host_year:[successfully]
+        DDL:[ALTER /*+ NO_STATS */ TABLE [PUBLIC].[participant] ADD CONSTRAINT [fk_participant_host_year] FOREIGN KEY ([host_year]) REFERENCES [PUBLIC].[olympic]([host_year]) ON DELETE RESTRICT ON UPDATE RESTRICT]
+
+[Data migration]
+    [athlete] >> [athlete]
+           Total:[6677]
+        Exported:[6677]
+        Imported:[6677]
+    [code] >> [code]
+           Total:[6]
+        Exported:[6]
+        Imported:[6]
+    [event] >> [event]
+           Total:[422]
+        Exported:[422]
+        Imported:[422]
+    [game] >> [game]
+           Total:[8653]
+        Exported:[8653]
+        Imported:[8653]
+    [history] >> [history]
+           Total:[147]
+        Exported:[147]
+        Imported:[147]
+    [nation] >> [nation]
+           Total:[215]
+        Exported:[215]
+        Imported:[215]
+    [olympic] >> [olympic]
+           Total:[25]
+        Exported:[25]
+        Imported:[25]
+    [participant] >> [participant]
+           Total:[916]
+        Exported:[916]
+        Imported:[916]
+    [record] >> [record]
+           Total:[2000]
+        Exported:[2000]
+        Imported:[2000]
+    [stadium] >> [stadium]
+           Total:[141]
+        Exported:[141]
+        Imported:[141]

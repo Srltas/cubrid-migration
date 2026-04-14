@@ -1,0 +1,10 @@
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[athlete] ADD PRIMARY KEY([code]);
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[code] ADD PRIMARY KEY([s_name]);
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[event] ADD PRIMARY KEY([code]);
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[game] ADD PRIMARY KEY([host_year],[event_code],[athlete_code]);
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[history] ADD PRIMARY KEY([event_code],[athlete]);
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[nation] ADD PRIMARY KEY([code]);
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[olympic] ADD PRIMARY KEY([host_year]);
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[participant] ADD PRIMARY KEY([host_year],[nation_code]);
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[record] ADD PRIMARY KEY([host_year],[event_code],[athlete_code],[medal]);
+ALTER /*+ NO_STATS */ TABLE [PUBLIC].[stadium] ADD PRIMARY KEY([code]);
