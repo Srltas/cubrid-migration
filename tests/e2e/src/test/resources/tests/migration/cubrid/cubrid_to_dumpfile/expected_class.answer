@@ -1,5 +1,5 @@
 CREATE TABLE [PUBLIC].[athlete](
-[code] int AUTO_INCREMENT (16694,1),
+[code] int AUTO_INCREMENT (1,1),
 [name] varchar(40) NOT NULL,
 [gender] char(1),
 [nation_code] char(3),
