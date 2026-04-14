@@ -15,19 +15,23 @@ import java.util.stream.Stream;
 public final class Drivers {
     private Drivers() {}
 
-    /** 시스템 프로퍼티로 오버라이드 가능: -De2e.driver.dir=/abs/path/to/dirver */
+    /** 시스템 프로퍼티로 오버라이드 가능: -De2e.driver.dir=/abs/path/to/driver */
     private static final String PROP_DIR = "e2e.driver.dir";
 
-    /** 기본 드라이버 디렉터리: {repo}/src/test/resource/driver */
+    /**
+     * 기본 드라이버 디렉터리: target/test-classes/driver
+     * maven-dependency-plugin이 빌드 시 cubrid-jdbc JAR를 이 위치에 복사한다.
+     * 오버라이드: -De2e.driver.dir=/absolute/path
+     */
     private static Path defaultDir() {
         Path base = Paths.get("").toAbsolutePath();
-        Path d = base.resolve("src").resolve("test").resolve("resources").resolve("driver");
+        Path d = base.resolve("target").resolve("test-classes").resolve("driver");
         String override = System.getProperty(PROP_DIR);
         Path candidate = override != null ? Paths.get(override).toAbsolutePath() : d;
         if (!Files.isDirectory(candidate)) {
             throw new IllegalStateException("Driver directory not found: " + candidate +
-                "\nHint: put JDBC jars under src/test/resources/driver, " +
-                "or run with -D" + PROP_DIR + "=/absolute/path");
+                "\nHint: run 'mvn generate-test-resources' first, " +
+                "or override with -D" + PROP_DIR + "=/absolute/path");
         }
         return candidate;
     }
