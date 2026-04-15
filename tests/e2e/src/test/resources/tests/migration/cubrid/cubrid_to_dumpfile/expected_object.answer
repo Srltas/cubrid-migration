@@ -1,5 +1,5 @@
 %class [PUBLIC].[athlete] ([code] [name] [gender] [nation_code] [event])
-10000 'Aardewijn Pepijn' 'M' 'NED' 'Rowing'
+10000 'Aardewijn Pepijn2' 'M' 'NED' 'Rowing'
 10001 'Aarones Ann Kristin' 'W' 'NOR' 'Football'
 10002 'Abanda Patrice' 'M' 'CMR' 'Football'
 10003 'Abarca Jose Maria' 'M' 'ESP' 'Water Polo'
