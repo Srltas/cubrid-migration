@@ -52,28 +52,17 @@ jobs:
             -Dpicocli.ansi=false \
             -Dorg.fusesource.jansi.Ansi.disable=true
 
-      - name: Debug Surefire XML
-        if: always()
-        working-directory: tests/e2e
-        run: |
-          echo "::group::Surefire XML content (failure elements)"
-          for xml in target/surefire-reports/TEST-*.xml; do
-            if grep -q '<failure' "$xml" 2>/dev/null; then
-              echo "=== $(basename "$xml") ==="
-              cat "$xml"
-              echo ""
-            fi
-          done
-          echo "::endgroup::"
-
       - name: Publish Test Results
-        uses: dorny/test-reporter@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          name: E2E Test Results
-          path: tests/e2e/target/surefire-reports/*.xml
-          reporter: java-junit
-          fail-on-error: true
+          check_name: E2E Test Results
+          files: tests/e2e/target/surefire-reports/*.xml
+          comment_mode: always
+          report_individual_runs: true
+          check_run_annotations: all tests, skipped tests
+          action_fail: true
+          action_fail_on_inconclusive: true
 
       - name: Upload E2E Artifacts
         if: always()
