@@ -52,6 +52,20 @@ jobs:
             -Dpicocli.ansi=false \
             -Dorg.fusesource.jansi.Ansi.disable=true
 
+      - name: Debug Surefire XML
+        if: always()
+        working-directory: tests/e2e
+        run: |
+          echo "::group::Surefire XML content (failure elements)"
+          for xml in target/surefire-reports/TEST-*.xml; do
+            if grep -q '<failure' "$xml" 2>/dev/null; then
+              echo "=== $(basename "$xml") ==="
+              cat "$xml"
+              echo ""
+            fi
+          done
+          echo "::endgroup::"
+
       - name: Publish Test Results
         uses: dorny/test-reporter@v1
         if: always()
