@@ -59,7 +59,7 @@ jobs:
           name: E2E Test Results
           path: tests/e2e/target/surefire-reports/*.xml
           reporter: java-junit
-          fail-on-error: false
+          fail-on-error: true
 
       - name: Upload E2E Artifacts
         if: always()
@@ -76,48 +76,58 @@ jobs:
         if: always()
         working-directory: tests/e2e
         run: |
-          echo "## E2E Diff Report" >> $GITHUB_STEP_SUMMARY
-          echo ""  >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## E2E Diff Report"
+            echo ""
 
-          echo "::group::Debug: listing target/e2e"
-          find target/e2e -type f 2>/dev/null || echo "target/e2e directory not found"
-          echo "::endgroup::"
+            found=false
+            while IFS= read -r -d '' diff_file; do
+              found=true
+              test_name="${diff_file#target/e2e/}"
+              test_name="${test_name%/diff.patch}"
 
-          found=false
-          while IFS= read -r -d '' diff_file; do
-            found=true
-            test_name="${diff_file#target/e2e/}"
-            test_name="${test_name%/diff.patch}"
-            echo "### :x: ${test_name}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
+              echo "### :x: ${test_name}"
+              echo ""
 
-            # expected vs actual
-            dir=$(dirname "$diff_file")
-            if [ -f "$dir/expected.log" ]; then
-              echo "<details><summary>Expected</summary>" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              head -100 "$dir/expected.log" >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              echo "</details>" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
+              dir=$(dirname "$diff_file")
+
+              if [ -f "$dir/expected.log" ]; then
+                echo "<details>"
+                echo "<summary>Expected</summary>"
+                echo ""
+                echo '````'
+                head -100 "$dir/expected.log"
+                echo ""
+                echo '````'
+                echo ""
+                echo "</details>"
+                echo ""
+              fi
+
+              if [ -f "$dir/actual.log" ]; then
+                echo "<details>"
+                echo "<summary>Actual</summary>"
+                echo ""
+                echo '````'
+                head -100 "$dir/actual.log"
+                echo ""
+                echo '````'
+                echo ""
+                echo "</details>"
+                echo ""
+              fi
+
+              echo "**Diff**"
+              echo ""
+              echo '````diff'
+              head -200 "$diff_file"
+              echo ""
+              echo '````'
+              echo ""
+
+            done < <(find target/e2e -name "diff.patch" -print0 2>/dev/null)
+
+            if [ "$found" = false ]; then
+              echo ":white_check_mark: All tests passed — no diffs."
             fi
-            if [ -f "$dir/actual.log" ]; then
-              echo "<details><summary>Actual</summary>" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              head -100 "$dir/actual.log" >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              echo "</details>" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-            fi
-
-            echo '```diff' >> $GITHUB_STEP_SUMMARY
-            head -200 "$diff_file" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          done < <(find target/e2e -name "diff.patch" -print0 2>/dev/null)
-
-          if [ "$found" = false ]; then
-            echo ":white_check_mark: All tests passed — no diffs." >> $GITHUB_STEP_SUMMARY
-          fi
+          } >> $GITHUB_STEP_SUMMARY

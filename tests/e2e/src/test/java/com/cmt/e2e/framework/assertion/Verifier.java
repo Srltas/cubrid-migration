@@ -33,9 +33,8 @@ public class Verifier {
         try {
             strategy.verify(result, expectedAnswerPath);
         } catch (VerificationFailedException e) {
-            writeFailureArtifacts(e.getActual(), e.getExpected(), e);
-            throw new AssertionError("Verification failed. See diff artifact for details: " +
-                testPaths.getArtifactDir().resolve("diff.patch").toUri(), e);
+            String diff = writeFailureArtifacts(e.getActual(), e.getExpected());
+            throw new AssertionError("Verification failed.\n\n" + diff, e);
         }
     }
 
@@ -54,13 +53,16 @@ public class Verifier {
         try {
             strategy.verify(wrapped, expectedAnswerPath);
         } catch (VerificationFailedException e) {
-            writeFailureArtifacts(e.getActual(), e.getExpected(), e);
-            throw new AssertionError("File verification failed: " +
-                testPaths.getArtifactDir().resolve("diff.patch").toUri(), e);
+            String diff = writeFailureArtifacts(e.getActual(), e.getExpected());
+            throw new AssertionError("File verification failed.\n\n" + diff, e);
         }
     }
 
-    private void writeFailureArtifacts(String actualContent, String expectedContent, AssertionError rootError) throws IOException {
+    /**
+     * 검증 실패 시 expected.log, actual.log, diff.patch 파일을 생성하고
+     * unified diff 문자열을 반환한다.
+     */
+    private String writeFailureArtifacts(String actualContent, String expectedContent) throws IOException {
         Files.createDirectories(testPaths.getArtifactDir());
 
         List<String> actualLines = Arrays.asList(actualContent.split("\\R"));
@@ -75,5 +77,7 @@ public class Verifier {
         Files.writeString(actualPath, actualContent, UTF_8);
         Files.writeString(expectedPath, expectedContent, UTF_8);
         Files.write(diffPath, diff, UTF_8);
+
+        return String.join("\n", diff);
     }
 }
