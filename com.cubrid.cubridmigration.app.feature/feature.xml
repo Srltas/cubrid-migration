@@ -19,7 +19,7 @@
    </license>
 
    <url>
-      <update label="CUBRID Migration Toolkit" url="http://ftp.cubrid.org/sites/rcp/cubridmigration/"/>
+      <update label="CUBRID Migration Toolkit" url="http://172.31.0.221/eclipse-update-dev/"/>
    </url>
 
    <includes
