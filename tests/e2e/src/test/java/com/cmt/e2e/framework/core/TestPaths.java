@@ -12,9 +12,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+/**
+ * Manages per-test resource directories (input) and artifact directories (output).
+ *
+ * <p>The resource directory can only be defined with {@link TestResources}.
+ * Tests without the annotation, such as CLI smoke tests, are fine unless
+ * {@link #getResourceDir()} is called. That failure is intentionally deferred
+ * to produce a clear message.
+ *
+ * <p>The artifact directory ({@code target/e2e/<Class>/<method>/}) is always created.
+ */
 public class TestPaths {
 
-    private final Path resourceDir;
+    private final String testClassName;
+    private final String testMethodName;
+    private final Path resourceDir;     // null when @TestResources is not declared
     private final Path artifactDir;
 
     public TestPaths(TestInfo testInfo) throws IOException {
@@ -22,34 +34,48 @@ public class TestPaths {
     }
 
     public TestPaths(Class<?> testClass, Method testMethod) throws IOException {
-        String testClassName = testClass.getSimpleName();
-        String testMethodName = testMethod.getName();
+        this.testClassName = testClass.getSimpleName();
+        this.testMethodName = testMethod.getName();
 
         Optional<TestResources> annotation = findTestResourcesAnnotation(testClass, testMethod);
-        if (annotation.isEmpty()) {
-            throw new IllegalStateException("Test class or method must have @TestResources annotation");
-        }
-        String resourcePath = "tests/" + annotation.get().value();
-        this.resourceDir = getPathFromResources(resourcePath);
+        this.resourceDir = annotation
+            .map(a -> getPathFromResources("tests/" + a.value()))
+            .orElse(null);
 
         this.artifactDir = Paths.get("target", "e2e", testClassName, testMethodName);
         Files.createDirectories(this.artifactDir);
     }
 
     /**
-     * @TestResources 어노테이션으로 계산된 리소스 디렉터리 경로를 반환합니다.
-     * @return 예: /path/to/project/target/test-classes/tests/log/ps_paging/basic
+     * Returns the resource directory resolved from {@code @TestResources}.
+     *
+     * @throws IllegalStateException if the annotation is missing on the test
+     *                               class or method
      */
     public Path getResourceDir() {
+        if (resourceDir == null) {
+            throw new IllegalStateException(
+                "Test " + testClassName + "#" + testMethodName
+                + " uses test resources but has no @TestResources annotation. "
+                + "Add @TestResources(\"...\") to the class or method.");
+        }
         return resourceDir;
     }
 
     /**
-     * 테스트 아티팩트 출력 디렉터리를 반환합니다.
-     * @return 예: target/e2e/CubridToCubridTest/cubridToCubridMigration
+     * Returns the test artifact output directory,
+     * for example {@code target/e2e/OracleToCubridTest/should_migrate.../}.
      */
     public Path getArtifactDir() {
         return artifactDir;
+    }
+
+    /**
+     * Returns the per-test diagnostic log path,
+     * for example {@code target/e2e/<Class>/<method>/test.log}.
+     */
+    public Path getTestLogPath() {
+        return artifactDir.resolve("test.log");
     }
 
     private Optional<TestResources> findTestResourcesAnnotation(Class<?> clazz, Method method) {

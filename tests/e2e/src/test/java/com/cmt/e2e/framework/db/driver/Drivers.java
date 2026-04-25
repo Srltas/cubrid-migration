@@ -15,13 +15,13 @@ import java.util.stream.Stream;
 public final class Drivers {
     private Drivers() {}
 
-    /** 시스템 프로퍼티로 오버라이드 가능: -De2e.driver.dir=/abs/path/to/driver */
+    /** Override with system property: -De2e.driver.dir=/abs/path/to/driver */
     private static final String PROP_DIR = "e2e.driver.dir";
 
     /**
-     * 기본 드라이버 디렉터리: target/test-classes/driver
-     * maven-dependency-plugin이 빌드 시 cubrid-jdbc JAR를 이 위치에 복사한다.
-     * 오버라이드: -De2e.driver.dir=/absolute/path
+     * Default driver directory: {@code target/test-classes/driver}.
+     * The maven-dependency-plugin copies JDBC jars there during the build.
+     * Override with {@code -De2e.driver.dir=/absolute/path}.
      */
     private static Path defaultDir() {
         Path base = Paths.get("").toAbsolutePath();
@@ -37,11 +37,13 @@ public final class Drivers {
     }
 
     public enum DB {
-        CUBRID
+        CUBRID,
+        ORACLE
     }
 
     private static final Map<DB, List<String>> PATTERNS = Map.of(
-        DB.CUBRID, List.of("JDBC-*-cubrid.jar", "cubrid-jdbc-*.jar")
+        DB.CUBRID, List.of("JDBC-*-cubrid.jar", "cubrid-jdbc-*.jar"),
+        DB.ORACLE,  List.of("ojdbc8-*.jar", "ojdbc8.jar", "ojdbc*.jar")
     );
 
     private static final Map<String, Path> CACHE = new ConcurrentHashMap<>();

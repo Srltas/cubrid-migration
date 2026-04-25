@@ -1,40 +1,39 @@
 package com.cmt.e2e.framework.command.execution;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
-import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.cmt.e2e.framework.command.Command;
-import com.cmt.e2e.framework.command.InteractiveCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Runs a CMT Console command as a child process and captures stdout, stderr,
+ * and the exit code.
+ */
 public class CommandRunner {
     private static final Logger log = LoggerFactory.getLogger(CommandRunner.class);
+    /** Persists child-process stdout into the per-test log file. See logback-test.xml. */
+    private static final Logger cmtStdout = LoggerFactory.getLogger("cmt.stdout");
+    /** Persists child-process stderr into the per-test log file. See logback-test.xml. */
+    private static final Logger cmtStderr = LoggerFactory.getLogger("cmt.stderr");
 
     private static final int DEFAULT_PROCESS_TIMEOUT_SECONDS = 300;
     private static final int STREAM_READ_TIMEOUT_SECONDS = 5;
     private final File workDir;
 
-    /**
-     * 생성자에서 작업 디렉터리를 미리 받아 저장
-     * @param workDir 명령어를 실행할 작업 디렉터리
-     */
     public CommandRunner(File workDir) {
         this.workDir = workDir;
     }
@@ -59,9 +58,9 @@ public class CommandRunner {
 
         try {
             Future<?> stdoutTask = executor.submit(() ->
-                readStream(process.getInputStream(), buffer::appendStdoutLine, null));
+                readStream(process.getInputStream(), buffer::appendStdoutLine));
             Future<?> stderrTask = executor.submit(() ->
-                readStream(process.getErrorStream(), buffer::appendStderrLine, null));
+                readStream(process.getErrorStream(), buffer::appendStderrLine));
 
             boolean finishedInTime = process.waitFor(timeoutSeconds, SECONDS);
             if (!finishedInTime) {
@@ -79,96 +78,38 @@ public class CommandRunner {
                 !finishedInTime
             );
             log.debug("Command finished with exitCode: {}, timeOut: {}", result.exitCode(), result.timedOut());
-            log.debug("Command stdout: {}", result.stdout());
-            log.debug("Command stderr: {}", result.stderr());
+            // Always persist full stdout/stderr to the per-test log, including failures.
+            // These logs are hidden from the console by the threshold filter.
+            if (!result.stdout().isEmpty()) {
+                cmtStdout.info("----- CMT stdout (exit={}) -----\n{}-----", result.exitCode(), result.stdout());
+            }
+            if (!result.stderr().isEmpty()) {
+                cmtStderr.info("----- CMT stderr (exit={}) -----\n{}-----", result.exitCode(), result.stderr());
+            }
             return result;
         } finally {
             executor.shutdownNow();
         }
     }
 
-    public CommandResult runInteractive(InteractiveCommand command) throws Exception {
-        return runInteractive(command, command.getResponders(), DEFAULT_PROCESS_TIMEOUT_SECONDS);
-    }
-
-    public CommandResult runInteractive(Command command, Map<String, String> responders, long timeoutSeconds) throws Exception {
-        List<String> commandList = command.build();
-        ProcessBuilder processBuilder = new ProcessBuilder(commandList);
-        processBuilder.directory(workDir);
-        Process process = processBuilder.start();
-
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        SharedOutputBuffer buffer = new SharedOutputBuffer();
-
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), UTF_8))) {
-            Future<?> stdoutTask = executor.submit(() ->
-                readStream(process.getInputStream(), buffer::appendStdoutLine, line -> respondIfMatched(line, responders, writer)));
-            Future<?> stderrTask = executor.submit(() ->
-                readStream(process.getErrorStream(), buffer::appendStderrLine, line -> respondIfMatched(line, responders, writer)));
-
-            boolean finishedInTime = process.waitFor(timeoutSeconds, SECONDS);
-            if (!finishedInTime) {
-                process.destroyForcibly();
-                process.waitFor();
-            }
-
-            waitForStreamReaders(stdoutTask, stderrTask);
-
-            return new CommandResult(
-                buffer.stdout(),
-                buffer.stderr(),
-                buffer.combined(),
-                finishedInTime ? process.exitValue() : -1,
-                !finishedInTime
-            );
-        } finally {
-            executor.shutdownNow();
-        }
-    }
-
-    private void readStream(InputStream stream, LineAppender appender, LineObserver observer) {
+    private void readStream(InputStream stream, LineAppender appender) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 appender.append(line);
-                if (observer != null) {
-                    observer.onLine(line);
-                }
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to read process stream", e);
         }
     }
 
-    private void respondIfMatched(String line, Map<String, String> responders, BufferedWriter writer) {
-        log.debug("Interactive output: {}", line);
-        for (Map.Entry<String, String> entry : responders.entrySet()) {
-            if (Pattern.compile(entry.getKey()).matcher(line).find()) {
-                try {
-                    synchronized (writer) {
-                        writer.write(entry.getValue());
-                        writer.flush();
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to write interactive response", e);
-                }
-                break;
-            }
-        }
-    }
-
     private void waitForStreamReadersOrThrow(Future<?> stdoutTask, Future<?> stderrTask) throws IOException, InterruptedException {
         try {
-            waitForStreamReaders(stdoutTask, stderrTask);
+            stdoutTask.get(STREAM_READ_TIMEOUT_SECONDS, SECONDS);
+            stderrTask.get(STREAM_READ_TIMEOUT_SECONDS, SECONDS);
         } catch (ExecutionException | TimeoutException e) {
             throw new IOException("Failed to capture process output", e);
         }
-    }
-
-    private void waitForStreamReaders(Future<?> stdoutTask, Future<?> stderrTask)
-        throws InterruptedException, ExecutionException, TimeoutException {
-        stdoutTask.get(STREAM_READ_TIMEOUT_SECONDS, SECONDS);
-        stderrTask.get(STREAM_READ_TIMEOUT_SECONDS, SECONDS);
     }
 
     @FunctionalInterface
@@ -176,46 +117,23 @@ public class CommandRunner {
         void append(String line);
     }
 
-    @FunctionalInterface
-    private interface LineObserver {
-        void onLine(String line);
-    }
-
     private static final class SharedOutputBuffer {
         private final StringBuilder stdout = new StringBuilder();
         private final StringBuilder stderr = new StringBuilder();
         private final StringBuilder combined = new StringBuilder();
 
-        void appendStdoutLine(String line) {
-            append(stdout, line);
-            appendCombined(line);
+        synchronized void appendStdoutLine(String line) {
+            stdout.append(line).append("\n");
+            combined.append(line).append("\n");
         }
 
-        void appendStderrLine(String line) {
-            append(stderr, line);
-            appendCombined(line);
+        synchronized void appendStderrLine(String line) {
+            stderr.append(line).append("\n");
+            combined.append(line).append("\n");
         }
 
-        synchronized String stdout() {
-            return stdout.toString();
-        }
-
-        synchronized String stderr() {
-            return stderr.toString();
-        }
-
-        synchronized String combined() {
-            return combined.toString();
-        }
-
-        private synchronized void appendCombined(String line) {
-            append(combined, line);
-        }
-
-        private void append(StringBuilder builder, String line) {
-            synchronized (this) {
-                builder.append(line).append("\n");
-            }
-        }
+        synchronized String stdout() { return stdout.toString(); }
+        synchronized String stderr() { return stderr.toString(); }
+        synchronized String combined() { return combined.toString(); }
     }
 }

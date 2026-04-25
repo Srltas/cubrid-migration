@@ -17,19 +17,37 @@ public class ScriptCommand extends CmtCommand {
     public static class Builder {
         private final List<String> options = new ArrayList<>();
 
-        public Builder source(String source) {
-            options.addAll(Arrays.asList("-s", source));
+        public Builder sourceConfig(String sourceConfigName) {
+            options.addAll(Arrays.asList("-s", sourceConfigName));
             return this;
         }
 
-        public Builder target(String target) {
-            options.addAll(Arrays.asList("-t", target));
+        public Builder targetConfig(String targetConfigName) {
+            options.addAll(Arrays.asList("-t", targetConfigName));
             return this;
         }
 
-        public Builder output(String outputPath) {
+        public Builder outputDir(String outputPath) {
             options.addAll(Arrays.asList("-o", outputPath));
             return this;
+        }
+
+        /** @deprecated Use {@link #sourceConfig(String)}. */
+        @Deprecated
+        public Builder source(String source) {
+            return sourceConfig(source);
+        }
+
+        /** @deprecated Use {@link #targetConfig(String)}. */
+        @Deprecated
+        public Builder target(String target) {
+            return targetConfig(target);
+        }
+
+        /** @deprecated Use {@link #outputDir(String)}. */
+        @Deprecated
+        public Builder output(String outputPath) {
+            return outputDir(outputPath);
         }
 
         public ScriptCommand build() {

@@ -32,3 +32,6 @@ tests/unit-test/logs/
 
 tests/e2e/target/
 tests/e2e/e2e-test.properties
+
+## Mac
+.DS_Store

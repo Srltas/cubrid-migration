@@ -9,8 +9,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface TestResources {
     /**
-     * src/test/resources/tests/ 하위의 리소스 경로를 지정
-     * 예: "error/basic"
+     * Resource path under {@code src/test/resources/tests/}.
+     * Example: {@code error/basic}
      */
     String value();
 }

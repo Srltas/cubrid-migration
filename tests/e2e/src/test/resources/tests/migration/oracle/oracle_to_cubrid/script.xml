@@ -1,0 +1,401 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<migration name="ORACLE_XE_202604210703" version="11.1.0" wizard_start_date_time="202604210703">
+    <connections>
+        <connection id="source" host="%%SOURCE_HOST%%" port="%%SOURCE_PORT%%" driver="%%SOURCE_DRIVER%%" name="XE" user="CMT_TEST" password="cmt" charset="AL32UTF8" timezone="GMT+00:00" user_jdbc_url="" db_type="ORACLE"/>
+        <connection id="target" host="%%TARGET_HOST%%" port="%%TARGET_PORT%%" driver="%%TARGET_DRIVER%%" name="cubdb" user="dba" password="" charset="utf-8" timezone="" user_jdbc_url="" create_constraints_before_data="no" write_error_records="no" add_schema="yes"/>
+    </connections>
+    <schemas>
+        <schema source="CMT_OWNER" target="CMT_OWNER"/>
+        <schema source="CMT_TEST" target="CMT_TEST"/>
+    </schemas>
+    <source db_type="ORACLE" online="yes">
+        <tables>
+            <table schema="CMT_OWNER" name="ORA_COV_SHARED_AUDIT" target_schema="CMT_OWNER" target_name="ora_cov_shared_audit" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="AUDIT_ID" target_name="audit_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="AUDIT_SOURCE" target_name="audit_source" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="AUDIT_NOTE" target_name="audit_note" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CREATED_ON" target_name="created_on" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_BINARY_TYPES" target_schema="CMT_TEST" target_name="ora_cov_binary_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="BINARY_ID" target_name="binary_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="RAW_COL" target_name="raw_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="LONG_RAW_COL" target_name="long_raw_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="BLOB_COL" target_name="blob_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="BFILE_COL" target_name="bfile_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_CUSTOMER" target_schema="CMT_TEST" target_name="ora_cov_customer" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="CUSTOMER_ID" target_name="customer_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CUSTOMER_CODE" target_name="customer_code" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CUSTOMER_NAME" target_name="customer_name" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CUSTOMER_ALIAS" target_name="customer_alias" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="STATUS" target_name="status" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CREDIT_LIMIT" target_name="credit_limit" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CREATED_ON" target_name="created_on" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="UPDATED_ON" target_name="updated_on" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+                <constraints>
+                    <index name="UK_COV_CUSTOMER_CODE" target_name="uk_cov_customer_code"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_LOCATOR_TYPES" target_schema="CMT_TEST" target_name="ora_cov_locator_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="LOCATOR_ID" target_name="locator_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="ROWID_COL" target_name="rowid_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="UROWID_COL" target_name="urowid_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_NUMERIC_TYPES" target_schema="CMT_TEST" target_name="ora_cov_numeric_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="NUMERIC_ID" target_name="numeric_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="INTEGER_COL" target_name="integer_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="DECIMAL_COL" target_name="decimal_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="NUMBER_P0_COL" target_name="number_p0_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="NUMBER_PS_COL" target_name="number_ps_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="NUMBER_ROUND_COL" target_name="number_round_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="NUMBER_ANY_COL" target_name="number_any_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="FLOAT_COL" target_name="float_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="REAL_COL" target_name="real_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="BINARY_FLOAT_COL" target_name="binary_float_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="BINARY_DOUBLE_COL" target_name="binary_double_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_ORDERS" target_schema="CMT_TEST" target_name="ora_cov_orders" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="ORDER_ID" target_name="order_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CUSTOMER_ID" target_name="customer_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="ORDER_NO" target_name="order_no" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="ORDER_STATUS" target_name="order_status" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="TOTAL_AMOUNT" target_name="total_amount" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="ORDERED_AT" target_name="ordered_at" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="SETTLED_AT" target_name="settled_at" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="SOURCE_COMMENT" target_name="source_comment" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+                <constraints>
+                    <fk name="FK_COV_ORDERS_CUSTOMER" target_name="fk_cov_orders_customer"/>
+                    <index name="IDX_COV_ORDERS_CUSTOMER" target_name="idx_cov_orders_customer"/>
+                    <index name="IDX_COV_ORDERS_NO_REV" target_name="idx_cov_orders_no_rev"/>
+                    <index name="IDX_COV_ORDERS_ORDERED_DESC" target_name="idx_cov_orders_ordered_desc"/>
+                    <index name="IDX_COV_ORDERS_UPPER_STATUS" target_name="idx_cov_orders_upper_status"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_ORDER_LINE" target_schema="CMT_TEST" target_name="ora_cov_order_line" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="LINE_ID" target_name="line_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="ORDER_ID" target_name="order_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="LINE_NO" target_name="line_no" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="SKU" target_name="sku" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="QTY" target_name="qty" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="UNIT_PRICE" target_name="unit_price" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="LINE_NOTE" target_name="line_note" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+                <constraints>
+                    <fk name="FK_COV_LINE_ORDER" target_name="fk_cov_line_order"/>
+                    <index name="IDX_COV_LINE_ORDER" target_name="idx_cov_line_order"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_PROGRAM_LOG" target_schema="CMT_TEST" target_name="ora_cov_program_log" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="LOG_ID" target_name="log_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="PROC_NAME" target_name="proc_name" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="PAYLOAD" target_name="payload" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CREATED_ON" target_name="created_on" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_ROWID_SOURCE" target_schema="CMT_TEST" target_name="ora_cov_rowid_source" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="SOURCE_ID" target_name="source_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="SOURCE_NAME" target_name="source_name" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_TEMPORAL_TYPES" target_schema="CMT_TEST" target_name="ora_cov_temporal_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="TEMPORAL_ID" target_name="temporal_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="DATE_COL" target_name="date_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="TS6_COL" target_name="ts6_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="TS9_COL" target_name="ts9_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="TSLTZ6_COL" target_name="tsltz6_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="TSTZ9_COL" target_name="tstz9_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="INTERVAL_DS_COL" target_name="interval_ds_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="INTERVAL_YM_COL" target_name="interval_ym_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="CMT_TEST" name="ORA_COV_TEXT_TYPES" target_schema="CMT_TEST" target_name="ora_cov_text_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="TEXT_ID" target_name="text_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CHAR_BYTE_COL" target_name="char_byte_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CHAR_CHAR_COL" target_name="char_char_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="VARCHAR_BYTE_COL" target_name="varchar_byte_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="VARCHAR_CHAR_COL" target_name="varchar_char_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="NCHAR_COL" target_name="nchar_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="NVARCHAR_COL" target_name="nvarchar_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="CLOB_COL" target_name="clob_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="NCLOB_COL" target_name="nclob_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="LONG_COL" target_name="long_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="CMT_TEST" name="flyway_schema_history" target_schema="CMT_TEST" target_name="flyway_schema_history" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="installed_rank" target_name="installed_rank" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="version" target_name="version" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="description" target_name="description" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="type" target_name="type" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="script" target_name="script" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="checksum" target_name="checksum" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="installed_by" target_name="installed_by" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="installed_on" target_name="installed_on" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="execution_time" target_name="execution_time" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="success" target_name="success" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+                <constraints>
+                    <index name="flyway_schema_history_s_idx" target_name="flyway_schema_history_s_idx"/>
+                </constraints>
+            </table>
+        </tables>
+        <sequences>
+            <sequence schema="CMT_TEST" name="ORA_COV_CUSTOMER_SEQ" target_name="ora_cov_customer_seq" auto_synchronize_start_value="yes"/>
+            <sequence schema="CMT_TEST" name="ORA_COV_LOG_SEQ" target_name="ora_cov_log_seq" auto_synchronize_start_value="yes"/>
+            <sequence schema="CMT_TEST" name="ORA_COV_ORDER_SEQ" target_name="ora_cov_order_seq" auto_synchronize_start_value="yes"/>
+        </sequences>
+        <synonyms>
+            <synonym schema="CMT_TEST" name="ora_cov_shared_audit_syn" target_schema="CMT_TEST" target_name="ora_cov_shared_audit_syn" object_schema="CMT_OWNER" object_name="ora_cov_shared_audit" target_object_schema="CMT_OWNER" target_object_name="ora_cov_shared_audit"/>
+        </synonyms>
+        <views>
+            <view schema="CMT_TEST" name="ORA_COV_ORDER_SUMMARY_V" target_schema="CMT_TEST" target_name="ora_cov_order_summary_v" comment=""/>
+        </views>
+        <grants>
+            <grant schema="CMT_TEST" name="DELETE ON CMT_OWNER.ORA_COV_SHARED_AUDIT TO CMT_TEST" target_schema="CMT_TEST" grantor="CMT_OWNER" grantee="CMT_TEST" object_name="ora_cov_shared_audit" object_schema="CMT_OWNER" privilege="DELETE" with_grant_option="no" source_grantor_name="CMT_OWNER" source_object_schema="CMT_OWNER"/>
+            <grant schema="CMT_TEST" name="UPDATE ON CMT_OWNER.ORA_COV_SHARED_AUDIT TO CMT_TEST" target_schema="CMT_TEST" grantor="CMT_OWNER" grantee="CMT_TEST" object_name="ora_cov_shared_audit" object_schema="CMT_OWNER" privilege="UPDATE" with_grant_option="no" source_grantor_name="CMT_OWNER" source_object_schema="CMT_OWNER"/>
+            <grant schema="CMT_TEST" name="INSERT ON CMT_OWNER.ORA_COV_SHARED_AUDIT TO CMT_TEST" target_schema="CMT_TEST" grantor="CMT_OWNER" grantee="CMT_TEST" object_name="ora_cov_shared_audit" object_schema="CMT_OWNER" privilege="INSERT" with_grant_option="no" source_grantor_name="CMT_OWNER" source_object_schema="CMT_OWNER"/>
+            <grant schema="CMT_TEST" name="SELECT ON CMT_OWNER.ORA_COV_SHARED_AUDIT TO CMT_TEST" target_schema="CMT_TEST" grantor="CMT_OWNER" grantee="CMT_TEST" object_name="ora_cov_shared_audit" object_schema="CMT_OWNER" privilege="SELECT" with_grant_option="no" source_grantor_name="CMT_OWNER" source_object_schema="CMT_OWNER"/>
+        </grants>
+        <plcsql_functions>
+            <plcsql_function schema="CMT_TEST" name="ORA_COV_CUSTOMER_LABEL_F" target_schema="CMT_TEST" target_name="ora_cov_customer_label_f" auth_id="OWNER" auth_id_changed="no" source_ddl="CREATE FUNCTION ora_cov_customer_label_f (&#xa;    p_customer_id    NUMBER,&#xa;    p_prefix         NCHAR,&#xa;    p_factor         FLOAT,&#xa;    p_created_on     DATE&#xa;) RETURN VARCHAR2&#xa;AS&#xa;    v_customer_name VARCHAR2(120);&#xa;BEGIN&#xa;    SELECT customer_name&#xa;      INTO v_customer_name&#xa;      FROM ora_cov_customer&#xa;     WHERE customer_id = p_customer_id;&#xa;&#xa;    INSERT INTO ora_cov_program_log (&#xa;        log_id,&#xa;        proc_name,&#xa;        payload,&#xa;        created_on&#xa;    ) VALUES (&#xa;        ora_cov_log_seq.NEXTVAL,&#xa;        'CUSTOMER_LABEL_F',&#xa;        v_customer_name || ':' || TO_CHAR(p_factor),&#xa;        p_created_on&#xa;    );&#xa;&#xa;    RETURN p_prefix || '-' || v_customer_name;&#xa;END;"/>
+        </plcsql_functions>
+        <plcsql_procedures>
+            <plcsql_procedure schema="CMT_TEST" name="ORA_COV_UPSERT_CUSTOMER_P" target_schema="CMT_TEST" target_name="ora_cov_upsert_customer_p" auth_id="OWNER" auth_id_changed="no" source_ddl="CREATE PROCEDURE ora_cov_upsert_customer_p (&#xa;    p_customer_id    NUMBER,&#xa;    p_customer_name  VARCHAR2,&#xa;    p_display_name   NVARCHAR2,&#xa;    p_weight         BINARY_FLOAT,&#xa;    p_credit_limit   BINARY_DOUBLE,&#xa;    p_updated_on     DATE&#xa;)&#xa;AS&#xa;    v_payload VARCHAR2(200);&#xa;BEGIN&#xa;    UPDATE ora_cov_customer&#xa;       SET customer_name  = p_customer_name,&#xa;           customer_alias = p_display_name,&#xa;           credit_limit   = p_credit_limit,&#xa;           updated_on     = p_updated_on&#xa;     WHERE customer_id = p_customer_id;&#xa;&#xa;    IF SQL%ROWCOUNT = 0 THEN&#xa;        INSERT INTO ora_cov_customer (&#xa;            customer_id,&#xa;            customer_code,&#xa;            customer_name,&#xa;            customer_alias,&#xa;            status,&#xa;            credit_limit,&#xa;            created_on,&#xa;            updated_on&#xa;        ) VALUES (&#xa;            p_customer_id,&#xa;            LPAD(TO_CHAR(p_customer_id), 4, '0'),&#xa;            p_customer_name,&#xa;            p_display_name,&#xa;            'A',&#xa;            p_credit_limit,&#xa;            p_updated_on,&#xa;            p_updated_on&#xa;        );&#xa;    END IF;&#xa;&#xa;    v_payload := p_customer_name || ':' || TO_CHAR(p_weight);&#xa;&#xa;    INSERT INTO ora_cov_program_log (&#xa;        log_id,&#xa;        proc_name,&#xa;        payload,&#xa;        created_on&#xa;    ) VALUES (&#xa;        ora_cov_log_seq.NEXTVAL,&#xa;        'UPSERT_CUSTOMER',&#xa;        v_payload,&#xa;        p_updated_on&#xa;    );&#xa;END;"/>
+        </plcsql_procedures>
+    </source>
+    <target version="114" type="online" db_type="cubrid">
+        <tables>
+            <table schema="CMT_OWNER" name="ora_cov_shared_audit" source_schema="CMT_OWNER" reuse_oid="no" comment="">
+                <columns>
+                    <column name="audit_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="audit_source" type="varchar(40)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="audit_note" type="varchar(200)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="created_on" type="datetime" base_type="datetime" null="no" unique="no" shared="no" default="sys_datetime" expression_default="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="audit_id"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="flyway_schema_history" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="installed_rank" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="version" type="varchar(50)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="description" type="varchar(200)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="type" type="varchar(20)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="script" type="varchar(1000)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="checksum" type="int" base_type="int" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="installed_by" type="varchar(100)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="installed_on" type="timestamp" base_type="timestamp" null="no" unique="no" shared="no" default="CURRENT_TIMESTAMP" expression_default="no" auto_increment="no" comment=""/>
+                    <column name="execution_time" type="int" base_type="int" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="success" type="numeric(1,0)" base_type="numeric" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="installed_rank"/>
+                    <index name="flyway_schema_history_s_idx" fields="success" order_rule="A" reverse="no" unique="no"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_binary_types" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="binary_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="raw_col" type="bit varying(128)" base_type="bit varying" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="long_raw_col" type="bit varying(1073741823)" base_type="bit varying" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="blob_col" type="bit varying(1073741823)" base_type="bit varying" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="bfile_col" type="blob" base_type="blob" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="binary_id"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_customer" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="customer_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="customer_code" type="char(4)" base_type="char" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="customer_name" type="varchar(100)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="customer_alias" type="varchar(60)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="status" type="char(1)" base_type="char" null="no" unique="no" shared="no" default="'A'" expression_default="no" auto_increment="no" comment=""/>
+                    <column name="credit_limit" type="numeric(15,2)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="created_on" type="datetime" base_type="datetime" null="no" unique="no" shared="no" default="sys_datetime" expression_default="no" auto_increment="no" comment=""/>
+                    <column name="updated_on" type="datetime" base_type="datetime" null="yes" unique="no" shared="no" default="current_datetime" expression_default="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="customer_id"/>
+                    <index name="uk_cov_customer_code" fields="customer_code" order_rule="A" reverse="no" unique="yes"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_locator_types" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="locator_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="rowid_col" type="varchar(64)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="urowid_col" type="varchar(4000)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="locator_id"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_numeric_types" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="numeric_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="integer_col" type="int" base_type="int" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="decimal_col" type="numeric(20,4)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="number_p0_col" type="numeric(38,0)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="number_ps_col" type="numeric(20,6)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="number_round_col" type="numeric(10,0)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="number_any_col" type="numeric(38,15)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="float_col" type="double" base_type="double" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="real_col" type="double" base_type="double" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="binary_float_col" type="float" base_type="float" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="binary_double_col" type="double" base_type="double" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="numeric_id"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_order_line" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="line_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="order_id" type="numeric(10,0)" base_type="numeric" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="line_no" type="numeric(5,0)" base_type="numeric" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="sku" type="varchar(30)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="qty" type="numeric(10,0)" base_type="numeric" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="unit_price" type="numeric(15,2)" base_type="numeric" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="line_note" type="varchar(200)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="line_id"/>
+                    <fk name="fk_cov_line_order" ref_table="ORA_COV_ORDERS" on_update="NO ACTION" on_delete="NO ACTION" fields="order_id" ref_fields="order_id"/>
+                    <index name="idx_cov_line_order" fields="order_id,line_no" order_rule="A,A" reverse="no" unique="no"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_orders" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="order_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="customer_id" type="numeric(10,0)" base_type="numeric" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="order_no" type="varchar(30)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="order_status" type="varchar(20)" base_type="varchar" null="no" unique="no" shared="no" default="'NEW'" expression_default="no" auto_increment="no" comment=""/>
+                    <column name="total_amount" type="numeric(18,2)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="ordered_at" type="datetime" base_type="datetime" null="no" unique="no" shared="no" default="sys_datetime" expression_default="no" auto_increment="no" comment=""/>
+                    <column name="settled_at" type="datetime" base_type="datetime" null="yes" unique="no" shared="no" default="current_datetime" expression_default="no" auto_increment="no" comment=""/>
+                    <column name="source_comment" type="varchar(200)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="order_id"/>
+                    <fk name="fk_cov_orders_customer" ref_table="ORA_COV_CUSTOMER" on_update="NO ACTION" on_delete="NO ACTION" fields="customer_id" ref_fields="customer_id"/>
+                    <index name="idx_cov_orders_customer" fields="customer_id" order_rule="A" reverse="no" unique="no"/>
+                    <index name="idx_cov_orders_no_rev" fields="order_no" order_rule="A" reverse="yes" unique="no"/>
+                    <index name="idx_cov_orders_ordered_desc" fields="ordered_at" order_rule="D" reverse="no" unique="no"/>
+                    <index name="idx_cov_orders_upper_status" fields="upper(&quot;order_status&quot;)" order_rule="A" reverse="no" unique="no"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_program_log" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="log_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="proc_name" type="varchar(40)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="payload" type="varchar(200)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="created_on" type="datetime" base_type="datetime" null="no" unique="no" shared="no" default="sys_datetime" expression_default="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="log_id"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_rowid_source" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="source_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="source_name" type="varchar(40)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="source_id"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_temporal_types" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="temporal_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="date_col" type="datetime" base_type="datetime" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="ts6_col" type="timestamp" base_type="timestamp" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="ts9_col" type="timestamp" base_type="timestamp" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="tsltz6_col" type="datetime" base_type="datetime" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="tstz9_col" type="varchar(100)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="interval_ds_col" type="varchar(255)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="interval_ym_col" type="varchar(255)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="temporal_id"/>
+                </constraints>
+            </table>
+            <table schema="CMT_TEST" name="ora_cov_text_types" source_schema="CMT_TEST" reuse_oid="no" comment="">
+                <columns>
+                    <column name="text_id" type="numeric(10,0)" base_type="numeric" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="char_byte_col" type="char(3)" base_type="char" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="char_char_col" type="char(3)" base_type="char" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="varchar_byte_col" type="varchar(10)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="varchar_char_col" type="varchar(10)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="nchar_col" type="char(10)" base_type="char" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="nvarchar_col" type="varchar(40)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="clob_col" type="varchar(1073741823)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="nclob_col" type="varchar(1073741823)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="long_col" type="varchar(1073741823)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="text_id"/>
+                </constraints>
+            </table>
+        </tables>
+        <sequences>
+            <sequence schema="CMT_TEST" name="ora_cov_customer_seq" source_schema="CMT_TEST" start="4" increment="1" min="1" max="9999999999999999999999999999" no_min="no" no_max="no" cycle="no" cache="no" cache_size="0"/>
+            <sequence schema="CMT_TEST" name="ora_cov_log_seq" source_schema="CMT_TEST" start="1001" increment="1" min="1" max="9999999999999999999999999999" no_min="no" no_max="no" cycle="no" cache="no" cache_size="0"/>
+            <sequence schema="CMT_TEST" name="ora_cov_order_seq" source_schema="CMT_TEST" start="4" increment="1" min="1" max="9999999999999999999999999999" no_min="no" no_max="no" cycle="no" cache="no" cache_size="0"/>
+        </sequences>
+        <views>
+            <view schema="CMT_TEST" name="ora_cov_order_summary_v" source_schema="CMT_TEST" comment="">
+                <view_columns>
+                    <view_column name="ORDER_ID" type="numeric(10,0)" base_type="numeric" comment=""/>
+                    <view_column name="ORDER_NO" type="varchar(30)" base_type="varchar" comment=""/>
+                    <view_column name="CUSTOMER_NAME" type="varchar(100)" base_type="varchar" comment=""/>
+                    <view_column name="CUSTOMER_ALIAS" type="varchar(60)" base_type="varchar" comment=""/>
+                    <view_column name="ORDER_STATUS" type="varchar(20)" base_type="varchar" comment=""/>
+                    <view_column name="TOTAL_AMOUNT" type="numeric(18,2)" base_type="numeric" comment=""/>
+                    <view_column name="ORDERED_AT" type="datetime" base_type="datetime" comment=""/>
+                </view_columns>
+                <view_query_sql><![CDATA[SELECT o.order_id,
+       o.order_no,
+       c.customer_name,
+       c.customer_alias,
+       o.order_status,
+       o.total_amount,
+       o.ordered_at
+FROM   ora_cov_orders   o
+JOIN   ora_cov_customer c
+       ON c.customer_id = o.customer_id
+]]>
+                </view_query_sql>
+            </view>
+        </views>
+        <synonyms>
+            <synonym schema="CMT_TEST" name="ora_cov_shared_audit_syn" object_schema="CMT_OWNER" object_name="ora_cov_shared_audit" source_schema="CMT_TEST"/>
+        </synonyms>
+        <plcsql_procedures>
+            <plcsql_procedure schema="CMT_TEST" name="ora_cov_upsert_customer_p" source_schema="CMT_TEST" source_name="ORA_COV_UPSERT_CUSTOMER_P" auth_id="OWNER" auth_id_changed="no" source_ddl="CREATE PROCEDURE ora_cov_upsert_customer_p (&#xa;    p_customer_id    NUMBER,&#xa;    p_customer_name  VARCHAR2,&#xa;    p_display_name   NVARCHAR2,&#xa;    p_weight         BINARY_FLOAT,&#xa;    p_credit_limit   BINARY_DOUBLE,&#xa;    p_updated_on     DATE&#xa;)&#xa;AS&#xa;    v_payload VARCHAR2(200);&#xa;BEGIN&#xa;    UPDATE ora_cov_customer&#xa;       SET customer_name  = p_customer_name,&#xa;           customer_alias = p_display_name,&#xa;           credit_limit   = p_credit_limit,&#xa;           updated_on     = p_updated_on&#xa;     WHERE customer_id = p_customer_id;&#xa;&#xa;    IF SQL%ROWCOUNT = 0 THEN&#xa;        INSERT INTO ora_cov_customer (&#xa;            customer_id,&#xa;            customer_code,&#xa;            customer_name,&#xa;            customer_alias,&#xa;            status,&#xa;            credit_limit,&#xa;            created_on,&#xa;            updated_on&#xa;        ) VALUES (&#xa;            p_customer_id,&#xa;            LPAD(TO_CHAR(p_customer_id), 4, '0'),&#xa;            p_customer_name,&#xa;            p_display_name,&#xa;            'A',&#xa;            p_credit_limit,&#xa;            p_updated_on,&#xa;            p_updated_on&#xa;        );&#xa;    END IF;&#xa;&#xa;    v_payload := p_customer_name || ':' || TO_CHAR(p_weight);&#xa;&#xa;    INSERT INTO ora_cov_program_log (&#xa;        log_id,&#xa;        proc_name,&#xa;        payload,&#xa;        created_on&#xa;    ) VALUES (&#xa;        ora_cov_log_seq.NEXTVAL,&#xa;        'UPSERT_CUSTOMER',&#xa;        v_payload,&#xa;        p_updated_on&#xa;    );&#xa;END;" header_ddl="" body_ddl="" procedure_ddl=""/>
+        </plcsql_procedures>
+        <plcsql_functions>
+            <plcsql_function schema="CMT_TEST" name="ora_cov_customer_label_f" source_schema="CMT_TEST" source_name="ORA_COV_CUSTOMER_LABEL_F" auth_id="OWNER" auth_id_changed="no" source_ddl="CREATE FUNCTION ora_cov_customer_label_f (&#xa;    p_customer_id    NUMBER,&#xa;    p_prefix         NCHAR,&#xa;    p_factor         FLOAT,&#xa;    p_created_on     DATE&#xa;) RETURN VARCHAR2&#xa;AS&#xa;    v_customer_name VARCHAR2(120);&#xa;BEGIN&#xa;    SELECT customer_name&#xa;      INTO v_customer_name&#xa;      FROM ora_cov_customer&#xa;     WHERE customer_id = p_customer_id;&#xa;&#xa;    INSERT INTO ora_cov_program_log (&#xa;        log_id,&#xa;        proc_name,&#xa;        payload,&#xa;        created_on&#xa;    ) VALUES (&#xa;        ora_cov_log_seq.NEXTVAL,&#xa;        'CUSTOMER_LABEL_F',&#xa;        v_customer_name || ':' || TO_CHAR(p_factor),&#xa;        p_created_on&#xa;    );&#xa;&#xa;    RETURN p_prefix || '-' || v_customer_name;&#xa;END;" header_ddl="" body_ddl="" function_ddl=""/>
+        </plcsql_functions>
+    </target>
+    <params export_thread="4" import_thread="3" commit_count="1000" page_fetch_count="1000" implicit_estimate_progress="no" update_statistics="yes"/>
+</migration>

@@ -16,24 +16,24 @@ import com.cmt.e2e.framework.db.containers.DatabaseContainer;
 import com.cmt.e2e.framework.db.driver.Drivers;
 
 /**
- * 마이그레이션 스크립트 XML 템플릿의 플레이스홀더를 실제 컨테이너 정보로 치환하고
- * 아티팩트 디렉터리에 최종 스크립트 파일을 생성합니다.
+ * Replaces placeholders in a migration-script XML template with actual
+ * container information and writes the final script into the artifact directory.
  *
- * <p>사용 예:
+ * <p>Usage example:
  * <pre>
  * ResolvedScript resolved = ScriptTemplateResolver.builder()
  *     .template(resourceDir.resolve("script.xml"))
  *     .source(sourceDb)
- *     .target(targetDb)           // 파일 타겟이면 생략 가능
+ *     .target(targetDb)           // optional for file targets
  *     .outputDir(artifactDir)
  *     .scriptFileName("CUBRID_to_CUBRID.xml")
  *     .build()
  *     .resolve();
  *
- * // 스크립트 경로
+ * // Script path
  * StartCommand.builder().script(resolved.scriptPath()).build();
  *
- * // Dump 타겟 마이그레이션 출력 디렉토리
+ * // Output directory for dump target migration
  * ctx.migrationOutput(resolved.migrationName(), "PUBLIC")
  * </pre>
  */
@@ -56,8 +56,9 @@ public class ScriptTemplateResolver {
     }
 
     /**
-     * 템플릿을 읽어 플레이스홀더를 치환한 뒤, 출력 디렉터리에 파일을 쓰고
-     * 스크립트 경로와 migration 이름을 담은 {@link ResolvedScript}를 반환합니다.
+     * Reads the template, replaces placeholders, writes the output file,
+     * and returns a {@link ResolvedScript} containing the script path
+     * and migration name.
      */
     public ResolvedScript resolve() throws IOException {
         String migrationName = parseMigrationName();
@@ -75,14 +76,15 @@ public class ScriptTemplateResolver {
     }
 
     /**
-     * script.xml 템플릿을 파싱하여 migration 이름을 반환합니다.
+     * Parses the {@code script.xml} template and returns the migration name.
      *
-     * <p>실제 Console은 파일 타겟 마이그레이션 산출물을
-     * {@code {file_repository.dir}/{migration.name}/{schema}/...} 아래에 생성합니다.
-     * 따라서 테스트도 source connection 정보를 추정하지 말고
-     * {@code <migration name="...">} 값을 그대로 사용해야 합니다.
+     * <p>The real Console writes file-target migration outputs under
+     * {@code {file_repository.dir}/{migration.name}/{schema}/...}.
+     * Tests should therefore use the exact {@code <migration name="...">}
+     * value instead of inferring it from source connection data.
      *
-     * <p>migration 이름이 비어 있으면 Console과 동일하게 스크립트 파일명(확장자 제외)을 fallback으로 사용합니다.
+     * <p>If the migration name is blank, this falls back to the script file name
+     * without its extension, matching Console behavior.
      */
     private String parseMigrationName() throws IOException {
         try {
@@ -150,7 +152,7 @@ public class ScriptTemplateResolver {
             return this;
         }
 
-        /** 타겟이 온라인 DB인 경우에만 설정. 파일 타겟(CSV/SQL/Dump)이면 생략. */
+        /** Set only when the target is an online DB. Omit for file targets such as CSV, SQL, or dump. */
         public Builder target(DatabaseContainer target) {
             this.target = target;
             return this;
@@ -161,7 +163,7 @@ public class ScriptTemplateResolver {
             return this;
         }
 
-        /** 생성될 스크립트 파일명. 미지정 시 템플릿 파일명을 사용. */
+        /** Output script file name. Defaults to the template file name when omitted. */
         public Builder scriptFileName(String scriptFileName) {
             this.scriptFileName = scriptFileName;
             return this;

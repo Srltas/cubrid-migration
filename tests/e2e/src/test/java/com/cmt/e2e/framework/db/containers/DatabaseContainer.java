@@ -7,30 +7,31 @@ import org.testcontainers.lifecycle.Startable;
 public interface DatabaseContainer extends Startable {
 
     /**
-     * 컨테이너가 실행 중인 호스트 이름을 반환
+     * Returns the host name where the container is running.
      */
     String getHost();
 
     /**
-     * 외부에 노출된 DB 포트 번호를 반환
+     * Returns the externally exposed database port.
      */
     Integer getDatabasePort();
 
     /**
-     * 이 컨테이너의 DB 종류를 반환
+     * Returns the database type of this container.
      */
     DB getDbType();
 
     /**
-     * 내부적으로 사용하는 Testcontainers의 GenericContainer 인스턴스를 반환
+     * Returns the underlying Testcontainers {@link GenericContainer} instance.
      */
     GenericContainer<?> getContainer();
 
     /**
-     * 이 DB 타입에 맞는 JDBC URL을 생성합니다.
-     * @param dbName 데이터베이스 이름
-     * @param user 접속 사용자
-     * @return JDBC URL 문자열
+     * Builds a JDBC URL for this database type.
+     *
+     * @param dbName database name
+     * @param user connecting user
+     * @return JDBC URL string
      */
     String getJdbcUrl(String dbName, String user);
 }

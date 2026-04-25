@@ -8,16 +8,21 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - maven-cache:/root/.m2
       - ${CMT_CONSOLE_HOME:?Set CMT_CONSOLE_HOME to the extracted CMT Console directory}:/opt/cmt-console
-      - ./src:/app/src
-      - ./pom.xml:/app/pom.xml
-      - ./target:/app/target
+      # Mount the whole project so /app/target is a normal directory, not a bind mount root.
+      # `mvn clean` cannot delete a mount point such as a separately mounted /app/target.
+      - ./:/app
     environment:
       - CMT_CONSOLE_HOME=/opt/cmt-console
       - DOCKER_HOST=unix:///var/run/docker.sock
       - TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
       - TESTCONTAINERS_RYUK_DISABLED=true
+      # Oracle 11g XE ships an old timezone file (v4) that does not recognize
+      # newer region IDs such as Asia/Seoul. If ojdbc8(21.x) sends the JVM
+      # timezone as a region name during authentication, ORA-01882 is raised.
+      # Set this to false so the driver sends a UTC offset (+09:00) instead.
+      - JAVA_TOOL_OPTIONS=-Doracle.jdbc.timezoneAsRegion=false
     command: >
-      mvn test
+      mvn clean test
       -Dmaven.test.failure.ignore=true
       -Dpicocli.ansi=false
       -Dorg.fusesource.jansi.Ansi.disable=true

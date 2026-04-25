@@ -1,23 +1,49 @@
 <configuration>
-    <!-- 1. 콘솔 출력 규칙(Appender) 정의 -->
+    <!-- =========================================================
+         2-tier logging:
+           - CONSOLE : WARN and above only, kept quiet during normal runs.
+                       Surefire prints test execution and failure summaries.
+           - PER_TEST_FILE : Creates target/e2e/<Class>/<method>/test.log
+                             per MDC testId and preserves detailed logs,
+                             including DEBUG, in chronological order.
+         ========================================================= -->
+
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- Send only ERROR and above to the console.
+             WARN/INFO/DEBUG stay in files to avoid noisy infrastructure logs. -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- 2. 메모리(List)에 로그를 저장하는 특별한 Appender 정의 -->
-    <appender name="LIST" class="ch.qos.logback.core.read.ListAppender">
+    <appender name="PER_TEST_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <key>testId</key>
+            <defaultValue>_bootstrap</defaultValue>
+        </discriminator>
+        <sift>
+            <appender name="FILE-${testId}" class="ch.qos.logback.core.FileAppender">
+                <file>target/e2e/${testId}/test.log</file>
+                <append>false</append>
+                <encoder>
+                    <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+                </encoder>
+            </appender>
+        </sift>
     </appender>
 
-    <!-- 3. 우리 프로젝트(com.cmt.e2e)에 대한 로거 설정 -->
-    <logger name="com.cmt.e2e" level="INFO" additivity="false">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="LIST" />
-    </logger>
+    <!-- Keep our code logs down to DEBUG in files -->
+    <logger name="com.cmt.e2e" level="DEBUG"/>
 
-    <!-- 4. 최상위(root) 로거 설정 -->
+    <!-- Dedicated loggers for child-process stdout/stderr, used by CommandRunner -->
+    <logger name="cmt.stdout" level="INFO"/>
+    <logger name="cmt.stderr" level="INFO"/>
+
     <root level="INFO">
-        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="PER_TEST_FILE"/>
     </root>
 </configuration>

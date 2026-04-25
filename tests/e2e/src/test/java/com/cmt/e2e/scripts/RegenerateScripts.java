@@ -1,0 +1,424 @@
+package com.cmt.e2e.scripts;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
+import java.util.List;
+
+import com.cmt.e2e.framework.command.execution.CommandResult;
+import com.cmt.e2e.framework.command.execution.CommandRunner;
+import com.cmt.e2e.framework.command.impls.ScriptCommand;
+import com.cmt.e2e.framework.db.containers.CubridContainer;
+import com.cmt.e2e.framework.db.containers.DatabaseContainer;
+import com.cmt.e2e.framework.db.containers.OracleContainer;
+import com.cmt.e2e.framework.db.driver.Drivers;
+import com.cmt.e2e.framework.db.init.OracleDatabaseInitializer;
+
+/**
+ * Utility that regenerates test fixture {@code script.xml} files from CMT Console.
+ *
+ * <p>When CMT adds schema elements or attributes, existing scripts may become
+ * incompatible and break tests. This tool generates a fresh {@code script.xml}
+ * through the real {@code migration.sh script} command, replaces
+ * container-dependent host/port/driver values with {@code %%PLACEHOLDER%%},
+ * and stores the result under {@code target/regenerate/}.
+ * Developers can review the diff and manually replace the fixture under
+ * {@code src/test/resources}.
+ *
+ * <h2>Prerequisites</h2>
+ * <ul>
+ *   <li>{@code CMT_CONSOLE_HOME} is set on the host.</li>
+ *   <li>Docker daemon access is available.</li>
+ * </ul>
+ *
+ * <h2>Execution</h2>
+ * Always invoke through the wrapper script, not {@code mvn exec:java} directly.
+ * The wrapper detects whether it is running on the host or inside the
+ * {@code e2e-test} container (via {@code /.dockerenv}) and, on the host,
+ * re-executes itself inside the container. This is required because the CMT
+ * Console bundled JRE is a {@code linux/amd64} ELF binary and cannot run on
+ * macOS or Windows hosts directly.
+ * <pre>
+ * ./bin/regenerate-scripts.sh                   # all scenarios
+ * ./bin/regenerate-scripts.sh oracle_to_cubrid  # one scenario
+ * </pre>
+ *
+ * <h2>Current State</h2>
+ * This is a developer utility, not part of the test execution path.
+ * Use it only when schema changes require refreshing the checked-in
+ * {@code script.xml} fixtures.
+ */
+public final class RegenerateScripts {
+
+    private static final Path FIXTURE_BASE =
+        Paths.get("src/test/resources/tests/migration");
+
+    private static final Path OUTPUT_BASE =
+        Paths.get("target/regenerate");
+    private static final String SOURCE_CONFIG_NAME = "regen_source";
+    private static final String TARGET_CONFIG_NAME = "regen_target";
+
+    private RegenerateScripts() {}
+
+    public static void main(String[] args) throws Exception {
+        List<String> filter = List.of(args);
+
+        ensureCmtConsoleHome();
+        Files.createDirectories(OUTPUT_BASE);
+
+        for (Scenario s : Scenario.values()) {
+            if (!filter.isEmpty() && !filter.contains(s.id)) continue;
+            System.out.println("\n=== Regenerating: " + s.id + " ===");
+            try {
+                s.run();
+                System.out.println("[OK] generated: " + OUTPUT_BASE.resolve(s.id).resolve("script.xml").toAbsolutePath());
+                System.out.println("[NEXT] diff and overwrite the fixture if acceptable:");
+                System.out.println("  cp " + OUTPUT_BASE.resolve(s.id).resolve("script.xml")
+                    + " " + s.fixtureDir().resolve("script.xml"));
+            } catch (Exception e) {
+                System.err.println("[FAIL] " + s.id + ": " + e.getMessage());
+                e.printStackTrace(System.err);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Scenarios
+    // ---------------------------------------------------------------------------
+
+    private enum Scenario {
+        ORACLE_TO_CUBRID("oracle_to_cubrid", "oracle/oracle_to_cubrid") {
+            @Override void run() throws Exception {
+                try (OracleContainer source = OracleContainer.withTwoUsers();
+                     CubridContainer target = CubridContainer.withEmptyDb()) {
+                    source.start();
+                    target.start();
+
+                    OracleDatabaseInitializer.of(source)
+                        .migrateAs(source.getOwnerUser(), source.getOwnerPassword(),
+                                   "oracle/full_coverage/owner")
+                        .migrateAs(source.getAppUser(), source.getAppPassword(),
+                                   "oracle/full_coverage/test");
+
+                    Path raw = runCmtScript(source, target, this);
+                    Path sanitized = sanitizeXml(raw, source, target, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        },
+        ORACLE_TO_DUMPFILE("oracle_to_dumpfile", "oracle/oracle_to_dumpfile") {
+            @Override void run() throws Exception {
+                try (OracleContainer source = OracleContainer.withTwoUsers()) {
+                    source.start();
+
+                    OracleDatabaseInitializer.of(source)
+                        .migrateAs(source.getOwnerUser(), source.getOwnerPassword(),
+                                   "oracle/full_coverage/owner")
+                        .migrateAs(source.getAppUser(), source.getAppPassword(),
+                                   "oracle/full_coverage/test");
+
+                    Path raw = runCmtScript(source, null, this);
+                    Path sanitized = sanitizeXml(raw, source, null, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        },
+        CUBRID_TO_DUMPFILE("cubrid_to_dumpfile", "cubrid/cubrid_to_dumpfile") {
+            @Override void run() throws Exception {
+                try (CubridContainer source = CubridContainer.withDemodb()) {
+                    source.start();
+                    // The demodb image is already initialized with data.
+                    Path raw = runCmtScript(source, null, this);
+                    Path sanitized = sanitizeXml(raw, source, null, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        };
+
+        final String id;
+        final String fixtureRel;
+
+        Scenario(String id, String fixtureRel) {
+            this.id = id;
+            this.fixtureRel = fixtureRel;
+        }
+
+        Path fixtureDir() {
+            return FIXTURE_BASE.resolve(fixtureRel);
+        }
+
+        abstract void run() throws Exception;
+    }
+
+    // ---------------------------------------------------------------------------
+    // CMT invocation
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Runs {@code migration.sh script -s <sourceConfig> -t <targetConfig> -o <outputDir>}
+     * with a temporary {@code db.conf} written into {@code CMT_CONSOLE_HOME}.
+     */
+    private static Path runCmtScript(DatabaseContainer source, DatabaseContainer target, Scenario s)
+            throws Exception {
+        Path runDir = OUTPUT_BASE.resolve(s.id);
+        Files.createDirectories(runDir);
+        Path rawDir = runDir.resolve("raw");
+        recreateDirectory(rawDir);
+
+        ScriptCommand.Builder builder = ScriptCommand.builder()
+            .sourceConfig(SOURCE_CONFIG_NAME)
+            .targetConfig(TARGET_CONFIG_NAME)
+            .outputDir(rawDir.toAbsolutePath().toString());
+
+        String home = System.getenv("CMT_CONSOLE_HOME");
+        CommandRunner runner = new CommandRunner(new File(home));
+        CommandResult result = runWithTemporaryDbConf(
+            Paths.get(home),
+            buildDbConf(s, source, target),
+            () -> runner.run(builder.build()));
+
+        System.out.println("--- migration.sh script output ---");
+        System.out.println(result.stdout());
+        if (!result.stderr().isBlank()) {
+            System.err.println(result.stderr());
+        }
+        if (result.exitCode() != 0) {
+            throw new IllegalStateException("migration.sh script failed (exit " + result.exitCode() + ")");
+        }
+
+        try (var walk = Files.list(rawDir)) {
+            return walk
+                .filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".xml"))
+                .filter(p -> !p.getFileName().toString().equals("sanitized.xml"))
+                .max(Comparator.comparingLong(RegenerateScripts::lastModified))
+                .orElseThrow(() -> new IllegalStateException(
+                    "CMT did not generate an XML file: " + rawDir));
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Sanitization: replace container-dependent values with %%PLACEHOLDER%%
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Replaces host/port/driver values in a CMT-generated {@code script.xml}
+     * with {@code %%PLACEHOLDER%%}. The result is written as
+     * {@code sanitized.xml} next to the input file.
+     */
+    private static Path sanitizeXml(
+            Path rawXml, DatabaseContainer source, DatabaseContainer target, Scenario scenario)
+            throws IOException {
+        String content = Files.readString(rawXml);
+
+        // Normalize volatile migration identifiers to the checked-in fixture values,
+        // so diffs stay focused on real schema/configuration changes.
+        content = preserveFixtureMigrationMetadata(content, scenario);
+
+        content = replaceConnectionAttribute(content, "source", "host", "%%SOURCE_HOST%%");
+        content = replaceConnectionAttribute(content, "source", "port", "%%SOURCE_PORT%%");
+        content = replaceConnectionAttribute(content, "source", "driver", "%%SOURCE_DRIVER%%");
+
+        if (target != null) {
+            content = replaceConnectionAttribute(content, "target", "host", "%%TARGET_HOST%%");
+            content = replaceConnectionAttribute(content, "target", "port", "%%TARGET_PORT%%");
+            content = replaceConnectionAttribute(content, "target", "driver", "%%TARGET_DRIVER%%");
+        }
+
+        Path out = rawXml.resolveSibling("sanitized.xml");
+        Files.writeString(out, content);
+        return out;
+    }
+
+    private static void recreateDirectory(Path dir) throws IOException {
+        if (Files.exists(dir)) {
+            try (var walk = Files.walk(dir)) {
+                walk.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to clean directory: " + dir, e);
+                        }
+                    });
+            }
+        }
+        Files.createDirectories(dir);
+    }
+
+    private static String buildDbConf(Scenario scenario, DatabaseContainer source, DatabaseContainer target) {
+        StringBuilder conf = new StringBuilder();
+        appendSourceConfig(conf, scenario, source);
+        appendTargetConfig(conf, scenario, target);
+        return conf.toString();
+    }
+
+    private static void appendSourceConfig(StringBuilder conf, Scenario scenario, DatabaseContainer source) {
+        if (scenario == Scenario.ORACLE_TO_CUBRID || scenario == Scenario.ORACLE_TO_DUMPFILE) {
+            OracleContainer oracle = (OracleContainer) source;
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "oracle");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
+                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".host", oracle.getHost());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".port", oracle.getDatabasePort().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", oracle.getSid());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".user", oracle.getAppUser());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".password", oracle.getAppPassword());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "AL32UTF8");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".timezone", "GMT+00:00");
+            return;
+        }
+
+        if (scenario == Scenario.CUBRID_TO_DUMPFILE) {
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "cubrid");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
+                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", "demodb");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".user", "public");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".password", "");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "utf-8");
+            return;
+        }
+
+        throw new IllegalArgumentException("Unsupported scenario: " + scenario.id);
+    }
+
+    private static void appendTargetConfig(
+            StringBuilder conf, Scenario scenario, DatabaseContainer target) {
+        if (scenario == Scenario.ORACLE_TO_CUBRID) {
+            appendProperty(conf, TARGET_CONFIG_NAME + ".type", "cubrid");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".driver",
+                Drivers.latest(target.getDbType()).toAbsolutePath().toString());
+            appendProperty(conf, TARGET_CONFIG_NAME + ".host", target.getHost());
+            appendProperty(conf, TARGET_CONFIG_NAME + ".port", target.getDatabasePort().toString());
+            appendProperty(conf, TARGET_CONFIG_NAME + ".dbname", "cubdb");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".user", "dba");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".password", "");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".charset", "utf-8");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".add_schema", "yes");
+            return;
+        }
+
+        appendProperty(conf, TARGET_CONFIG_NAME + ".type", "unload");
+        appendProperty(conf, TARGET_CONFIG_NAME + ".output", "./output");
+        appendProperty(conf, TARGET_CONFIG_NAME + ".charset", "utf-8");
+        appendProperty(conf, TARGET_CONFIG_NAME + ".add_schema", "yes");
+        appendProperty(conf, TARGET_CONFIG_NAME + ".split_schema", "yes");
+        if (scenario == Scenario.ORACLE_TO_DUMPFILE) {
+            appendProperty(conf, TARGET_CONFIG_NAME + ".file_prefix", "XE");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".one_table_one_file", "yes");
+            return;
+        }
+        if (scenario == Scenario.CUBRID_TO_DUMPFILE) {
+            appendProperty(conf, TARGET_CONFIG_NAME + ".file_prefix", "demodb");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".one_table_one_file", "no");
+            return;
+        }
+
+        throw new IllegalArgumentException("Unsupported scenario: " + scenario.id);
+    }
+
+    private static void appendProperty(StringBuilder conf, String key, String value) {
+        conf.append(key).append('=').append(value == null ? "" : value).append('\n');
+    }
+
+    private static CommandResult runWithTemporaryDbConf(
+            Path consoleHome, String dbConfContent, ThrowingSupplier<CommandResult> action)
+            throws Exception {
+        Path dbConf = consoleHome.resolve("db.conf");
+        Path backup = null;
+        if (Files.exists(dbConf)) {
+            backup = Files.createTempFile(consoleHome, "db.conf.", ".bak");
+            Files.copy(dbConf, backup, StandardCopyOption.REPLACE_EXISTING);
+        }
+        Files.writeString(dbConf, dbConfContent);
+        try {
+            return action.get();
+        } finally {
+            if (backup != null) {
+                Files.move(backup, dbConf, StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                Files.deleteIfExists(dbConf);
+            }
+        }
+    }
+
+    private static String preserveFixtureMigrationMetadata(String content, Scenario scenario)
+            throws IOException {
+        Path fixture = scenario.fixtureDir().resolve("script.xml");
+        if (!Files.exists(fixture)) {
+            return content;
+        }
+
+        String fixtureContent = Files.readString(fixture);
+        String fixtureName = extractAttribute(fixtureContent, "migration", "name");
+        String fixtureStartTime = extractAttribute(fixtureContent, "migration", "wizard_start_date_time");
+
+        if (fixtureName != null) {
+            content = replaceTagAttribute(content, "migration", "name", fixtureName);
+        }
+        if (fixtureStartTime != null) {
+            content = replaceTagAttribute(content, "migration", "wizard_start_date_time", fixtureStartTime);
+        }
+        return content;
+    }
+
+    private static String replaceConnectionAttribute(
+            String content, String connectionId, String attribute, String replacement) {
+        String pattern = "(<connection\\b(?=[^>]*\\bid=\"" + connectionId + "\")[^>]*\\b"
+            + attribute + "=\")([^\"]*)(\")";
+        return content.replaceAll(pattern, "$1" + java.util.regex.Matcher.quoteReplacement(replacement) + "$3");
+    }
+
+    private static String replaceTagAttribute(
+            String content, String tagName, String attribute, String replacement) {
+        String pattern = "(<" + tagName + "\\b[^>]*\\b" + attribute + "=\")([^\"]*)(\")";
+        return content.replaceAll(pattern, "$1" + java.util.regex.Matcher.quoteReplacement(replacement) + "$3");
+    }
+
+    private static String extractAttribute(String content, String tagName, String attribute) {
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+            .compile("<" + tagName + "\\b[^>]*\\b" + attribute + "=\"([^\"]*)\"")
+            .matcher(content);
+        return matcher.find() ? matcher.group(1) : null;
+    }
+
+    private static long lastModified(Path path) {
+        try {
+            return Files.getLastModifiedTime(path).toMillis();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to inspect file timestamp: " + path, e);
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Preconditions
+    // ---------------------------------------------------------------------------
+
+    private static void ensureCmtConsoleHome() {
+        String home = System.getenv("CMT_CONSOLE_HOME");
+        if (home == null || home.isBlank()) {
+            throw new IllegalStateException(
+                "CMT_CONSOLE_HOME is not set. " +
+                "Point it at the extracted CMT Console directory.");
+        }
+        if (!Files.isExecutable(Paths.get(home, "migration.sh"))) {
+            throw new IllegalStateException(
+                "CMT_CONSOLE_HOME is invalid (migration.sh not found): " + home);
+        }
+    }
+
+    @FunctionalInterface
+    private interface ThrowingSupplier<T> {
+        T get() throws Exception;
+    }
+}
