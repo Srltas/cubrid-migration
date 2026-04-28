@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * OracleContainer source = OracleContainer.withEmptyDb();
  * source.start();
  * OracleDatabaseInitializer.of(source)
- *     .migrate("oracle/basic");
+ *     .migrate("oracle/main_schema");
  * }</pre>
  *
  * <h2>Two-User Usage (cross-schema grant/synonym)</h2>
@@ -23,22 +23,29 @@ import org.slf4j.LoggerFactory;
  * OracleContainer source = OracleContainer.withTwoUsers();
  * source.start();
  * OracleDatabaseInitializer.of(source)
- *     .migrateAs(source.getOwnerUser(), source.getOwnerPassword(),
- *                "oracle/full_coverage/owner")   // create tables + grant to CMT_TEST
- *     .migrateAs(source.getAppUser(),   source.getAppPassword(),
- *                "oracle/full_coverage/test");   // create own objects + synonyms
+ *     .migrateAs(source.getRefUser(),  source.getRefPassword(),
+ *                "oracle/ref_schema")    // create reference table + grant to MAIN_SCHEMA
+ *     .migrateAs(source.getMainUser(), source.getMainPassword(),
+ *                "oracle/main_schema");  // create own objects + synonym
  * }</pre>
  *
  * <h2>Scenario Directory Layout</h2>
  * <pre>
  * src/test/resources/db/
  * └── oracle/
- *     ├── basic/
- *     │   ├── V1__schema.sql
- *     │   └── V2__data.sql
- *     └── full_coverage/
- *         ├── owner/   <- executed as CMT_OWNER via migrateAs
- *         └── test/    <- executed as CMT_TEST via migrateAs
+ *     ├── init/
+ *     │   └── 00_prepare_database.sql      <- runs as SYSDBA at container startup
+ *     ├── ref_schema/                      <- executed as REF_SCHEMA via migrateAs
+ *     │   ├── V1__schema_ref_objects.sql
+ *     │   ├── V2__data_ref_objects.sql
+ *     │   └── V3__grants_to_main.sql
+ *     └── main_schema/                     <- executed as MAIN_SCHEMA via migrateAs
+ *         ├── V1__schema_business_tables.sql
+ *         ├── V2__schema_views.sql
+ *         ├── V3__schema_type_test_tables.sql
+ *         ├── V4__schema_routines.sql
+ *         ├── V5__synonyms.sql
+ *         └── V99__data.sql
  * </pre>
  *
  * <h2>Oracle Schema Isolation</h2>
@@ -73,7 +80,7 @@ public final class OracleDatabaseInitializer {
     }
 
     /**
-     * Applies the given scenario using the container app user ({@code CMT_TEST}).
+     * Applies the given scenario using the container main user ({@code MAIN_SCHEMA}).
      *
      * <p>Used for single-user scenarios. It supports chaining but is also fine
      * as a standalone call.
@@ -83,22 +90,22 @@ public final class OracleDatabaseInitializer {
      * @throws DatabaseInitializationException if script execution fails
      */
     public OracleDatabaseInitializer migrate(String scenarioName) {
-        return migrateAs(container.getAppUser(), container.getAppPassword(), scenarioName);
+        return migrateAs(container.getMainUser(), container.getMainPassword(), scenarioName);
     }
 
     /**
      * Connects as the specified user and applies scenario {@code V*.sql} files in version order.
      *
      * <p>Use this in two-user mode ({@code OracleContainer.withTwoUsers()}).
-     * Call it in {@code CMT_OWNER -> CMT_TEST} order because
-     * {@code CMT_TEST} synonyms reference {@code CMT_OWNER} objects.
+     * Call it in {@code REF_SCHEMA -> MAIN_SCHEMA} order because
+     * {@code MAIN_SCHEMA} synonyms reference {@code REF_SCHEMA} objects.
      *
      * <pre>{@code
      * OracleDatabaseInitializer.of(sourceDb)
-     *     .migrateAs(sourceDb.getOwnerUser(), sourceDb.getOwnerPassword(),
-     *                "oracle/full_coverage/owner")
-     *     .migrateAs(sourceDb.getAppUser(),   sourceDb.getAppPassword(),
-     *                "oracle/full_coverage/test");
+     *     .migrateAs(sourceDb.getRefUser(),  sourceDb.getRefPassword(),
+     *                "oracle/ref_schema")
+     *     .migrateAs(sourceDb.getMainUser(), sourceDb.getMainPassword(),
+     *                "oracle/main_schema");
      * }</pre>
      *
      * @param user Oracle user name (Oracle schema == user name)
@@ -148,18 +155,18 @@ public final class OracleDatabaseInitializer {
     }
 
     /**
-     * Removes all objects from the current app-user schema.
+     * Removes all objects from the current main-user schema.
      * Useful when reusing a container and unnecessary when each test starts a new one.
      */
     public void clean() {
-        log.info("[OracleDatabaseInitializer] clean start: user='{}'", container.getAppUser());
+        log.info("[OracleDatabaseInitializer] clean start: user='{}'", container.getMainUser());
         try {
             buildFlyway(SCENARIO_BASE + "_clean_placeholder",
-                        container.getAppUser(), container.getAppPassword()).clean();
+                        container.getMainUser(), container.getMainPassword()).clean();
             log.info("[OracleDatabaseInitializer] clean complete");
         } catch (FlywayException e) {
             throw new DatabaseInitializationException(
-                "Failed to clean Oracle schema '" + container.getAppUser() + "': " + e.getMessage(), e);
+                "Failed to clean Oracle schema '" + container.getMainUser() + "': " + e.getMessage(), e);
         }
     }
 

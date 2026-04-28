@@ -19,16 +19,16 @@ import org.testcontainers.utility.MountableFile;
  *
  * <h2>Connection Info (single-user mode)</h2>
  * <pre>
- *   SID      : XE  (fixed in 11g XE, SERVICE_NAME is not available)
- *   Port     : 1521
- *   DBA      : system / oracle
- *   App user : CMT_TEST / cmt  (Flyway seeds objects under this user)
+ *   SID       : XE  (fixed in 11g XE, SERVICE_NAME is not available)
+ *   Port      : 1521
+ *   DBA       : system / oracle
+ *   Main user : MAIN_SCHEMA / cmt  (Flyway seeds objects under this user)
  * </pre>
  *
  * <h2>Connection Info (two-user mode)</h2>
  * <pre>
- *   Owner user : CMT_OWNER / cmt  (owns shared tables and grants access to CMT_TEST)
- *   App user   : CMT_TEST / cmt   (references CMT_OWNER objects through synonyms)
+ *   Ref user  : REF_SCHEMA  / cmt  (owns cross-schema reference objects and grants access to MAIN_SCHEMA)
+ *   Main user : MAIN_SCHEMA / cmt  (references REF_SCHEMA objects through synonyms)
  * </pre>
  *
  * <h2>JDBC URL Format</h2>
@@ -40,7 +40,7 @@ import org.testcontainers.utility.MountableFile;
  * // Single user (basic scenario)
  * OracleContainer oracle = OracleContainer.withEmptyDb();
  *
- * // Two users (full_coverage scenario with cross-schema grant/synonym coverage)
+ * // Two users (cross-schema grant/synonym coverage)
  * OracleContainer oracle = OracleContainer.withTwoUsers();
  * }</pre>
  */
@@ -53,42 +53,55 @@ public class OracleContainer implements DatabaseContainer {
     private static final String SID          = "XE";
     private static final String DBA_USER     = "system";
     private static final String DBA_PASSWORD = "oracle";
-    private static final String APP_USER     = "CMT_TEST";
-    private static final String APP_PASSWORD = "cmt";
 
-    /** Two-user mode: owner schema for shared tables */
-    private static final String OWNER_USER     = "CMT_OWNER";
-    private static final String OWNER_PASSWORD = "cmt";
+    /**
+     * Main migration target user.
+     * Schema role name per
+     * {@code tests/e2e/docs/seed/COMMON_SEED_CONTRACT.md} §2.1.
+     */
+    private static final String MAIN_USER     = "MAIN_SCHEMA";
+    private static final String MAIN_PASSWORD = "cmt";
+
+    /**
+     * Cross-schema reference user (two-user mode only).
+     * Schema role name per
+     * {@code tests/e2e/docs/seed/COMMON_SEED_CONTRACT.md} §2.1.
+     */
+    private static final String REF_USER     = "REF_SCHEMA";
+    private static final String REF_PASSWORD = "cmt";
 
     /**
      * Init-db extension point provided by the gvenzl image.
      * Any {@code *.sql} mounted here runs as SYSDBA during container startup.
-     * The {@code 99_} prefix ensures it runs after the internal gvenzl scripts.
+     * The {@code 00_} prefix sequences this script alphabetically before any
+     * subsequent gvenzl init scripts; for our purposes the gvenzl image only
+     * runs its own internal init regardless of file ordering, so the prefix
+     * is essentially decorative but follows the SEED_DATA_GUIDE convention.
      */
-    private static final String OWNER_INIT_CLASSPATH =
-        "db/oracle/init/99_create_owner.sql";
-    private static final String OWNER_INIT_CONTAINER_PATH =
-        "/container-entrypoint-initdb.d/99_create_owner.sql";
+    private static final String REF_INIT_CLASSPATH =
+        "db/oracle/init/00_prepare_database.sql";
+    private static final String REF_INIT_CONTAINER_PATH =
+        "/container-entrypoint-initdb.d/00_prepare_database.sql";
 
     private final GenericContainer<?> container;
 
     private OracleContainer(boolean twoUsers) {
         GenericContainer<?> c = new GenericContainer<>(IMAGE)
             .withExposedPorts(ORACLE_PORT)
-            .withEnv("ORACLE_PASSWORD",   DBA_PASSWORD)  // system/SYSTEM password
-            .withEnv("APP_USER",          APP_USER)       // auto-created app user
-            .withEnv("APP_USER_PASSWORD", APP_PASSWORD)   // app user password
+            .withEnv("ORACLE_PASSWORD",   DBA_PASSWORD)   // system/SYSTEM password
+            .withEnv("APP_USER",          MAIN_USER)      // auto-created main user
+            .withEnv("APP_USER_PASSWORD", MAIN_PASSWORD)  // main user password
             .waitingFor(
                 Wait.forLogMessage(".*DATABASE IS READY TO USE!.*", 1)
                     .withStartupTimeout(Duration.ofMinutes(5))
             );
 
         if (twoUsers) {
-            // Create the CMT_OWNER user at container startup.
-            // See db/oracle/init/99_create_owner.sql for details.
+            // Create the REF_SCHEMA user at container startup.
+            // See db/oracle/init/00_prepare_database.sql for details.
             c.withCopyFileToContainer(
-                MountableFile.forClasspathResource(OWNER_INIT_CLASSPATH),
-                OWNER_INIT_CONTAINER_PATH
+                MountableFile.forClasspathResource(REF_INIT_CLASSPATH),
+                REF_INIT_CONTAINER_PATH
             );
         }
 
@@ -97,34 +110,37 @@ public class OracleContainer implements DatabaseContainer {
 
     /**
      * Creates an empty Oracle 11g XE instance.
-     * {@code CMT_TEST} is created automatically when the container starts.
-     * Intended for single-user scenarios such as {@code oracle/basic}.
+     * {@code MAIN_SCHEMA} is created automatically when the container starts.
+     * Intended for single-user scenarios.
      */
     public static OracleContainer withEmptyDb() {
         return new OracleContainer(false);
     }
 
     /**
-     * Creates an Oracle 11g XE instance with both {@code CMT_TEST}
-     * and {@code CMT_OWNER}.
+     * Creates an Oracle 11g XE instance with both {@code MAIN_SCHEMA}
+     * and {@code REF_SCHEMA}.
      *
      * <h2>User Roles</h2>
      * <ul>
-     *   <li>{@code CMT_OWNER} - owner of shared tables, initialized by Flyway
-     *       {@code owner/} scripts and grants object privileges to {@code CMT_TEST}</li>
-     *   <li>{@code CMT_TEST} - migration target user, initialized by Flyway
-     *       {@code test/} scripts and owns private synonyms pointing to {@code CMT_OWNER} objects</li>
+     *   <li>{@code REF_SCHEMA}  - owns cross-schema reference objects, grants
+     *       SELECT/INSERT/UPDATE/DELETE on those objects to {@code MAIN_SCHEMA}.
+     *       Initialized by Flyway scripts under {@code db/oracle/ref_schema/}.</li>
+     *   <li>{@code MAIN_SCHEMA} - main migration target, owns business tables,
+     *       type test tables, view, routines, and a synonym pointing at
+     *       {@code REF_SCHEMA.e2e_ref_audit}. Initialized by Flyway scripts
+     *       under {@code db/oracle/main_schema/}.</li>
      * </ul>
      *
      * <h2>Initialization Order</h2>
      * <pre>
-     * 1. Container startup: create CMT_TEST (gvenzl APP_USER) and CMT_OWNER (99_create_owner.sql)
-     * 2. OracleDatabaseInitializer.migrateAs(getOwnerUser(), ..., "oracle/full_coverage/owner")
-     * 3. OracleDatabaseInitializer.migrateAs(getAppUser(),   ..., "oracle/full_coverage/test")
+     * 1. Container startup: create MAIN_SCHEMA (gvenzl APP_USER) and REF_SCHEMA
+     *    (00_prepare_database.sql)
+     * 2. OracleDatabaseInitializer.migrateAs(getRefUser(),  ..., "oracle/ref_schema")
+     * 3. OracleDatabaseInitializer.migrateAs(getMainUser(), ..., "oracle/main_schema")
      * </pre>
      *
-     * <p>Used for the {@code full_coverage} scenario, including cross-schema
-     * grant and synonym coverage.
+     * <p>Used for cross-schema grant and synonym coverage scenarios.
      */
     public static OracleContainer withTwoUsers() {
         return new OracleContainer(true);
@@ -179,30 +195,30 @@ public class OracleContainer implements DatabaseContainer {
             getHost(), getDatabasePort(), SID);
     }
 
-    /** Application user used by Flyway seeding and tests */
-    public String getAppUser() {
-        return APP_USER;
+    /** Main migration user used by Flyway seeding and tests. */
+    public String getMainUser() {
+        return MAIN_USER;
     }
 
-    /** Application user password */
-    public String getAppPassword() {
-        return APP_PASSWORD;
-    }
-
-    /**
-     * Schema user that owns shared tables in two-user mode.
-     * Only valid for containers created with {@link #withTwoUsers()}.
-     */
-    public String getOwnerUser() {
-        return OWNER_USER;
+    /** Password for {@link #getMainUser()}. */
+    public String getMainPassword() {
+        return MAIN_PASSWORD;
     }
 
     /**
-     * Password for {@link #getOwnerUser()}.
+     * Reference-schema user that owns cross-schema reference objects.
      * Only valid for containers created with {@link #withTwoUsers()}.
      */
-    public String getOwnerPassword() {
-        return OWNER_PASSWORD;
+    public String getRefUser() {
+        return REF_USER;
+    }
+
+    /**
+     * Password for {@link #getRefUser()}.
+     * Only valid for containers created with {@link #withTwoUsers()}.
+     */
+    public String getRefPassword() {
+        return REF_PASSWORD;
     }
 
     /** DBA user ({@code system}) */

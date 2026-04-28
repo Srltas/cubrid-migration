@@ -99,10 +99,10 @@ public final class RegenerateScripts {
                     target.start();
 
                     OracleDatabaseInitializer.of(source)
-                        .migrateAs(source.getOwnerUser(), source.getOwnerPassword(),
-                                   "oracle/full_coverage/owner")
-                        .migrateAs(source.getAppUser(), source.getAppPassword(),
-                                   "oracle/full_coverage/test");
+                        .migrateAs(source.getRefUser(), source.getRefPassword(),
+                                   "oracle/ref_schema")
+                        .migrateAs(source.getMainUser(), source.getMainPassword(),
+                                   "oracle/main_schema");
 
                     Path raw = runCmtScript(source, target, this);
                     Path sanitized = sanitizeXml(raw, source, target, this);
@@ -117,10 +117,10 @@ public final class RegenerateScripts {
                     source.start();
 
                     OracleDatabaseInitializer.of(source)
-                        .migrateAs(source.getOwnerUser(), source.getOwnerPassword(),
-                                   "oracle/full_coverage/owner")
-                        .migrateAs(source.getAppUser(), source.getAppPassword(),
-                                   "oracle/full_coverage/test");
+                        .migrateAs(source.getRefUser(), source.getRefPassword(),
+                                   "oracle/ref_schema")
+                        .migrateAs(source.getMainUser(), source.getMainPassword(),
+                                   "oracle/main_schema");
 
                     Path raw = runCmtScript(source, null, this);
                     Path sanitized = sanitizeXml(raw, source, null, this);
@@ -269,8 +269,8 @@ public final class RegenerateScripts {
             appendProperty(conf, SOURCE_CONFIG_NAME + ".host", oracle.getHost());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".port", oracle.getDatabasePort().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", oracle.getSid());
-            appendProperty(conf, SOURCE_CONFIG_NAME + ".user", oracle.getAppUser());
-            appendProperty(conf, SOURCE_CONFIG_NAME + ".password", oracle.getAppPassword());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".user", oracle.getMainUser());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".password", oracle.getMainPassword());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "AL32UTF8");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".timezone", "GMT+00:00");
             return;

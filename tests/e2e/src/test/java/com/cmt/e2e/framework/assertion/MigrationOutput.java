@@ -23,6 +23,10 @@ public class MigrationOutput {
         this.baseDir = baseDir;
     }
 
+    public Path baseDir() {
+        return baseDir;
+    }
+
     public MigrationOutput assertFilesExist(List<String> expectedFiles) {
         if (!Files.isDirectory(baseDir)) {
             throw new AssertionError(String.format("Migration output directory does not exist: %s", baseDir));

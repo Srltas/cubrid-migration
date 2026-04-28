@@ -69,8 +69,21 @@ public class WorkspaceFixtures {
     /**
      * Cleans the output directory created by CMT Console for dump migrations.
      * Called from afterEach to keep tests isolated from one another.
+     *
+     * <p>Set the {@code CMT_E2E_HOLD_OUTPUT} environment variable (any non-empty
+     * value) to skip cleanup. This is the supported escape hatch for
+     * regenerating dump golden files: run the dump test with the variable set,
+     * then copy the artifacts from {@code $CMT_CONSOLE_HOME/output/} into the
+     * appropriate {@code expected/} resource directory.
      */
     public void cleanupOutput() throws IOException {
+        String holdOutput = System.getenv("CMT_E2E_HOLD_OUTPUT");
+        if (holdOutput != null && !holdOutput.isBlank()) {
+            log.info("Skipping output cleanup because CMT_E2E_HOLD_OUTPUT is set "
+                + "(use this to capture dump artifacts for golden regeneration).");
+            return;
+        }
+
         Path outputDir = cmtConsoleDir.resolve("output");
         if (Files.exists(outputDir)) {
             log.debug("Cleaning up migration output directory: {}", outputDir);
