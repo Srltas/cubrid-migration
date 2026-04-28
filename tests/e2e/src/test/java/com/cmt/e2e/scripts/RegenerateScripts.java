@@ -14,9 +14,11 @@ import com.cmt.e2e.framework.command.execution.CommandRunner;
 import com.cmt.e2e.framework.command.impls.ScriptCommand;
 import com.cmt.e2e.framework.db.containers.CubridContainer;
 import com.cmt.e2e.framework.db.containers.DatabaseContainer;
+import com.cmt.e2e.framework.db.containers.MariaDbContainer;
 import com.cmt.e2e.framework.db.containers.MySqlContainer;
 import com.cmt.e2e.framework.db.containers.OracleContainer;
 import com.cmt.e2e.framework.db.driver.Drivers;
+import com.cmt.e2e.framework.db.init.MariadbDatabaseInitializer;
 import com.cmt.e2e.framework.db.init.MysqlDatabaseInitializer;
 import com.cmt.e2e.framework.db.init.OracleDatabaseInitializer;
 
@@ -214,6 +216,36 @@ public final class RegenerateScripts {
                         StandardCopyOption.REPLACE_EXISTING);
                 }
             }
+        },
+        MARIADB_TO_CUBRID("mariadb_to_cubrid", "mariadb/mariadb_to_cubrid") {
+            @Override void run() throws Exception {
+                try (MariaDbContainer source = MariaDbContainer.withMainUser();
+                     CubridContainer target = CubridContainer.withEmptyDb()) {
+                    source.start();
+                    target.start();
+
+                    MariadbDatabaseInitializer.of(source).migrateMain("mariadb/main_schema");
+
+                    Path raw = runCmtScript(source, target, this);
+                    Path sanitized = sanitizeXml(raw, source, target, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        },
+        MARIADB_TO_DUMPFILE("mariadb_to_dumpfile", "mariadb/mariadb_to_dumpfile") {
+            @Override void run() throws Exception {
+                try (MariaDbContainer source = MariaDbContainer.withMainUser()) {
+                    source.start();
+
+                    MariadbDatabaseInitializer.of(source).migrateMain("mariadb/main_schema");
+
+                    Path raw = runCmtScript(source, null, this);
+                    Path sanitized = sanitizeXml(raw, source, null, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
         };
 
         final String id;
@@ -382,6 +414,23 @@ public final class RegenerateScripts {
             return;
         }
 
+        if (scenario == Scenario.MARIADB_TO_CUBRID || scenario == Scenario.MARIADB_TO_DUMPFILE) {
+            // Same single-database collapse as MySQL — connect as root so CMT
+            // sees the full namespace. CMT 's MariaDB plugin uses db_type=mariadb
+            // (separate from MySQL) which selects MariaDBSchemaFetcher.
+            MariaDbContainer mariadb = (MariaDbContainer) source;
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "mariadb");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
+                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", mariadb.getMainDatabase());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".user", mariadb.getRootUser());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".password", mariadb.getRootPassword());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "utf-8");
+            return;
+        }
+
         throw new IllegalArgumentException("Unsupported scenario: " + scenario.id);
     }
 
@@ -389,7 +438,8 @@ public final class RegenerateScripts {
             StringBuilder conf, Scenario scenario, DatabaseContainer target) {
         if (scenario == Scenario.ORACLE_TO_CUBRID
             || scenario == Scenario.CUBRID_TO_CUBRID
-            || scenario == Scenario.MYSQL_TO_CUBRID) {
+            || scenario == Scenario.MYSQL_TO_CUBRID
+            || scenario == Scenario.MARIADB_TO_CUBRID) {
             appendProperty(conf, TARGET_CONFIG_NAME + ".type", "cubrid");
             appendProperty(conf, TARGET_CONFIG_NAME + ".driver",
                 Drivers.latest(target.getDbType()).toAbsolutePath().toString());
@@ -420,6 +470,11 @@ public final class RegenerateScripts {
         }
         if (scenario == Scenario.MYSQL_TO_DUMPFILE) {
             appendProperty(conf, TARGET_CONFIG_NAME + ".file_prefix", "MYSQL");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".one_table_one_file", "no");
+            return;
+        }
+        if (scenario == Scenario.MARIADB_TO_DUMPFILE) {
+            appendProperty(conf, TARGET_CONFIG_NAME + ".file_prefix", "MARIADB");
             appendProperty(conf, TARGET_CONFIG_NAME + ".one_table_one_file", "no");
             return;
         }

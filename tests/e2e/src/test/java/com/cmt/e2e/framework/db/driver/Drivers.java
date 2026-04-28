@@ -39,13 +39,15 @@ public final class Drivers {
     public enum DB {
         CUBRID,
         ORACLE,
-        MYSQL
+        MYSQL,
+        MARIADB
     }
 
     private static final Map<DB, List<String>> PATTERNS = Map.of(
-        DB.CUBRID, List.of("JDBC-*-cubrid.jar", "cubrid-jdbc-*.jar"),
-        DB.ORACLE, List.of("ojdbc8-*.jar", "ojdbc8.jar", "ojdbc*.jar"),
-        DB.MYSQL,  List.of("mysql-connector-j-*.jar", "mysql-connector-java-*.jar")
+        DB.CUBRID,  List.of("JDBC-*-cubrid.jar", "cubrid-jdbc-*.jar"),
+        DB.ORACLE,  List.of("ojdbc8-*.jar", "ojdbc8.jar", "ojdbc*.jar"),
+        DB.MYSQL,   List.of("mysql-connector-j-*.jar", "mysql-connector-java-*.jar"),
+        DB.MARIADB, List.of("mariadb-java-client-*.jar")
     );
 
     private static final Map<String, Path> CACHE = new ConcurrentHashMap<>();

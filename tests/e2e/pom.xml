@@ -23,6 +23,7 @@
         <cubrid-jdbc.version>11.3.2.0053</cubrid-jdbc.version>
         <ojdbc8.version>21.9.0.0</ojdbc8.version>
         <mysql-connector-j.version>8.4.0</mysql-connector-j.version>
+        <mariadb-java-client.version>3.4.1</mariadb-java-client.version>
         <!-- The flyway-database-cubrid community plugin is only released up to 10.x.
              Keep flyway-core and the plugin on the same version to avoid conflicts. -->
         <flyway.version>10.22.0</flyway.version>
@@ -105,8 +106,18 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- MariaDB JDBC driver. mariadb-java-client 3.x talks both MariaDB and
+             MySQL servers and registers jdbc:mariadb: SPI for Flyway. -->
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>${mariadb-java-client.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Flyway MySQL community plugin: registers Flyway database support for
-             MySQL/MariaDB so DatabaseInitializer can run jdbc:mysql: migrations. -->
+             MySQL/MariaDB so DatabaseInitializer can run jdbc:mysql: / jdbc:mariadb:
+             migrations. flyway-mysql autodetects MariaDB via JDBC metadata. -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
@@ -225,6 +236,22 @@
                                     <version>${mysql-connector-j.version}</version>
                                     <outputDirectory>${project.build.testOutputDirectory}/driver</outputDirectory>
                                     <destFileName>mysql-connector-j-${mysql-connector-j.version}.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-mariadb-jdbc-driver</id>
+                        <phase>generate-test-resources</phase>
+                        <goals><goal>copy</goal></goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.mariadb.jdbc</groupId>
+                                    <artifactId>mariadb-java-client</artifactId>
+                                    <version>${mariadb-java-client.version}</version>
+                                    <outputDirectory>${project.build.testOutputDirectory}/driver</outputDirectory>
+                                    <destFileName>mariadb-java-client-${mariadb-java-client.version}.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
