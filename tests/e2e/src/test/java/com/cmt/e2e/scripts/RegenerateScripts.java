@@ -131,11 +131,51 @@ public final class RegenerateScripts {
         },
         CUBRID_TO_DUMPFILE("cubrid_to_dumpfile", "cubrid/cubrid_to_dumpfile") {
             @Override void run() throws Exception {
-                try (CubridContainer source = CubridContainer.withDemodb()) {
+                try (CubridContainer source = CubridContainer.withEmptyDb()) {
                     source.start();
-                    // The demodb image is already initialized with data.
+
+                    // Bootstrap the two-user e2e seed (REF_SCHEMA + MAIN_SCHEMA)
+                    // before CMT inspects the source database.
+                    String dbaUrl = source.getJdbcUrl("cubdb", "dba");
+                    com.cmt.e2e.framework.db.init.ClasspathSqlRunner.runDirectory(
+                        dbaUrl, "dba", "", "db/cubrid/init");
+
+                    com.cmt.e2e.framework.db.init.DatabaseInitializer
+                        .of(source, "cubdb", "REF_SCHEMA", "cmt")
+                        .migrate("cubrid/ref_schema");
+                    com.cmt.e2e.framework.db.init.DatabaseInitializer
+                        .of(source, "cubdb", "MAIN_SCHEMA", "cmt")
+                        .migrate("cubrid/main_schema");
+
                     Path raw = runCmtScript(source, null, this);
                     Path sanitized = sanitizeXml(raw, source, null, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        },
+        CUBRID_TO_CUBRID("cubrid_to_cubrid", "cubrid/cubrid_to_cubrid") {
+            @Override void run() throws Exception {
+                try (CubridContainer source = CubridContainer.withEmptyDb();
+                     CubridContainer target = CubridContainer.withEmptyDb()) {
+                    source.start();
+                    target.start();
+
+                    // Bootstrap the two-user e2e seed on the source only;
+                    // the target receives the schema via CMT online migration.
+                    String dbaUrl = source.getJdbcUrl("cubdb", "dba");
+                    com.cmt.e2e.framework.db.init.ClasspathSqlRunner.runDirectory(
+                        dbaUrl, "dba", "", "db/cubrid/init");
+
+                    com.cmt.e2e.framework.db.init.DatabaseInitializer
+                        .of(source, "cubdb", "REF_SCHEMA", "cmt")
+                        .migrate("cubrid/ref_schema");
+                    com.cmt.e2e.framework.db.init.DatabaseInitializer
+                        .of(source, "cubdb", "MAIN_SCHEMA", "cmt")
+                        .migrate("cubrid/main_schema");
+
+                    Path raw = runCmtScript(source, target, this);
+                    Path sanitized = sanitizeXml(raw, source, target, this);
                     Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
                         StandardCopyOption.REPLACE_EXISTING);
                 }
@@ -276,14 +316,16 @@ public final class RegenerateScripts {
             return;
         }
 
-        if (scenario == Scenario.CUBRID_TO_DUMPFILE) {
+        if (scenario == Scenario.CUBRID_TO_DUMPFILE || scenario == Scenario.CUBRID_TO_CUBRID) {
+            // Connect as dba so CMT can discover both REF_SCHEMA and MAIN_SCHEMA
+            // when scanning user objects of the e2e seed.
             appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "cubrid");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
                 Drivers.latest(source.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
-            appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", "demodb");
-            appendProperty(conf, SOURCE_CONFIG_NAME + ".user", "public");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", "cubdb");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".user", "dba");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".password", "");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "utf-8");
             return;
@@ -294,7 +336,7 @@ public final class RegenerateScripts {
 
     private static void appendTargetConfig(
             StringBuilder conf, Scenario scenario, DatabaseContainer target) {
-        if (scenario == Scenario.ORACLE_TO_CUBRID) {
+        if (scenario == Scenario.ORACLE_TO_CUBRID || scenario == Scenario.CUBRID_TO_CUBRID) {
             appendProperty(conf, TARGET_CONFIG_NAME + ".type", "cubrid");
             appendProperty(conf, TARGET_CONFIG_NAME + ".driver",
                 Drivers.latest(target.getDbType()).toAbsolutePath().toString());

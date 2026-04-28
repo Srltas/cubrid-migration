@@ -1,16 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
-<migration name="CUBRID_demodb_202604062341" version="11.1.0" wizard_start_date_time="202604062341">
+<migration name="CUBRID_cubdb_202604271126" version="11.1.0" wizard_start_date_time="202604271126">
     <connections>
         <connection id="source" host="%%SOURCE_HOST%%" port="%%SOURCE_PORT%%" driver="%%SOURCE_DRIVER%%" name="cubdb" user="dba" password="" charset="utf-8" timezone="" user_jdbc_url="" db_type="CUBRID"/>
+        <connection id="target" host="%%TARGET_HOST%%" port="%%TARGET_PORT%%" driver="%%TARGET_DRIVER%%" name="cubdb" user="dba" password="" charset="utf-8" timezone="" user_jdbc_url="" create_constraints_before_data="no" write_error_records="no" add_schema="yes"/>
     </connections>
     <schemas>
-        <schema source="DBA" target="DBA"/>
-        <schema source="PUBLIC" target="PUBLIC"/>
         <schema source="REF_SCHEMA" target="REF_SCHEMA"/>
         <schema source="MAIN_SCHEMA" target="MAIN_SCHEMA"/>
     </schemas>
-    <file_repository dir="./output" timezone="Default" charset="utf-8" add_schema="yes" split_schema="yes" create_user_sql="no" one_table_one_file="no" data_file_format="0" file_prefix="demodb" file_max_size="0" lob_root_dir=""/>
     <source db_type="CUBRID" online="yes" version="114">
         <tables>
             <table schema="REF_SCHEMA" name="e2e_ref_audit" target_schema="REF_SCHEMA" target_name="e2e_ref_audit" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
@@ -45,7 +43,7 @@
                     <column name="blob_col" target_name="blob_col" trim="no" replace_expression="" data_handler="" comment=""/>
                 </columns>
             </table>
-            <table schema="MAIN_SCHEMA" name="e2e_cubrid_collection_types" target_schema="MAIN_SCHEMA" target_name="e2e_cubrid_collection_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+            <table schema="MAIN_SCHEMA" name="e2e_cubrid_collection_types" target_schema="MAIN_SCHEMA" target_name="e2e_cubrid_collection_types" create="yes" pk="yes" migrate_data="no" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
                 <columns>
                     <column name="id" target_name="id" trim="no" replace_expression="" data_handler="" comment=""/>
                     <column name="set_int_col" target_name="set_int_col" trim="no" replace_expression="" data_handler="" comment=""/>
@@ -119,7 +117,6 @@
                     <fk name="fk_e2e_order_customer" target_name="fk_e2e_order_customer"/>
                     <index name="idx_e2e_order_customer" target_name="idx_e2e_order_customer"/>
                     <index name="idxd_e2e_order_ordered_at" target_name="idxd_e2e_order_ordered_at"/>
-                    <index name="idxf_e2e_order_upper_status" target_name="idxf_e2e_order_upper_status"/>
                 </constraints>
             </table>
             <table schema="MAIN_SCHEMA" name="e2e_order_line" target_schema="MAIN_SCHEMA" target_name="e2e_order_line" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
@@ -191,7 +188,7 @@
             <grant schema="MAIN_SCHEMA" name="SELECT ON REF_SCHEMA.e2e_ref_audit TO MAIN_SCHEMA" target_schema="MAIN_SCHEMA" grantor="REF_SCHEMA" grantee="MAIN_SCHEMA" object_name="e2e_ref_audit" object_schema="REF_SCHEMA" privilege="SELECT" with_grant_option="no" source_grantor_name="REF_SCHEMA" source_object_schema="REF_SCHEMA"/>
         </grants>
     </source>
-    <target version="" type="dir" db_type="cubrid">
+    <target version="114" type="online" db_type="cubrid">
         <tables>
             <table schema="MAIN_SCHEMA" name="e2e_binary_types" source_schema="MAIN_SCHEMA" reuse_oid="yes" comment="">
                 <columns>
@@ -293,7 +290,7 @@
                     <fk name="fk_e2e_order_customer" ref_table="e2e_customer" on_update="RESTRICT" on_delete="RESTRICT" fields="customer_id" ref_fields="customer_id"/>
                     <index name="idx_e2e_order_customer" fields="customer_id" order_rule="A" reverse="no" unique="no"/>
                     <index name="idxd_e2e_order_ordered_at" fields="ordered_at" order_rule="D" reverse="no" unique="no"/>
-                    <index name="idxf_e2e_order_upper_status" fields="" order_rule="" reverse="no" unique="no"/>
+                    <!-- idxf_e2e_order_upper_status / idxr_e2e_order_no dropped — see note in <source> section. -->
                 </constraints>
             </table>
             <table schema="MAIN_SCHEMA" name="e2e_order_line" source_schema="MAIN_SCHEMA" reuse_oid="yes" comment="">

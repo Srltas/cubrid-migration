@@ -1,4 +1,0 @@
-ALTER /*+ NO_STATS */ TABLE [PUBLIC].[game] ADD CONSTRAINT [fk_game_athlete_code] FOREIGN KEY ([athlete_code]) REFERENCES [PUBLIC].[athlete]([code]) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER /*+ NO_STATS */ TABLE [PUBLIC].[game] ADD CONSTRAINT [fk_game_event_code] FOREIGN KEY ([event_code]) REFERENCES [PUBLIC].[event]([code]) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER /*+ NO_STATS */ TABLE [PUBLIC].[participant] ADD CONSTRAINT [fk_participant_nation_code] FOREIGN KEY ([nation_code]) REFERENCES [PUBLIC].[nation]([code]) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER /*+ NO_STATS */ TABLE [PUBLIC].[participant] ADD CONSTRAINT [fk_participant_host_year] FOREIGN KEY ([host_year]) REFERENCES [PUBLIC].[olympic]([host_year]) ON DELETE RESTRICT ON UPDATE RESTRICT;

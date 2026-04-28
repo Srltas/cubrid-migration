@@ -48,15 +48,18 @@ public final class DatabaseInitializer {
     private final CubridContainer container;
     private final String dbName;
     private final String userName;
+    private final String password;
 
-    private DatabaseInitializer(CubridContainer container, String dbName, String userName) {
+    private DatabaseInitializer(CubridContainer container, String dbName, String userName, String password) {
         this.container = container;
         this.dbName    = dbName;
         this.userName  = userName;
+        this.password  = password;
     }
 
     /**
-     * Creates a {@code DatabaseInitializer} instance.
+     * Creates a {@code DatabaseInitializer} for a user that has no password
+     * (the default for {@code dba} / {@code public} on a fresh CUBRID).
      *
      * @param container already-started {@code CubridContainer}
      * @param dbName database name to connect to (for example {@code cubdb})
@@ -65,10 +68,26 @@ public final class DatabaseInitializer {
     public static DatabaseInitializer of(CubridContainer container,
                                          String dbName,
                                          String userName) {
+        return of(container, dbName, userName, "");
+    }
+
+    /**
+     * Creates a {@code DatabaseInitializer} for a user that has a password.
+     *
+     * <p>Useful when bootstrapping a multi-user CUBRID seed: each schema role
+     * (for example {@code MAIN_SCHEMA}, {@code REF_SCHEMA}) is created via
+     * {@link ClasspathSqlRunner} as {@code dba} and then Flyway runs as the
+     * new user.
+     */
+    public static DatabaseInitializer of(CubridContainer container,
+                                         String dbName,
+                                         String userName,
+                                         String password) {
         if (container == null) throw new IllegalArgumentException("container must not be null");
         if (dbName == null || dbName.isBlank()) throw new IllegalArgumentException("dbName must not be blank");
         if (userName == null || userName.isBlank()) throw new IllegalArgumentException("userName must not be blank");
-        return new DatabaseInitializer(container, dbName, userName);
+        if (password == null) throw new IllegalArgumentException("password must not be null (use \"\" for none)");
+        return new DatabaseInitializer(container, dbName, userName, password);
     }
 
     /**
@@ -158,12 +177,18 @@ public final class DatabaseInitializer {
     private Flyway buildFlyway(String location) {
         String jdbcUrl = container.getJdbcUrl(dbName, userName);
         return Flyway.configure()
-            .dataSource(jdbcUrl, userName, "")
+            .dataSource(jdbcUrl, userName, password)
             .driver(CUBRID_DRIVER)
             .defaultSchema(userName)        // CUBRID: schema == user name
             .locations(location)
             .cleanDisabled(false)           // allow clean() in tests
-            .baselineOnMigrate(false)       // no baseline needed for empty test DBs
+            // Fresh CUBRID users can already look "non-empty" to Flyway because
+            // the cross-schema GRANT applied during ref_schema bootstrap leaves
+            // catalog entries owned by the grantee. Baseline at version 0 so
+            // every V1+ migration in this scenario still runs while Flyway
+            // doesn't refuse with "non-empty schema, no history table".
+            .baselineOnMigrate(true)
+            .baselineVersion("0")
             .validateOnMigrate(true)
             .load();
     }
