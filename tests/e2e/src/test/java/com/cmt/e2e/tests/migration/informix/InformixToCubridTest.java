@@ -1,8 +1,11 @@
 package com.cmt.e2e.tests.migration.informix;
 
 import java.util.List;
+import java.util.Map;
 
 import com.cmt.e2e.framework.assertion.CubridMetadataAsserts;
+import com.cmt.e2e.framework.assertion.DatabaseAsserts;
+import com.cmt.e2e.framework.assertion.DatabaseAsserts.QueryExpectation;
 import com.cmt.e2e.framework.assertion.MigrationAsserts;
 import com.cmt.e2e.framework.command.execution.CommandResult;
 import com.cmt.e2e.framework.command.impls.StartCommand;
@@ -22,6 +25,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static com.cmt.e2e.framework.assertion.CubridMetadataAsserts.clazz;
+import static com.cmt.e2e.framework.assertion.DatabaseAsserts.row;
 
 /**
  * E2E test for IBM Informix 14.10 (e2e dataset) -> CUBRID online migration.
@@ -95,11 +99,74 @@ public class InformixToCubridTest {
 
         // Assert
         MigrationAsserts.assertMigrationSucceeded(result);
-        // CMT 의 record export 가 Informix 에서 동작하지 않아
-        // (SEED_SPEC §0 PARTIAL 참고) stderr 에 NormalMigrationException
-        // 이 다수 출력된다. 구조 마이그레이션은 정상이므로 stderr 검사를
-        // 스킵하고 metadata 만 검증한다.
+        MigrationAsserts.assertNoFatalStderr(result);
+
+        assertMigratedRows();
+        assertRepresentativeData();
         assertMigratedClasses();
+    }
+
+    /**
+     * Verifies row count per migrated table. Counts mirror SEED_SPEC §3 / §5:
+     *   - business graph     : customer 4 / order 4 / order_line 4 / employee 3
+     *   - core type tests    : text 6 / numeric 6 / temporal 5 / binary 1 / misc 5
+     *
+     * <p>e2e_binary_types has only the R_NULL row because Informix does not
+     * accept inline hex literals for BYTE/BLOB in SQL INSERT statements
+     * (see SEED_SPEC §5.4). The remaining battery rows are TENTATIVE.
+     *
+     * <p>flyway_schema_history is also migrated but not asserted (Flyway
+     * implementation detail rather than CMT signal).
+     */
+    private void assertMigratedRows() {
+        DatabaseAsserts.expectRecords(targetDb, "cubdb", "MAIN_USER", Map.ofEntries(
+            Map.entry("e2e_customer",          4),
+            Map.entry("e2e_order",             4),
+            Map.entry("e2e_order_line",        4),
+            Map.entry("e2e_employee",          3),
+            Map.entry("e2e_text_types",        6),
+            Map.entry("e2e_numeric_types",     6),
+            Map.entry("e2e_temporal_types",    5),
+            Map.entry("e2e_binary_types",      1),
+            Map.entry("e2e_misc_types",        5)
+        ));
+    }
+
+    /**
+     * Spot-checks a representative row in each migrated table to catch
+     * value corruption.
+     */
+    private void assertRepresentativeData() {
+        DatabaseAsserts.expectQueryResults(targetDb, "cubdb", "MAIN_USER", List.of(
+            QueryExpectation.of(
+                "customer business values",
+                """
+                SELECT customer_code, customer_name, customer_alias, status, credit_limit
+                FROM e2e_customer
+                WHERE customer_id = 1
+                """,
+                row("C001", "ALPHA CUSTOMER", "Alpha Alias", "A", "12500.75")
+            ),
+            QueryExpectation.of(
+                "employee self-reference (Manager A reports to CEO)",
+                """
+                SELECT e.emp_name, m.emp_name AS manager_name
+                FROM e2e_employee e
+                JOIN e2e_employee m ON m.employee_id = e.manager_id
+                WHERE e.employee_id = 2
+                """,
+                row("Manager A", "CEO")
+            ),
+            QueryExpectation.of(
+                "Informix BOOLEAN 't'/'f' migrates to CUBRID as integer 1/0",
+                """
+                SELECT boolean_col
+                FROM e2e_misc_types
+                WHERE id = 4
+                """,
+                row("1")
+            )
+        ));
     }
 
     /**
@@ -124,6 +191,4 @@ public class InformixToCubridTest {
         ));
     }
 
-    // assertRepresentativeData / assertMigratedRows are intentionally
-    // omitted — see SEED_SPEC §0 PARTIAL on Informix record export.
 }

@@ -2,6 +2,8 @@ package com.cmt.e2e.tests.migration.informix;
 
 import java.io.IOException;
 
+import com.cmt.e2e.framework.assertion.DumpGoldenVerifier;
+import com.cmt.e2e.framework.assertion.DumpManifest;
 import com.cmt.e2e.framework.assertion.MigrationAsserts;
 import com.cmt.e2e.framework.command.execution.CommandResult;
 import com.cmt.e2e.framework.command.impls.StartCommand;
@@ -41,11 +43,24 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @DisplayName("IFX-DO-01: Informix e2e dataset -> dump file migration")
 public class InformixToDumpTest {
 
-    // SEED_SPEC §0 PARTIAL: Informix record export 가 동작하지 않아 dump 의
-    // *_object 데이터 파일과 일부 메타 파일이 생성되지 않는다. 본 테스트는
-    // CMT 의 마이그레이션이 SUCCESS 로 끝남을 (DDL 부분만 정상 처리됨)
-    // 검증한다. 골든 파일 비교는 보류 — record export 가 복구될 때
-    // 구체적 manifest 와 함께 다시 활성화한다.
+    // CMT outputs the per-schema directory and file prefix in lowercase
+    // ("main_user") even when the source script.xml carries an upper-case
+    // schema string. The "INFORMIX" prefix comes from RegenerateScripts '
+    // file_prefix=INFORMIX.
+    private static final DumpManifest EXPECTED_DUMP = DumpManifest.builder()
+        .golden("main_user_clear.sql")
+        .golden("main_user_drop_fk.sql")
+        .golden("main_user_truncate.sql")
+        .golden("INFORMIX_main_user_class")
+        .golden("INFORMIX_main_user_fk")
+        .golden("INFORMIX_main_user_indexes")
+        .golden("INFORMIX_main_user_info")
+        .golden("INFORMIX_main_user_pk")
+        .golden("INFORMIX_main_user_serial")
+        .golden("INFORMIX_main_user_uk")
+        .golden("INFORMIX_main_user_updatestatistic")
+        .dataFile("INFORMIX_main_user_object")
+        .build();
 
     @RegisterExtension
     final CmtTestContext ctx = CmtTestContext.builder().build();
@@ -76,7 +91,8 @@ public class InformixToDumpTest {
 
         // Assert
         MigrationAsserts.assertMigrationSucceeded(result);
-        // stderr 와 golden manifest 비교는 SEED_SPEC §0 PARTIAL 에 따라
-        // 보류. CMT 의 record export 가 동작하면 두 줄을 다시 활성화한다.
+        MigrationAsserts.assertNoFatalStderr(result);
+        DumpGoldenVerifier.of(ctx.migrationOutput(resolved.migrationName(), "main_user"))
+            .verify(EXPECTED_DUMP, ctx.testPaths().getResourceDir().resolve("expected/main_user"));
     }
 }

@@ -5,7 +5,6 @@
         <connection id="source" host="%%SOURCE_HOST%%" port="%%SOURCE_PORT%%" driver="%%SOURCE_DRIVER%%" name="e2e_db" user="main_user" password="CmtMain#2026" charset="utf-8" timezone="" user_jdbc_url="" db_type="INFORMIX"/>
     </connections>
     <schemas>
-        <schema source="INFORMIX" target="INFORMIX"/>
         <schema source="MAIN_USER" target="MAIN_USER"/>
     </schemas>
     <file_repository dir="./output" timezone="Default" charset="utf-8" add_schema="yes" split_schema="yes" create_user_sql="no" one_table_one_file="no" data_file_format="0" file_prefix="INFORMIX" file_max_size="0" lob_root_dir=""/>

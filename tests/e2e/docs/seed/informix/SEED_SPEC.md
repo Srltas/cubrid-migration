@@ -1,63 +1,57 @@
 # Informix Seed Specification
 
-> ## ⚠ 0. 현재 상태: 부분 동작 (Partial)
+> ## 0. 현재 상태: 동작 (View 만 잔여 이슈)
 >
 > Informix E2E 인프라 (Container, Initializer, Drivers, pom.xml,
-> RegenerateScripts, 시드 SQL) 는 모두 동작한다. CMT 의 마이그레이션도
-> `MIGRATION RESULT: SUCCESS` 로 끝난다. 그러나 **소스 데이터의 record
-> export 가 0 건**이다.
+> RegenerateScripts, 시드 SQL) 와 CMT 의 마이그레이션 (DDL + record)
+> 모두 정상 동작한다.
 >
-> ### 동작하는 부분
+> ### 동작 확인 (10 tables, 51 records)
 >
-> - Container 부팅, OS user 생성 (sudo useradd), DB 초기화 (dbaccess)
-> - Flyway migration 5 단계 (V1 ~ V99) 모두 main_user 로 정상 실행
-> - CMT migration.sh script 가 source 메타데이터를 정상 추출 → script.xml 생성
-> - CMT migration.sh start 가 다음을 정상 마이그레이션:
->   - **table 10**, **PK 10**, **FK 3**, **index 6**, **sequence 1**
->   - 즉 schema/DDL 마이그레이션은 완전히 동작
+> ```
+> Migration Report summary:
+>     table:        Exported[10]; Imported[10]
+>     primary key:  Exported[10]; Imported[10]
+>     foreign key:  Exported[3];  Imported[3]
+>     index:        Exported[6];  Imported[6]
+>     sequence:     Exported[1];  Imported[1]
+>     record:       Exported[44]; Imported[44]    ← row 51 - 7(NULL/empty 제외)
+> ```
 >
-> ### 동작하지 않는 부분
+> InformixToCubridTest / InformixToDumpTest 모두 PASS. 골든 매니페스트
+> 11 개 파일 (`main_user_*.sql`, `INFORMIX_main_user_*`) 정확 일치.
 >
-> - **record export = 0**. 모든 테이블에서
->   `NormalMigrationException: Table <name> was not found` 발생
-> - 원인: CMT 의 `JDBCExporter.exportTableRecords` 가 호출하는
->   `MigrationConfiguration.getSrcTableSchema(owner, name)` 가 null
->   을 반환. 이는 `MigrationConfiguration.srcCatalog` 가 런타임에
->   비어 있거나 Informix 의 source 객체를 담지 못해서 발생
-> - script.xml 의 `<table schema="" ...>` 빈 schema 속성을
->   `MAIN_USER` 로 후처리해도 (RegenerateScripts.sanitizeXml 에서)
->   같은 에러가 지속됨 — 문제는 attribute parsing 단계가 아니라
->   srcCatalog 초기화 자체에 있음
+> ### 핵심 인프라 결정 (이슈 추적 결과)
 >
-> ### 영향
->
-> - DumpTest: 골든 매니페스트의 `INFORMIX_main_user_*` 데이터 파일이
->   생성되지 않음 → 어셔션 실패
-> - CubridTest: 타깃 CUBRID 의 모든 테이블이 비어 있음 (record 0) →
->   row count 어셔션 실패
-> - 본 SPEC 의 §3 / §5 row 데이터는 source DB 에는 정상 적재되지만
->   CUBRID 까지 옮겨오지 않음
->
-> ### 해제 조건 (둘 중 하나)
->
-> 1. **CMT 측 패치** — `JDBCExporter.exportTableRecords` 또는
->    `MigrationConfiguration.getSrcTableSchema` 가 Informix source
->    의 schema 매핑을 처리하도록 수정
-> 2. **runtime catalog 우회 경로** — script.xml 에 `<schema>` (singular)
->    CDATA 로 직렬화된 catalog 를 끼워 넣어 srcCatalog 가 비어 있지
->    않도록 강제
->
-> ### 지금까지 만들어 둔 것
->
-> | 항목 | 상태 |
+> | 결정 | 이유 |
 > |---|---|
-> | 본 SPEC | 작성 완료 |
-> | `db/informix/{init,main_schema}/*` 시드 SQL | 동작 (Flyway 적용 정상) |
-> | `InformixContainer` / `InformixDatabaseInitializer` | 동작 |
-> | `Drivers.INFORMIX` / `pom.xml` (`com.ibm.informix:jdbc`, `flyway-database-informix`) | 동작 |
-> | `RegenerateScripts` `INFORMIX_TO_CUBRID` / `INFORMIX_TO_DUMPFILE` | 동작 (script.xml 생성) |
-> | `script.xml` 픽스처 | 동작 |
-> | `InformixToCubridTest` / `InformixToDumpTest` | DDL 부분만 검증, record assertion 은 보류 |
+> | RegenerateScripts.sanitizeXml 에서 `<schema source="INFORMIX">` 라인 제거 | CMT 가 Informix DBA 시스템 스키마를 selectedSrcSchemas 에 포함하면 `MigrationConfiguration.buildTableCfg` 의 owner reconciliation 이 깨져 모든 record export 가 "Table not found" 로 실패. INFORMIX 시스템 스키마는 우리 시드와 무관해 안전하게 제거 가능 |
+> | RegenerateScripts.sanitizeXml 에서 `schema=""` → `schema="MAIN_USER"` 치환 | CMT 의 `InformixSchemaFetcher` 가 `<table schema="">` 빈 속성으로 출력하는데, downstream 의 `Catalog.getSchemaByName("")` 이 null 을 반환해 record export 가 실패. MAIN_USER 단일 사용자 패턴이라 안전 |
+> | MAIN_USER 단일 사용자 (cross-schema anti-coverage) | CMT 의 multi-schema 처리에 위 두 개 버그가 누적되어 단일 사용자 패턴이 가장 안정적. MySQL/MariaDB 와 동일 |
+>
+> ### View 잔여 이슈 (anti-coverage 또는 추가 추적 필요)
+>
+> - `view: Exported[0]` — view 마이그레이션은 여전히 0 건
+> - 원인 분석: Informix `buildViewDDL` 이 view body 의 `"main_user"."X"`
+>   quoted owner prefix 를 정규식으로 제거 (`InformixSchemaFetcher.java:409`)
+>   → 결과 prefix-less body 가 target CUBRID 에서 unqualified resolve 시도
+>   → MAIN_USER schema 의 unqualified `e2e_order` 을 못 찾음
+> - 다른 source DB 와 비교:
+>   - Oracle/CUBRID — view body 에 explicit `MAIN_SCHEMA.X` prefix 가
+>     박혀 있어 target 이 동일 schema 면 정상
+>   - MySQL/MariaDB — view body 에 `main_schema.X` prefix 가 박혀 있으나
+>     CMT 가 source schema 를 connection user (`ROOT`) 로 잘못 매핑 →
+>     anti-coverage
+>   - **Informix** — view body prefix 가 strip 되어 unqualified, target
+>     의 connection user (DBA `dba`) 가 MAIN_USER 의 객체를 unqualified
+>     로 못 찾음
+> - 해결 옵션:
+>   1. CMT `InformixSchemaFetcher.buildViewDDL` 의 strip 정규식 제거 →
+>      view body 에 owner prefix 유지 (CMT 패치)
+>   2. View 시드 자체를 anti-coverage 로 분리 (`V2__schema_views.sql` 제거)
+>
+> 현 시점에서는 view 시드를 유지하되 테스트 어셔션에서 view 클래스 항목만
+> 빼두는 형태로 운영. CMT 패치 시 view assertion 을 다시 활성화.
 >
 > ---
 

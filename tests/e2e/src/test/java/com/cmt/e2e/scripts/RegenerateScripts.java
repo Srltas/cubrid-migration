@@ -409,19 +409,30 @@ public final class RegenerateScripts {
         }
 
         if (scenario == Scenario.INFORMIX_TO_CUBRID || scenario == Scenario.INFORMIX_TO_DUMPFILE) {
-            // CMT 's InformixSchemaFetcher emits schema="" (empty string) on
-            // every source-side <table> in the generated script.xml even when
-            // exactly one source schema is present. Downstream,
-            // MigrationConfiguration.getSrcTableSchema only treats schema==null
-            // as "use the default schema" — schema=="" is passed verbatim to
-            // Schema.getSchemaByName(""), returns null, and CMT raises
-            // "Table X was not found" for every record export.
+            // Informix sanitize step has two parts:
             //
-            // The seed connects as main_user (single-user pattern, see
-            // SEED_SPEC §1 anti-coverage on cross-schema), so the only valid
-            // source schema is MAIN_USER. Rewrite each source-side <table>
-            // schema="" attribute to schema="MAIN_USER" so CMT 's lookup
-            // succeeds. This mirrors what the Oracle fetcher does correctly.
+            // (1) Drop the system DBA schema "INFORMIX" from the <schemas>
+            //     list. CMT 's InformixSchemaFetcher.getSchemaNames pulls it
+            //     in via JDBC getMetaData().getSchemas(), but the
+            //     informix-owned system tables are not part of our seed.
+            //     Leaving INFORMIX in the schemas list breaks record export
+            //     downstream (MigrationConfiguration.buildTableCfg processes
+            //     all listed source schemas; the INFORMIX entry pollutes
+            //     SourceEntryTableConfig owner reconciliation, which results
+            //     in every table-record lookup returning null with
+            //     "Table X was not found").
+            //
+            // (2) Rewrite each source-side <table> schema="" attribute to
+            //     schema="MAIN_USER". CMT 's InformixSchemaFetcher emits
+            //     schema="" on <table> elements even though the catalog
+            //     itself has the schema name; downstream
+            //     MigrationConfiguration.getSrcTableSchema only treats
+            //     schema==null as "use the default schema" — schema=="" is
+            //     passed verbatim to Catalog.getSchemaByName(""), which
+            //     returns null and triggers the same "Table not found".
+            content = content.replaceAll(
+                "\\s*<schema source=\"INFORMIX\" target=\"INFORMIX\"/>\\R",
+                "");
             content = content.replaceAll(
                 "(<table )schema=\"\"",
                 "$1schema=\"MAIN_USER\"");

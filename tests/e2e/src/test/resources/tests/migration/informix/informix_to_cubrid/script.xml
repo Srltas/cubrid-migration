@@ -6,7 +6,6 @@
         <connection id="target" host="%%TARGET_HOST%%" port="%%TARGET_PORT%%" driver="%%TARGET_DRIVER%%" name="cubdb" user="dba" password="" charset="utf-8" timezone="" user_jdbc_url="" create_constraints_before_data="no" write_error_records="no" add_schema="yes"/>
     </connections>
     <schemas>
-        <schema source="INFORMIX" target="INFORMIX"/>
         <schema source="MAIN_USER" target="MAIN_USER"/>
     </schemas>
     <source db_type="INFORMIX" online="yes">
