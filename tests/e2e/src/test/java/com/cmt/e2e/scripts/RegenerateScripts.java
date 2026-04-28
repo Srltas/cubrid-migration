@@ -14,8 +14,10 @@ import com.cmt.e2e.framework.command.execution.CommandRunner;
 import com.cmt.e2e.framework.command.impls.ScriptCommand;
 import com.cmt.e2e.framework.db.containers.CubridContainer;
 import com.cmt.e2e.framework.db.containers.DatabaseContainer;
+import com.cmt.e2e.framework.db.containers.MySqlContainer;
 import com.cmt.e2e.framework.db.containers.OracleContainer;
 import com.cmt.e2e.framework.db.driver.Drivers;
+import com.cmt.e2e.framework.db.init.MysqlDatabaseInitializer;
 import com.cmt.e2e.framework.db.init.OracleDatabaseInitializer;
 
 /**
@@ -180,6 +182,38 @@ public final class RegenerateScripts {
                         StandardCopyOption.REPLACE_EXISTING);
                 }
             }
+        },
+        MYSQL_TO_CUBRID("mysql_to_cubrid", "mysql/mysql_to_cubrid") {
+            @Override void run() throws Exception {
+                try (MySqlContainer source = MySqlContainer.withMainUser();
+                     CubridContainer target = CubridContainer.withEmptyDb()) {
+                    source.start();
+                    target.start();
+
+                    // Container entrypoint already created main_schema database
+                    // and main_user via init/00_prepare_database.sql.
+                    MysqlDatabaseInitializer.of(source).migrateMain("mysql/main_schema");
+
+                    Path raw = runCmtScript(source, target, this);
+                    Path sanitized = sanitizeXml(raw, source, target, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        },
+        MYSQL_TO_DUMPFILE("mysql_to_dumpfile", "mysql/mysql_to_dumpfile") {
+            @Override void run() throws Exception {
+                try (MySqlContainer source = MySqlContainer.withMainUser()) {
+                    source.start();
+
+                    MysqlDatabaseInitializer.of(source).migrateMain("mysql/main_schema");
+
+                    Path raw = runCmtScript(source, null, this);
+                    Path sanitized = sanitizeXml(raw, source, null, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
         };
 
         final String id;
@@ -331,12 +365,31 @@ public final class RegenerateScripts {
             return;
         }
 
+        if (scenario == Scenario.MYSQL_TO_CUBRID || scenario == Scenario.MYSQL_TO_DUMPFILE) {
+            // Connect as root so CMT can introspect both main_schema and ref_schema
+            // databases. (main_user has table-level grants on ref_schema.e2e_ref_audit
+            // but cannot enumerate the rest of the ref_schema namespace; root sees all.)
+            MySqlContainer mysql = (MySqlContainer) source;
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "mysql");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
+                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", mysql.getMainDatabase());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".user", mysql.getRootUser());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".password", mysql.getRootPassword());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "utf-8");
+            return;
+        }
+
         throw new IllegalArgumentException("Unsupported scenario: " + scenario.id);
     }
 
     private static void appendTargetConfig(
             StringBuilder conf, Scenario scenario, DatabaseContainer target) {
-        if (scenario == Scenario.ORACLE_TO_CUBRID || scenario == Scenario.CUBRID_TO_CUBRID) {
+        if (scenario == Scenario.ORACLE_TO_CUBRID
+            || scenario == Scenario.CUBRID_TO_CUBRID
+            || scenario == Scenario.MYSQL_TO_CUBRID) {
             appendProperty(conf, TARGET_CONFIG_NAME + ".type", "cubrid");
             appendProperty(conf, TARGET_CONFIG_NAME + ".driver",
                 Drivers.latest(target.getDbType()).toAbsolutePath().toString());
@@ -362,6 +415,11 @@ public final class RegenerateScripts {
         }
         if (scenario == Scenario.CUBRID_TO_DUMPFILE) {
             appendProperty(conf, TARGET_CONFIG_NAME + ".file_prefix", "demodb");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".one_table_one_file", "no");
+            return;
+        }
+        if (scenario == Scenario.MYSQL_TO_DUMPFILE) {
+            appendProperty(conf, TARGET_CONFIG_NAME + ".file_prefix", "MYSQL");
             appendProperty(conf, TARGET_CONFIG_NAME + ".one_table_one_file", "no");
             return;
         }
