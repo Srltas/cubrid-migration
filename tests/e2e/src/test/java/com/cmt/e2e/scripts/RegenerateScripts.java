@@ -14,11 +14,13 @@ import com.cmt.e2e.framework.command.execution.CommandRunner;
 import com.cmt.e2e.framework.command.impls.ScriptCommand;
 import com.cmt.e2e.framework.db.containers.CubridContainer;
 import com.cmt.e2e.framework.db.containers.DatabaseContainer;
+import com.cmt.e2e.framework.db.containers.InformixContainer;
 import com.cmt.e2e.framework.db.containers.MariaDbContainer;
 import com.cmt.e2e.framework.db.containers.MsSqlContainer;
 import com.cmt.e2e.framework.db.containers.MySqlContainer;
 import com.cmt.e2e.framework.db.containers.OracleContainer;
 import com.cmt.e2e.framework.db.driver.Drivers;
+import com.cmt.e2e.framework.db.init.InformixDatabaseInitializer;
 import com.cmt.e2e.framework.db.init.MariadbDatabaseInitializer;
 import com.cmt.e2e.framework.db.init.MssqlDatabaseInitializer;
 import com.cmt.e2e.framework.db.init.MysqlDatabaseInitializer;
@@ -282,6 +284,38 @@ public final class RegenerateScripts {
                         StandardCopyOption.REPLACE_EXISTING);
                 }
             }
+        },
+        INFORMIX_TO_CUBRID("informix_to_cubrid", "informix/informix_to_cubrid") {
+            @Override void run() throws Exception {
+                try (InformixContainer source = InformixContainer.withMainUser();
+                     CubridContainer target = CubridContainer.withEmptyDb()) {
+                    source.start();
+                    target.start();
+
+                    InformixDatabaseInitializer.of(source)
+                        .migrateMain("informix/main_schema");
+
+                    Path raw = runCmtScript(source, target, this);
+                    Path sanitized = sanitizeXml(raw, source, target, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        },
+        INFORMIX_TO_DUMPFILE("informix_to_dumpfile", "informix/informix_to_dumpfile") {
+            @Override void run() throws Exception {
+                try (InformixContainer source = InformixContainer.withMainUser()) {
+                    source.start();
+
+                    InformixDatabaseInitializer.of(source)
+                        .migrateMain("informix/main_schema");
+
+                    Path raw = runCmtScript(source, null, this);
+                    Path sanitized = sanitizeXml(raw, source, null, this);
+                    Files.move(sanitized, OUTPUT_BASE.resolve(id).resolve("script.xml"),
+                        StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
         };
 
         final String id;
@@ -372,6 +406,25 @@ public final class RegenerateScripts {
             content = replaceConnectionAttribute(content, "target", "host", "%%TARGET_HOST%%");
             content = replaceConnectionAttribute(content, "target", "port", "%%TARGET_PORT%%");
             content = replaceConnectionAttribute(content, "target", "driver", "%%TARGET_DRIVER%%");
+        }
+
+        if (scenario == Scenario.INFORMIX_TO_CUBRID || scenario == Scenario.INFORMIX_TO_DUMPFILE) {
+            // CMT 's InformixSchemaFetcher emits schema="" (empty string) on
+            // every source-side <table> in the generated script.xml even when
+            // exactly one source schema is present. Downstream,
+            // MigrationConfiguration.getSrcTableSchema only treats schema==null
+            // as "use the default schema" — schema=="" is passed verbatim to
+            // Schema.getSchemaByName(""), returns null, and CMT raises
+            // "Table X was not found" for every record export.
+            //
+            // The seed connects as main_user (single-user pattern, see
+            // SEED_SPEC §1 anti-coverage on cross-schema), so the only valid
+            // source schema is MAIN_USER. Rewrite each source-side <table>
+            // schema="" attribute to schema="MAIN_USER" so CMT 's lookup
+            // succeeds. This mirrors what the Oracle fetcher does correctly.
+            content = content.replaceAll(
+                "(<table )schema=\"\"",
+                "$1schema=\"MAIN_USER\"");
         }
 
         Path out = rawXml.resolveSibling("sanitized.xml");
@@ -491,6 +544,33 @@ public final class RegenerateScripts {
             return;
         }
 
+        if (scenario == Scenario.INFORMIX_TO_CUBRID || scenario == Scenario.INFORMIX_TO_DUMPFILE) {
+            // Single-user pattern (single-schema seed). Connecting as
+            // main_user keeps unqualified SELECT working at export time —
+            // CMT 's InformixSchemaFetcher writes empty schema="" on
+            // each <table> entry in the source side of script.xml, which
+            // works only when there is exactly one source schema visible
+            // and it matches the connection user (so the JDBC SESSION
+            // resolves the table from main_user 's namespace). Connecting
+            // as the informix DBA exposes multiple schemas in catalog
+            // metadata but breaks unqualified SELECT.
+            //
+            // The CMT InformixDatabase.makeUrl appends ":INFORMIXSERVER=informix"
+            // to the URL — InformixContainer sets INFORMIXSERVER env to
+            // "informix" so the two values match.
+            InformixContainer informix = (InformixContainer) source;
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "informix");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
+                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", informix.getDatabaseName());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".user", informix.getMainUser());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".password", informix.getMainPassword());
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "utf-8");
+            return;
+        }
+
         throw new IllegalArgumentException("Unsupported scenario: " + scenario.id);
     }
 
@@ -500,7 +580,8 @@ public final class RegenerateScripts {
             || scenario == Scenario.CUBRID_TO_CUBRID
             || scenario == Scenario.MYSQL_TO_CUBRID
             || scenario == Scenario.MARIADB_TO_CUBRID
-            || scenario == Scenario.MSSQL_TO_CUBRID) {
+            || scenario == Scenario.MSSQL_TO_CUBRID
+            || scenario == Scenario.INFORMIX_TO_CUBRID) {
             appendProperty(conf, TARGET_CONFIG_NAME + ".type", "cubrid");
             appendProperty(conf, TARGET_CONFIG_NAME + ".driver",
                 Drivers.latest(target.getDbType()).toAbsolutePath().toString());
@@ -541,6 +622,11 @@ public final class RegenerateScripts {
         }
         if (scenario == Scenario.MSSQL_TO_DUMPFILE) {
             appendProperty(conf, TARGET_CONFIG_NAME + ".file_prefix", "MSSQL");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".one_table_one_file", "no");
+            return;
+        }
+        if (scenario == Scenario.INFORMIX_TO_DUMPFILE) {
+            appendProperty(conf, TARGET_CONFIG_NAME + ".file_prefix", "INFORMIX");
             appendProperty(conf, TARGET_CONFIG_NAME + ".one_table_one_file", "no");
             return;
         }

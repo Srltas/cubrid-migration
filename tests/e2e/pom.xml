@@ -31,6 +31,10 @@
              the URL level. Sticking with 11.x avoids needing to ship a
              trusted server cert in the test JVM 's truststore. -->
         <mssql-jdbc.version>11.2.3.jre11</mssql-jdbc.version>
+        <!-- IBM Informix JDBC. 4.50.x is the long-term support line for
+             Informix 12.10 / 14.10 servers; 15.x targets 15.0 servers.
+             Class: com.informix.jdbc.IfxDriver. -->
+        <informix-jdbc.version>4.50.3</informix-jdbc.version>
         <!-- The flyway-database-cubrid community plugin is only released up to 10.x.
              Keep flyway-core and the plugin on the same version to avoid conflicts. -->
         <flyway.version>10.22.0</flyway.version>
@@ -146,6 +150,26 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-sqlserver</artifactId>
+            <version>${flyway.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- IBM Informix JDBC driver. Class com.informix.jdbc.IfxDriver. -->
+        <dependency>
+            <groupId>com.ibm.informix</groupId>
+            <artifactId>jdbc</artifactId>
+            <version>${informix-jdbc.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Flyway Informix community plugin: registers the
+             DatabaseType for jdbc:informix-sqli: URLs via the
+             ServiceLoader-based discovery mechanism in flyway-core 10.x.
+             Without this, Flyway raises "No database found to handle ..."
+             when the initializer connects. -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-informix</artifactId>
             <version>${flyway.version}</version>
             <scope>test</scope>
         </dependency>
@@ -293,6 +317,28 @@
                                     <version>${mssql-jdbc.version}</version>
                                     <outputDirectory>${project.build.testOutputDirectory}/driver</outputDirectory>
                                     <destFileName>mssql-jdbc-${mssql-jdbc.version}.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-informix-jdbc-driver</id>
+                        <phase>generate-test-resources</phase>
+                        <goals><goal>copy</goal></goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <!-- IBM Informix JDBC artifact. The default jar
+                                         name is just "jdbc-X.Y.Z.jar" (groupId-only
+                                         artifactId), which collides with other JDBC
+                                         drivers in the same dir. Rename via
+                                         destFileName so Drivers.java can match an
+                                         Informix-specific glob. -->
+                                    <groupId>com.ibm.informix</groupId>
+                                    <artifactId>jdbc</artifactId>
+                                    <version>${informix-jdbc.version}</version>
+                                    <outputDirectory>${project.build.testOutputDirectory}/driver</outputDirectory>
+                                    <destFileName>informix-jdbc-${informix-jdbc.version}.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
