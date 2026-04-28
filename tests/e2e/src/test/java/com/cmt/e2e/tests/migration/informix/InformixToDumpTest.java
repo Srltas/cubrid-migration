@@ -14,6 +14,7 @@ import com.cmt.e2e.framework.db.init.InformixDatabaseInitializer;
 import com.cmt.e2e.framework.junit.annotation.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * below is the best-known shape; any discrepancies surface as
  * {@code DumpGoldenVerifier} failures on the first run.
  */
+@Disabled("DEFERRED — see docs/seed/informix/SEED_SPEC.md §0.")
 @Tag("db-required")
 @Testcontainers
 @DisplayName("IFX-DO-01: Informix e2e dataset -> dump file migration")

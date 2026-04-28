@@ -1,12 +1,62 @@
 # Informix Seed Specification
 
-> ## 0. 현재 상태: 동작 (View 만 잔여 이슈)
+> ## ⚠ 0. 현재 상태: 보류 (Deferred)
 >
-> Informix E2E 인프라 (Container, Initializer, Drivers, pom.xml,
-> RegenerateScripts, 시드 SQL) 와 CMT 의 마이그레이션 (DDL + record)
-> 모두 정상 동작한다.
+> **Informix E2E 테스트는 현재 실행 대상에서 제외되어 있다.** DDL/record
+> 마이그레이션은 sanitize 우회로 동작 검증되었으나 (Migration Report
+> `record: Exported[44]; Imported[44]`), **view 마이그레이션이 0 건** 으로
+> 실패하므로 production-grade 정확성 검증으로 보기 어려움. CMT 측 패치
+> 전까지 보류.
 >
-> ### 동작 확인 (10 tables, 51 records)
+> ### 왜 보류했는가
+>
+> 1. **View 마이그레이션 결함 (CMT)** — `InformixSchemaFetcher.buildViewDDL`
+>    가 view body 의 `"main_user"."X"` quoted owner prefix 를 정규식으로
+>    제거 (`InformixSchemaFetcher.java:409`):
+>
+>    ```java
+>    ddl = ddl.replaceAll("\"" + "[a-zA-Z0-9_]+" + "\".", "");
+>    ```
+>
+>    → prefix-less body → target CUBRID 의 unqualified resolve 가 실패.
+>    Oracle/CUBRID 처럼 view body 에 schema prefix 가 박혀 있어야 동일
+>    이름 schema 매칭으로 정상 동작하는데, Informix 만 strip 됨.
+>
+> 2. **CMT InformixSchemaFetcher 결함 두 개**:
+>    (a) `getSchemaNames` 가 시스템 DBA 스키마 `INFORMIX` 를 selectedSchemas
+>    에 포함시켜 downstream `MigrationConfiguration.buildTableCfg` 의
+>    owner reconciliation 이 깨짐
+>    (b) source-side `<table schema="">` 빈 속성을 출력해
+>    `Catalog.getSchemaByName("")` 이 null 반환
+>
+>    이 둘은 `RegenerateScripts.sanitizeXml` 에서 후처리로 우회 중이지만,
+>    근본 해결은 CMT 패치가 필요.
+>
+> 3. **View 는 CMT 가 명시적으로 마이그레이션 대상으로 지원하는 first-class
+>    object**. Oracle/CUBRID 에서는 정상 동작하는 항목이 Informix 에서는
+>    안 되는 비대칭은 anti-coverage 로 퉁 칠 수준이 아니라고 판단.
+>    DDL/record 동작 + view 미동작 상태로 test green 을 두면 "Informix
+>    마이그레이션 정상" 이라는 잘못된 신호를 줄 수 있음.
+>
+> ### 보류 해제 조건
+>
+> 모두 만족해야 active 로 복귀:
+>
+> 1. **`InformixSchemaFetcher.buildViewDDL`** 의 strip 정규식 제거 또는
+>    target schema 호환 처리 — view body 에 owner prefix 유지
+> 2. **`InformixSchemaFetcher.getSchemaNames`** 가 시스템 INFORMIX 스키마를
+>    제외 (또는 무관하게 처리) — `RegenerateScripts.sanitizeXml` 의
+>    `<schema source="INFORMIX">` 제거 우회가 무용해질 것
+> 3. **`InformixSchemaFetcher` 가 `<table>` 출력 시 schema 속성에 owner**
+>    채워줌 — `RegenerateScripts.sanitizeXml` 의 `schema=""` →
+>    `MAIN_USER` 치환 우회가 무용해질 것
+>
+> 위 3 가지가 풀리면 `RegenerateScripts.sanitizeXml` 의 Informix 우회
+> 블록 전체를 제거하고 테스트 활성화.
+>
+> ### 참고: 동작 확인된 부분 (보류 해제 후 그대로 사용 가능)
+>
+> 우회 적용 상태에서 다음이 정상 동작했음 — 보류 해제 후 그대로 활용:
 >
 > ```
 > Migration Report summary:
@@ -15,43 +65,21 @@
 >     foreign key:  Exported[3];  Imported[3]
 >     index:        Exported[6];  Imported[6]
 >     sequence:     Exported[1];  Imported[1]
->     record:       Exported[44]; Imported[44]    ← row 51 - 7(NULL/empty 제외)
+>     record:       Exported[44]; Imported[44]
+>     view:         Exported[0];  Imported[0]    ← 이것이 미해결
 > ```
 >
-> InformixToCubridTest / InformixToDumpTest 모두 PASS. 골든 매니페스트
-> 11 개 파일 (`main_user_*.sql`, `INFORMIX_main_user_*`) 정확 일치.
+> ### 지금까지 만들어 둔 것 (보류 해제 시 재사용)
 >
-> ### 핵심 인프라 결정 (이슈 추적 결과)
->
-> | 결정 | 이유 |
+> | 항목 | 상태 |
 > |---|---|
-> | RegenerateScripts.sanitizeXml 에서 `<schema source="INFORMIX">` 라인 제거 | CMT 가 Informix DBA 시스템 스키마를 selectedSrcSchemas 에 포함하면 `MigrationConfiguration.buildTableCfg` 의 owner reconciliation 이 깨져 모든 record export 가 "Table not found" 로 실패. INFORMIX 시스템 스키마는 우리 시드와 무관해 안전하게 제거 가능 |
-> | RegenerateScripts.sanitizeXml 에서 `schema=""` → `schema="MAIN_USER"` 치환 | CMT 의 `InformixSchemaFetcher` 가 `<table schema="">` 빈 속성으로 출력하는데, downstream 의 `Catalog.getSchemaByName("")` 이 null 을 반환해 record export 가 실패. MAIN_USER 단일 사용자 패턴이라 안전 |
-> | MAIN_USER 단일 사용자 (cross-schema anti-coverage) | CMT 의 multi-schema 처리에 위 두 개 버그가 누적되어 단일 사용자 패턴이 가장 안정적. MySQL/MariaDB 와 동일 |
->
-> ### View 잔여 이슈 (anti-coverage 또는 추가 추적 필요)
->
-> - `view: Exported[0]` — view 마이그레이션은 여전히 0 건
-> - 원인 분석: Informix `buildViewDDL` 이 view body 의 `"main_user"."X"`
->   quoted owner prefix 를 정규식으로 제거 (`InformixSchemaFetcher.java:409`)
->   → 결과 prefix-less body 가 target CUBRID 에서 unqualified resolve 시도
->   → MAIN_USER schema 의 unqualified `e2e_order` 을 못 찾음
-> - 다른 source DB 와 비교:
->   - Oracle/CUBRID — view body 에 explicit `MAIN_SCHEMA.X` prefix 가
->     박혀 있어 target 이 동일 schema 면 정상
->   - MySQL/MariaDB — view body 에 `main_schema.X` prefix 가 박혀 있으나
->     CMT 가 source schema 를 connection user (`ROOT`) 로 잘못 매핑 →
->     anti-coverage
->   - **Informix** — view body prefix 가 strip 되어 unqualified, target
->     의 connection user (DBA `dba`) 가 MAIN_USER 의 객체를 unqualified
->     로 못 찾음
-> - 해결 옵션:
->   1. CMT `InformixSchemaFetcher.buildViewDDL` 의 strip 정규식 제거 →
->      view body 에 owner prefix 유지 (CMT 패치)
->   2. View 시드 자체를 anti-coverage 로 분리 (`V2__schema_views.sql` 제거)
->
-> 현 시점에서는 view 시드를 유지하되 테스트 어셔션에서 view 클래스 항목만
-> 빼두는 형태로 운영. CMT 패치 시 view assertion 을 다시 활성화.
+> | 본 SPEC | 작성 완료 — anti-coverage 표 14 항목 + 결함 카탈로그 |
+> | `db/informix/{init,main_schema}/*` 시드 SQL | 동작 (Informix 고유 14 개 quirk 적용) |
+> | `InformixContainer.java`, `InformixDatabaseInitializer.java` | 동작 (sudo useradd, dbaccess init, hostname 매칭, per-scenario flyway history) |
+> | `Drivers.INFORMIX` + `pom.xml` (`com.ibm.informix:jdbc`, `flyway-database-informix`) | 동작 |
+> | `RegenerateScripts` `INFORMIX_TO_CUBRID` / `INFORMIX_TO_DUMPFILE` + sanitize 우회 | 동작 (sanitize 우회 블록은 CMT 패치 시 함께 제거) |
+> | `script.xml` 픽스처 + dump goldens (12 개 파일) | 보존 |
+> | `InformixToCubridTest` / `InformixToDumpTest` | `@Disabled("DEFERRED — see SEED_SPEC §0")` 상태 |
 >
 > ---
 

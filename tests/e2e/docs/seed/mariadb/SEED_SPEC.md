@@ -1,5 +1,52 @@
 # MariaDB Seed Specification
 
+> ## ⚠ 0. 현재 상태: 보류 (Deferred)
+>
+> **MariaDB E2E 테스트는 현재 실행 대상에서 제외되어 있다.** 시드 SQL,
+> Container/Initializer, script.xml 픽스처, 테스트 클래스까지 모두 만들어
+> 두었으나 `@Disabled` 처리 상태.
+>
+> ### 왜 보류했는가
+>
+> CMT MariaDB plugin 은 MySQL plugin 의 모든 결함을 그대로 상속받는다
+> (`MariaDBSchemaFetcher` 가 `MySQLSchemaFetcher` 를 base 로 함).
+> 따라서 `mysql/SEED_SPEC.md` §0 의 결함이 모두 적용된다 — connection
+> user 를 schema 로 매핑하는 부모 default 미 override, view body
+> translation 버그, JSON 매핑 부재, SET 변환 안 됨 등.
+>
+> MariaDB 만의 추가 결함:
+>
+> - MariaDB 11.4 의 `mysql.proc` 테이블이 정상 존재함에도 view body
+>   변환 결함은 동일하게 발생 → MariaDB 가 더 나은 fetcher 를 갖지 못함
+> - Functional index (`CREATE INDEX ... ON tbl(UPPER(col))`) syntax
+>   거부 (`§1 anti-coverage` 참고)
+>
+> 결론: MySQL/MariaDB 는 본질적으로 **CMT 의 user-as-schema 가정 자체를
+> 패치하지 않으면 production-grade 마이그레이션이 어려움**. MySQL fix 와
+> 동일 작업으로 같이 풀린다.
+>
+> ### 보류 해제 조건
+>
+> MySQL SPEC §0 의 해제 조건과 동일. MariaDB 는 MySQL fix 가 포팅되는
+> 시점에 같이 풀림. 추가로:
+>
+> - MariaDB 만의 functional index 처리 결정 (anti-coverage 유지 또는
+>   CMT 패치)
+>
+> ### 지금까지 만들어 둔 것 (보류 해제 시 재사용)
+>
+> | 항목 | 상태 |
+> |---|---|
+> | 본 SPEC | 작성 완료 |
+> | `db/mariadb/{init,main_schema}/*` 시드 SQL | 동작 확인됨 |
+> | `MariaDbContainer.java`, `MariadbDatabaseInitializer.java` | 동작 |
+> | `Drivers.MARIADB` + `pom.xml` (`mariadb-java-client`) | 동작 |
+> | `RegenerateScripts` `MARIADB_TO_CUBRID` / `MARIADB_TO_DUMPFILE` | 동작 |
+> | `script.xml` 픽스처 + dump goldens | 보존 |
+> | `MariadbToCubridTest` / `MariadbToDumpTest` | `@Disabled("DEFERRED — see SEED_SPEC §0")` 상태 |
+>
+> ---
+
 이 문서는 MariaDB source DB 용 시드 명세다. 공통 규칙은
 `../COMMON_SEED_CONTRACT.md` 를 따른다.
 

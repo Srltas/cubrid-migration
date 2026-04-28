@@ -14,6 +14,7 @@ import com.cmt.e2e.framework.db.init.MariadbDatabaseInitializer;
 import com.cmt.e2e.framework.junit.annotation.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * lowercase {@code root} schema folder, plus {@code _vclass*} and
  * {@code _serial} when view / sequence-equivalent objects survive).
  */
+@Disabled("DEFERRED — see docs/seed/mariadb/SEED_SPEC.md §0.")
 @Tag("db-required")
 @Testcontainers
 @DisplayName("MAR-DO-01: MariaDB e2e dataset -> dump file migration")

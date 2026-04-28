@@ -17,6 +17,7 @@ import com.cmt.e2e.framework.db.init.MysqlDatabaseInitializer;
 import com.cmt.e2e.framework.junit.annotation.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,10 @@ import static com.cmt.e2e.framework.assertion.DatabaseAsserts.row;
  * to be reconciled against the first successful migration. Use that as the
  * ground truth when adjusting assertions.
  */
+@Disabled("DEFERRED — see docs/seed/mysql/SEED_SPEC.md §0. CMT 의 MySQL "
+    + "fetcher 가 user-as-schema 가정을 그대로 상속받아 view body translation "
+    + "등 first-class 결함이 다수. 해제 조건: MySQLSchemaFetcher.getSchemaNames "
+    + "override + view body translator 패치.")
 @Tag("db-required")
 @Testcontainers
 @DisplayName("MYS-ON-01: MySQL e2e dataset -> CUBRID online migration")

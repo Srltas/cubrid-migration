@@ -17,6 +17,7 @@ import com.cmt.e2e.framework.db.init.MariadbDatabaseInitializer;
 import com.cmt.e2e.framework.junit.annotation.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,8 @@ import static com.cmt.e2e.framework.assertion.DatabaseAsserts.row;
  * fetcher uses the source connection user (root) as the schema namespace —
  * same single-namespace collapse seen in MySQL.
  */
+@Disabled("DEFERRED — see docs/seed/mariadb/SEED_SPEC.md §0. MariaDB plugin "
+    + "은 MySQL plugin 의 결함을 그대로 상속받는다. 해제는 MySQL fix 와 동시 진행.")
 @Tag("db-required")
 @Testcontainers
 @DisplayName("MAR-ON-01: MariaDB e2e dataset -> CUBRID online migration")

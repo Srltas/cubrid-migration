@@ -1,5 +1,71 @@
 # MySQL Seed Specification
 
+> ## ⚠ 0. 현재 상태: 보류 (Deferred)
+>
+> **MySQL E2E 테스트는 현재 실행 대상에서 제외되어 있다.** 시드 SQL,
+> Container/Initializer, script.xml 픽스처, 테스트 클래스까지 모두 만들어
+> 두었으나 `@Disabled` 처리 상태. CMT 의 MySQL 처리 결함이 production-grade
+> 마이그레이션 검증을 어렵게 만드는 수준이라, 결함이 수정될 때까지 active
+> 검증 대상에서 분리한다.
+>
+> ### 왜 보류했는가
+>
+> CMT 의 MySQL fetcher 가 부모 클래스 (`AbstractJDBCSchemaFetcher`) 의
+> 기본 동작을 그대로 상속받아 **connection user 를 schema 이름으로
+> 매핑**한다 (`AbstractJDBCSchemaFetcher.java:316`):
+>
+> ```java
+> protected List<String> getSchemaNames(...) {
+>     result.add(cp.getConUser().toUpperCase(Locale.US));
+>     return result;
+> }
+> ```
+>
+> Oracle / CUBRID / Tibero / Informix 는 모두 자기 식대로 override 하지만
+> **MySQL / MariaDB 만 override 안 함** → connection user `root` 가
+> source schema `ROOT` 로 잘못 매핑된다.
+>
+> 그런데 MySQL 의 schema 의미는 user 가 아니라 **database** 이다 (Oracle
+> 모델과 다름). MySQL 엔진은 `information_schema.views` 의 view body 를
+> 자동으로 `` `main_schema`.`<table>` `` (database 이름 prefix) 로 확장해
+> 저장하므로, CMT 가 만든 `<schema source="ROOT">` 매핑과 view body 의
+> `main_schema.X` literal 이 의미적으로 충돌. CMT 가 그 본문을 그대로
+> CUBRID 로 옮기면서 prefix 를 `dba.<table>` 로 잘못 매핑 → import 실패.
+>
+> 추가 anti-coverage 항목 (§1 표 참고): JSON 매핑 부재, SET 변환 안 됨,
+> MySQL 8.0 의 `mysql.proc` 부재로 routine 추출 실패, view 마이그레이션
+> 본문 변환 버그 등 — **마이그레이션 도구의 정확성 자체에 영향을 주는
+> first-class 결함이 다수**.
+>
+> 이 상태로 E2E 테스트를 active 로 두면 "test green = MySQL 마이그레이션
+> 정상" 이라는 잘못된 신호를 줄 수 있어 의도적으로 보류한다.
+>
+> ### 보류 해제 조건
+>
+> 다음을 만족해야 active 로 복귀:
+>
+> 1. **`MySQLSchemaFetcher.getSchemaNames` override** 추가해서
+>    `cp.getDbName().toUpperCase()` 를 반환 (database-as-schema 로 정정)
+> 2. **MySQL → CUBRID view body translator** 가 source DB 이름 prefix 를
+>    target schema 로 정상 변환 (`main_schema.X` → `<target_schema>.X`)
+> 3. JSON / SET / 8.0 routines 매핑 — 별도 anti-coverage 결정으로 명시
+>    하거나 구현 (§1 표 참고). 모든 항목이 풀릴 필요는 없으나, 풀린
+>    항목은 시드에 포함시킨 뒤 테스트 활성.
+>
+> ### 지금까지 만들어 둔 것 (보류 해제 시 재사용)
+>
+> | 항목 | 상태 |
+> |---|---|
+> | 본 SPEC | 작성 완료 — anti-coverage 표가 CMT 결함 카탈로그로 활용 가능 |
+> | `db/mysql/{init,main_schema}/*` 시드 SQL | 동작 확인됨 |
+> | `MySqlContainer.java`, `MysqlDatabaseInitializer.java` | 동작 |
+> | `Drivers.MYSQL` + `pom.xml` (`mysql-connector-j`) | 동작 |
+> | `RegenerateScripts` `MYSQL_TO_CUBRID` / `MYSQL_TO_DUMPFILE` | 동작 |
+> | `script.xml` 픽스처 + dump goldens | 보존 (재 생성 시 재사용 가능) |
+> | `MysqlToCubridTest` / `MysqlToDumpTest` | `@Disabled("DEFERRED — see SEED_SPEC §0")` 상태 |
+>
+> ---
+
 이 문서는 MySQL source DB 용 시드 명세다. 공통 규칙은
 `../COMMON_SEED_CONTRACT.md` 를 따른다.
 

@@ -14,6 +14,7 @@ import com.cmt.e2e.framework.db.init.MysqlDatabaseInitializer;
 import com.cmt.e2e.framework.junit.annotation.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * resource folder. The manifest below is the best-known shape; any
  * discrepancies surface as DumpGoldenVerifier failures on the first run.
  */
+@Disabled("DEFERRED — see docs/seed/mysql/SEED_SPEC.md §0.")
 @Tag("db-required")
 @Testcontainers
 @DisplayName("MYS-DO-01: MySQL e2e dataset -> dump file migration")

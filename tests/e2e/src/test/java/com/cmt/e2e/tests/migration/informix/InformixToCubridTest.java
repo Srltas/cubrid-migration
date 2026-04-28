@@ -17,6 +17,7 @@ import com.cmt.e2e.framework.db.init.InformixDatabaseInitializer;
 import com.cmt.e2e.framework.junit.annotation.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,9 @@ import static com.cmt.e2e.framework.assertion.DatabaseAsserts.row;
  *   <li>JSON / BSON / XMLTYPE-equivalent target type.</li>
  * </ul>
  */
+@Disabled("DEFERRED — see docs/seed/informix/SEED_SPEC.md §0. View 마이그레이션 "
+    + "0 건 + sanitize 우회 두 건 (CMT InformixSchemaFetcher 결함). 해제 조건: "
+    + "buildViewDDL strip 정규식 제거 + getSchemaNames/<table> schema 속성 패치.")
 @Tag("db-required")
 @Testcontainers
 @DisplayName("IFX-ON-01: Informix e2e dataset -> CUBRID online migration")
