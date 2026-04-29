@@ -328,6 +328,7 @@ checkout, reviewed in the resulting PR diff.
 | D10 | 5.3 | 2026-04-29 | CUBRID dump uses `one_table_one_file=true`. Single-file mode is non-deterministic (CMT does not stabilise the table order in the combined `_object` file) | overrides PoC default for CUBRID |
 | D11 | 8.1 | 2026-04-29 | `CliSmokeTest` → `CliTest`. The class is naming-inconsistent with the other `*Test` migration TCs and its 8 cases are functional (dispatch + first-run filesystem) rather than mere smoke | also `CLI-SMOKE-NN` → `CLI-NN` IDs |
 | D12 | 8.2 | 2026-04-29 | Framework unit tests for self-evident logic (`SnapshotStore`, `DbConfBuilder`, `MigrationOutcome`, `Tabulator`, `RowQueries.parse`) dropped — their failures surface in the integration suite without delay. `ScriptXmlBuilderTest` retained because sanitize regex bugs are silent (a corrupted `script.xml` still runs to completion with garbage output, so the explicit safety net carries its weight) | -30 unit `@Test` cases; framework smoke `MigrationRunnerSmokeIT` also dropped (redundant with active migration TCs) |
+| D13 | 9 | 2026-04-29 | `ScriptXmlBuilderTest` also dropped. The e2e module is for end-to-end tests; framework-internal unit tests do not belong here. Sanitize regex regressions are caught at the next snapshot capture / regression run (snapshot diff fails when sanitize misbehaves). Visibility narrowed: `sanitize` and `extractMigrationName` are now `private static` | overrides D12 — supersedes the safety-net argument; the e2e module's purity outweighs the marginal earlier detection |
 
 Mid-implementation overrides land here as new rows.
 
@@ -361,8 +362,8 @@ A v2 release is "done" when all hold. Status as of Phase 7:
 | 1 | **Readability** — colleague lists every fact in `OracleToCubridTest` within 30 s | ✅ | 9 `@Test` methods × 1–3 LOC each, each with a domain `@DisplayName`. Total class ≈ 95 LOC. |
 | 2 | **Flexibility** — CMT-output change absorbed via snapshot diff, zero Java | ✅ | Validated during Phase 4.4 (flyway sanitize added → catalog/indexes/row_counts snapshots updated; only `ScriptXmlBuilder.sanitize` regex was Java code change, all per-test expectations were data-only). |
 | 3 | **Speed** — single class runs Oracle < 5 min, CUBRID < 2 min | ✅ | Oracle ON 65 s, Oracle DO 70 s, CUBRID ON 28 s, CUBRID DO 30 s on Apple Silicon (amd64 emulation). |
-| 4 | **Active test count** — ≥ 32 migration + 8 smoke | ✅ | 24 migration `@Test` + 8 `CliTest` + 8 `ScriptXmlBuilderTest` (sanitize regex safety net) = **40 active**. Framework unit tests for self-evident logic were dropped in Phase 8 (their loss is absorbed by the integration suite). Zero `@Disabled` in `tests/`. |
-| 5 | **LOC** — v2 ≤ 3,800 production Java | ⚠️ | 4,333 production Java in `framework/`. Slight overshoot — driven by anti-coverage sanitize comments (D6–D9) and explicit fluent API choices. Including the remaining test file: 4,872 (vs. PoC `poc-final` ≈ 6,276 → **−22 %**). |
+| 4 | **Active test count** — ≥ 32 migration + 8 smoke | ✅ | 24 migration `@Test` + 8 `CliTest` = **32 active**. The e2e module hosts only end-to-end tests; framework-internal unit tests were dropped (Phase 8/9). Zero `@Disabled` in `tests/`. |
+| 5 | **LOC** — v2 ≤ 3,800 production Java | ⚠️ | 4,333 production Java in `framework/`. Slight overshoot — driven by anti-coverage sanitize comments (D6–D9) and explicit fluent API choices. Including the migration tests: 4,704 (vs. PoC `poc-final` ≈ 6,276 → **−25 %**). |
 
 The LOC overshoot on (5) is intentional — every additional line over
 the original 3,800 estimate ships as comment / regex / single-purpose

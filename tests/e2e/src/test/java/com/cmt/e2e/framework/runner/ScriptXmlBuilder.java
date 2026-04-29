@@ -78,7 +78,7 @@ public final class ScriptXmlBuilder {
         return new Result(out.toAbsolutePath(), extractMigrationName(sanitized));
     }
 
-    static String extractMigrationName(String content) {
+    private static String extractMigrationName(String content) {
         Matcher m = Pattern.compile("<migration\\s+name=\"([^\"]+)\"").matcher(content);
         if (!m.find()) {
             throw new IllegalStateException("script.xml missing <migration name=...>");
@@ -103,7 +103,7 @@ public final class ScriptXmlBuilder {
      *       wall-clock state which would break dump-file determinism.</li>
      * </ol>
      */
-    static String sanitize(String content) {
+    private static String sanitize(String content) {
         // (1) wall-clock state in <migration ...>
         // <migration name="CUBRID_e2e_db_202604062341" ...>
         //                                ^^^^^^^^^^^^^ strip (12 digits)
