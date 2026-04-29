@@ -16,6 +16,11 @@ local.properties
 target/
 /workspace/
 
+# Re-include Java source packages literally named "target".
+# Maven build dirs are still ignored (top-level + module-level target/).
+!tests/e2e/src/test/java/com/cmt/e2e/framework/target/
+!tests/e2e/src/test/java/com/cmt/e2e/framework/target/**
+
 ## Eclipse configs
 
 .project
