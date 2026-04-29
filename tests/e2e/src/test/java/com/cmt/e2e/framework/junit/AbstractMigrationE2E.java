@@ -65,7 +65,7 @@ public abstract class AbstractMigrationE2E {
 
         Path workDir = WORK_ROOT.resolve(scenarioName());
         log.info("[{}] running migration; workDir={}", scenarioName(), workDir);
-        this.cachedOutcome = new Migration(source, target).run(workDir);
+        this.cachedOutcome = new Migration(source, target, scenarioName()).run(workDir);
         log.info("[{}] migration finished", scenarioName());
     }
 

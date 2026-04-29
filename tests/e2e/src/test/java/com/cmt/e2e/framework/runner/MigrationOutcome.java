@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import com.cmt.e2e.framework.command.CommandResult;
 import com.cmt.e2e.framework.source.Source;
 import com.cmt.e2e.framework.target.Target;
+import com.cmt.e2e.framework.verify.CatalogSnapshot;
 
 /**
  * Outcome of one {@link Migration#run(Path)} call. Tests use this to
@@ -40,12 +41,15 @@ public final class MigrationOutcome {
     private final Source source;
     private final Target target;
     private final Path scriptXml;
+    private final String scenarioName;
 
-    MigrationOutcome(CommandResult result, Source source, Target target, Path scriptXml) {
-        this.result    = result;
-        this.source    = source;
-        this.target    = target;
-        this.scriptXml = scriptXml;
+    public MigrationOutcome(CommandResult result, Source source, Target target,
+                            Path scriptXml, String scenarioName) {
+        this.result       = result;
+        this.source       = source;
+        this.target       = target;
+        this.scriptXml    = scriptXml;
+        this.scenarioName = scenarioName;
     }
 
     // -------------------------------------------------------------------------
@@ -94,6 +98,23 @@ public final class MigrationOutcome {
         int end = text.indexOf('\n', index);
         if (end < 0) end = text.length();
         return text.substring(start, end);
+    }
+
+    // -------------------------------------------------------------------------
+    // L2 / L3 — verify entry points
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns a CUBRID catalog snapshot helper for this migration's target.
+     * Online-target only; throws on dump-file targets.
+     */
+    public CatalogSnapshot catalog() {
+        if (target.isDumpfile()) {
+            throw new IllegalStateException(
+                "catalog() is for online targets; this is a dump-file scenario. "
+                + "Use dumpfile() instead (Phase 3.5).");
+        }
+        return new CatalogSnapshot(target.connection(), scenarioName);
     }
 
     // -------------------------------------------------------------------------

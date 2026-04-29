@@ -34,12 +34,17 @@ public final class Migration {
 
     private final Source source;
     private final Target target;
+    private final String scenarioName;
 
-    public Migration(Source source, Target target) {
+    public Migration(Source source, Target target, String scenarioName) {
         if (source == null) throw new IllegalArgumentException("source");
         if (target == null) throw new IllegalArgumentException("target");
+        if (scenarioName == null || scenarioName.isBlank()) {
+            throw new IllegalArgumentException("scenarioName must not be blank");
+        }
         this.source = source;
         this.target = target;
+        this.scenarioName = scenarioName;
     }
 
     /**
@@ -62,6 +67,6 @@ public final class Migration {
         CommandResult result = runner.run(cmd);
         log.info("[Migration] start exited with {}", result.exitCode());
 
-        return new MigrationOutcome(result, source, target, scriptXml);
+        return new MigrationOutcome(result, source, target, scriptXml, scenarioName);
     }
 }
