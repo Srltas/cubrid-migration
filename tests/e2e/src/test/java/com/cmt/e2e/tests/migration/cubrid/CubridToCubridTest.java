@@ -14,7 +14,7 @@ import com.cmt.e2e.framework.db.containers.CubridContainer;
 import com.cmt.e2e.framework.db.containers.DatabaseContainer;
 import com.cmt.e2e.framework.db.init.ClasspathSqlRunner;
 import com.cmt.e2e.framework.db.init.DatabaseInitializer;
-import com.cmt.e2e.framework.junit.annotation.TestResources;
+import com.cmt.e2e.framework.junit.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
 import org.junit.jupiter.api.DisplayName;

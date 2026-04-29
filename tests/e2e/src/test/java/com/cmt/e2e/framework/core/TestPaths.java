@@ -1,6 +1,6 @@
 package com.cmt.e2e.framework.core;
 
-import com.cmt.e2e.framework.junit.annotation.TestResources;
+import com.cmt.e2e.framework.junit.TestResources;
 import org.junit.jupiter.api.TestInfo;
 
 import java.io.IOException;

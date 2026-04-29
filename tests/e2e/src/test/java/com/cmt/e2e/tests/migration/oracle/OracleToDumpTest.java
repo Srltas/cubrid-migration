@@ -8,7 +8,7 @@ import com.cmt.e2e.framework.command.impls.StartCommand;
 import com.cmt.e2e.framework.core.CmtTestContext;
 import com.cmt.e2e.framework.db.containers.OracleContainer;
 import com.cmt.e2e.framework.db.init.OracleDatabaseInitializer;
-import com.cmt.e2e.framework.junit.annotation.TestResources;
+import com.cmt.e2e.framework.junit.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
 import org.junit.jupiter.api.DisplayName;
