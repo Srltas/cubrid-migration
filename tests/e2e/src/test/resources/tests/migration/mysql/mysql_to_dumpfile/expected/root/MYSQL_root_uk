@@ -1,1 +1,0 @@
-CREATE /*+ NO_STATS */  UNIQUE INDEX [uk_e2e_customer_code] ON [ROOT].[e2e_customer]([customer_code]);
