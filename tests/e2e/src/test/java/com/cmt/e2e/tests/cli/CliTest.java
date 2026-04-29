@@ -13,13 +13,14 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Smoke tests for {@code migration.sh}. Each test pins one CMT Console
- * binary entry point — dispatch branches and first-run filesystem
- * contracts. Runs in seconds without a database; if any fails the
- * binary is not usable and the rest of the E2E suite is suspect.
+ * Functional tests for {@code migration.sh}. Each test pins one CMT
+ * Console binary entry point — dispatch branches and first-run
+ * filesystem contracts. Runs in seconds without a database; if any
+ * fails the binary is not usable and the rest of the E2E suite is
+ * suspect.
  */
-@DisplayName("CMT Console CLI smoke tests")
-public class CliSmokeTest {
+@DisplayName("CLI: migration.sh dispatch + first-run filesystem contracts")
+public class CliTest {
 
     @RegisterExtension
     final CmtTestContext ctx = new CmtTestContext();
@@ -27,7 +28,7 @@ public class CliSmokeTest {
     // --- Dispatch routing (DoMigration.handlerFactory) ---
 
     @Test
-    @DisplayName("CLI-SMOKE-01: lists all subcommands when called with no args")
+    @DisplayName("CLI-01: lists all subcommands when called with no args")
     void should_listAllSubcommands_when_calledWithoutArgs() throws Exception {
         CommandResult result = ctx.commandRunner().run(new RawCommand("./migration.sh"));
 
@@ -45,7 +46,7 @@ public class CliSmokeTest {
      * branch ran.
      */
     @Test
-    @DisplayName("CLI-SMOKE-02: dispatches to StartCommandHandler when 'start' subcommand")
+    @DisplayName("CLI-02: dispatches to StartCommandHandler when 'start' subcommand")
     void should_dispatchToStartHandler_when_invokedWithStartSubcommand() throws Exception {
         CommandResult result = ctx.commandRunner().run(
             new RawCommand("./migration.sh", "start", "/__nonexistent_for_smoke__.xml"));
@@ -57,7 +58,7 @@ public class CliSmokeTest {
     }
 
     @Test
-    @DisplayName("CLI-SMOKE-03: dispatches to ScriptCommandHandler when 'script' subcommand")
+    @DisplayName("CLI-03: dispatches to ScriptCommandHandler when 'script' subcommand")
     void should_dispatchToScriptHandler_when_invokedWithScriptSubcommand() throws Exception {
         CommandResult result = ctx.commandRunner().run(new RawCommand("./migration.sh", "script"));
 
@@ -68,7 +69,7 @@ public class CliSmokeTest {
     }
 
     @Test
-    @DisplayName("CLI-SMOKE-04: dispatches to LogCommandHandler when 'log' subcommand")
+    @DisplayName("CLI-04: dispatches to LogCommandHandler when 'log' subcommand")
     void should_dispatchToLogHandler_when_invokedWithLogSubcommand() throws Exception {
         CommandResult result = ctx.commandRunner().run(new RawCommand("./migration.sh", "log"));
 
@@ -79,7 +80,7 @@ public class CliSmokeTest {
     }
 
     @Test
-    @DisplayName("CLI-SMOKE-05: dispatches to ReportCommandHandler when 'report' subcommand")
+    @DisplayName("CLI-05: dispatches to ReportCommandHandler when 'report' subcommand")
     void should_dispatchToReportHandler_when_invokedWithReportSubcommand() throws Exception {
         CommandResult result = ctx.commandRunner().run(new RawCommand("./migration.sh", "report"));
 
@@ -90,7 +91,7 @@ public class CliSmokeTest {
     }
 
     @Test
-    @DisplayName("CLI-SMOKE-06: falls back to start help on unknown command")
+    @DisplayName("CLI-06: falls back to start help on unknown command")
     void should_fallbackToStartHelp_when_unknownCommand() throws Exception {
         CommandResult result = ctx.commandRunner().run(
             new RawCommand("./migration.sh", "bogus_command_that_does_not_exist"));
@@ -104,7 +105,7 @@ public class CliSmokeTest {
     // --- First-run filesystem contracts ---
 
     @Test
-    @DisplayName("CLI-SMOKE-07: creates workspace/cmt/log and workspace/cmt/report on any invocation")
+    @DisplayName("CLI-07: creates workspace/cmt/log and workspace/cmt/report on any invocation")
     void should_createWorkspaceDirectories_onAnyInvocation() throws Exception {
         ctx.commandRunner().run(new RawCommand("./migration.sh"));
 
@@ -118,7 +119,7 @@ public class CliSmokeTest {
      * at least the "Thank you" header).
      */
     @Test
-    @DisplayName("CLI-SMOKE-08: appends to cubrid-migration.log on every invocation")
+    @DisplayName("CLI-08: appends to cubrid-migration.log on every invocation")
     void should_appendToLogFile_onAnyInvocation() throws Exception {
         Path logFile = ctx.cmtConsoleHome().resolve("workspace/cmt/log/cubrid-migration.log");
         long sizeBefore = Files.exists(logFile) ? Files.size(logFile) : 0L;
