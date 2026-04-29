@@ -18,8 +18,11 @@ or dump file) round-trip verification.
 | `cubrid_to_cubrid` | CUBRID 11.4 | CUBRID 11.4 (online) | `CubridToCubridTest` |
 | `cubrid_to_dumpfile` | CUBRID 11.4 | dump file | `CubridToDumpTest` |
 
-Plus `CliSmokeTest` — `migration.sh` dispatch / first-run filesystem
-contracts (no DB).
+Plus `CliTest` (8 `@Test`) — `migration.sh` dispatch / first-run
+filesystem contracts (no DB), and one framework-side unit test
+`ScriptXmlBuilderTest` (8 `@Test`) covering the sanitize regex —
+silent failures here would propagate into every dump snapshot, so
+the explicit safety net pays for itself.
 
 > MariaDB / MySQL / MSSQL / Informix were exercised in the PoC era but
 > are frozen at the `poc-final` git tag — see `docs/ARCHITECTURE.md`
