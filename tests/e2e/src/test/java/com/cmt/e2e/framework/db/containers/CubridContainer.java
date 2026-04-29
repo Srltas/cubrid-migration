@@ -28,9 +28,11 @@ public class CubridContainer implements DatabaseContainer {
             .withEnv("CUBRID_DB", DATABASE_NAME)
             .withEnv("CUBRID_COMPONENTS", "ALL")
             .withExposedPorts(CUBRID_BROKER_PORT)
-            // The official image does not print a single canonical "ready"
-            // line — wait on the broker socket instead.
-            .waitingFor(Wait.forListeningPort())
+            // Broker port opens before createdb completes; matching it would
+            // accept connections that fail because the DB isn't usable yet.
+            // The "++ cubrid server start: success" line is emitted only
+            // after createdb + recovery, so it's the correct ready signal.
+            .waitingFor(Wait.forLogMessage(".*\\+\\+ cubrid server start: success.*", 1))
             .withStartupTimeout(Duration.ofMinutes(8));
     }
 

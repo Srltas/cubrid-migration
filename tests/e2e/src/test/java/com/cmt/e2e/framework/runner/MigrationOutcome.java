@@ -97,11 +97,15 @@ public final class MigrationOutcome {
     }
 
     // -------------------------------------------------------------------------
-    // package-private accessors — used by Phase 3 verify entry points
+    // accessors — used by Phase 3 verify entry points and pipeline smoke
     // -------------------------------------------------------------------------
 
-    Source source()                 { return source; }
-    Target target()                 { return target; }
-    CommandResult commandResult()   { return result; }
-    Path scriptXml()                { return scriptXml; }
+    /** Full CMT child-process result (stdout, stderr, exit code, timed-out flag). */
+    public CommandResult commandResult() { return result; }
+
+    /** Path to the sanitized script.xml that was fed into {@code migration.sh start}. */
+    public Path scriptXml() { return scriptXml; }
+
+    Source source() { return source; }
+    Target target() { return target; }
 }
