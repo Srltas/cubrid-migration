@@ -39,10 +39,7 @@ public class CommandRunner {
     }
 
     public CommandResult run(Command command) throws IOException, InterruptedException {
-        return run(command, DEFAULT_PROCESS_TIMEOUT_SECONDS);
-    }
-
-    public CommandResult run(Command command, long timeoutSeconds) throws IOException, InterruptedException {
+        long timeoutSeconds = DEFAULT_PROCESS_TIMEOUT_SECONDS;
         List<String> commandList = command.build();
 
         log.debug("Executing command list: {}", commandList);

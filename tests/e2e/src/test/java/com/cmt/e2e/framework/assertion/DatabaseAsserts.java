@@ -1,7 +1,5 @@
 package com.cmt.e2e.framework.assertion;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -18,9 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Thin helper for validating database state, especially row counts.
- * Use {@link #assertRecordCount} for a single table and
- * {@link #expectRecords} to validate multiple tables in one call.
+ * Thin helper for validating database state. Use {@link #expectRecords} for
+ * row counts and {@link #expectQueryResults} for arbitrary query results.
  */
 public class DatabaseAsserts {
     private static final Logger log = LoggerFactory.getLogger(DatabaseAsserts.class);
@@ -51,27 +48,6 @@ public class DatabaseAsserts {
         return Arrays.stream(values)
             .map(value -> Objects.requireNonNullElse(value, NULL_VALUE))
             .toList();
-    }
-
-    /**
-     * Validates the row count of a single table.
-     */
-    public static void assertRecordCount(DatabaseContainer dbContainer, String dbName, String userName,
-                                         String tableName, int expectedCount) {
-        String jdbcUrl = dbContainer.getJdbcUrl(dbName, userName);
-
-        try (Connection connection = DriverManager.getConnection(jdbcUrl);
-             Statement statement = connection.createStatement();
-             ResultSet rs = statement.executeQuery("SELECT COUNT(*) FROM " + tableName)) {
-
-            rs.next();
-            int actualCount = rs.getInt(1);
-            assertThat(actualCount)
-                .as("Record count of table '%s'", tableName)
-                .isEqualTo(expectedCount);
-        } catch (Exception e) {
-            throw new AssertionError(String.format("Failed to verify record count for table '%s'.", tableName), e);
-        }
     }
 
     /**

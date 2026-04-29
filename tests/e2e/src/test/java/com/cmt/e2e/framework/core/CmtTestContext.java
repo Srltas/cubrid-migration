@@ -10,13 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +25,7 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
     private static final Logger log = LoggerFactory.getLogger(CmtTestContext.class);
 
     /** Logback SiftingAppender discriminator key. Must match {@code logback-test.xml}. */
-    public static final String MDC_TEST_ID = "testId";
+    private static final String MDC_TEST_ID = "testId";
 
     private TestPaths testPaths;
     private CommandRunner commandRunner;
@@ -53,7 +49,7 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
         log.debug("TestPaths initialized for test: {}", context.getDisplayName());
 
         // Initialize CommandRunner
-        String cmtConsoleHome = resolveCmtConsoleHome();
+        String cmtConsoleHome = System.getenv("CMT_CONSOLE_HOME");
         assertThat(cmtConsoleHome)
             .withFailMessage("The CMT_CONSOLE_HOME environment variable must be set.")
             .isNotNull()
@@ -65,7 +61,7 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
         log.debug("CommandRunner initialized with working directory: {}", cmtConsoleHome);
 
         // Initialize WorkspaceFixtures
-        this.workspaceFixtures = new WorkspaceFixtures(cmtConsoleWorkDir, testClass, testMethod);
+        this.workspaceFixtures = new WorkspaceFixtures(cmtConsoleWorkDir);
         log.debug("WorkspaceFixtures initialized.");
     }
 
@@ -75,7 +71,6 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
             if (workspaceFixtures != null) {
                 workspaceFixtures.cleanupWorkspace();
                 workspaceFixtures.cleanupOutput();
-                workspaceFixtures.cleanupConf();
             }
         } finally {
             // Clear MDC so the next test does not leak logs into _bootstrap.
@@ -133,27 +128,4 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
         return migrationDir;
     }
 
-    // --- Internal ---
-
-    private String resolveCmtConsoleHome() throws IOException {
-        String homePath = System.getenv("CMT_CONSOLE_HOME");
-        if (homePath != null && !homePath.isBlank()) {
-            log.debug("Using CMT_CONSOLE_HOME from environment variable: {}", homePath);
-            return homePath;
-        }
-
-        Path propsPath = Paths.get("e2e-test.properties");
-        if (Files.exists(propsPath)) {
-            Properties props = new Properties();
-            try (InputStream input = Files.newInputStream(propsPath)) {
-                props.load(input);
-                homePath = props.getProperty("cmt.console.home");
-                if (homePath != null && !homePath.isBlank()) {
-                    log.debug("Using cmt.console.home from e2e-test.properties: {}", homePath);
-                    return homePath;
-                }
-            }
-        }
-        return null;
-    }
 }

@@ -148,10 +148,10 @@ public final class RegenerateScripts {
                     com.cmt.e2e.framework.db.init.ClasspathSqlRunner.runDirectory(
                         dbaUrl, "dba", "", "db/cubrid/init");
 
-                    com.cmt.e2e.framework.db.init.DatabaseInitializer
+                    com.cmt.e2e.framework.db.init.CubridDatabaseInitializer
                         .of(source, "cubdb", "REF_SCHEMA", "cmt")
                         .migrate("cubrid/ref_schema");
-                    com.cmt.e2e.framework.db.init.DatabaseInitializer
+                    com.cmt.e2e.framework.db.init.CubridDatabaseInitializer
                         .of(source, "cubdb", "MAIN_SCHEMA", "cmt")
                         .migrate("cubrid/main_schema");
 
@@ -175,10 +175,10 @@ public final class RegenerateScripts {
                     com.cmt.e2e.framework.db.init.ClasspathSqlRunner.runDirectory(
                         dbaUrl, "dba", "", "db/cubrid/init");
 
-                    com.cmt.e2e.framework.db.init.DatabaseInitializer
+                    com.cmt.e2e.framework.db.init.CubridDatabaseInitializer
                         .of(source, "cubdb", "REF_SCHEMA", "cmt")
                         .migrate("cubrid/ref_schema");
-                    com.cmt.e2e.framework.db.init.DatabaseInitializer
+                    com.cmt.e2e.framework.db.init.CubridDatabaseInitializer
                         .of(source, "cubdb", "MAIN_SCHEMA", "cmt")
                         .migrate("cubrid/main_schema");
 

@@ -4,17 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manages file-system fixtures in the CMT Console working directory
- * such as workspace, output, and conf.
- * Nothing happens in beforeEach; cleanup runs only in afterEach.
+ * Cleans the CMT Console working directory ({@code workspace/} and
+ * {@code output/}) between tests. Nothing happens in beforeEach; cleanup
+ * runs only in afterEach.
  */
 public class WorkspaceFixtures {
     private static final Logger log = LoggerFactory.getLogger(WorkspaceFixtures.class);
@@ -22,40 +21,17 @@ public class WorkspaceFixtures {
     private final Path cmtConsoleDir;
     private final Path workspaceReportDir;
 
-    public WorkspaceFixtures(File cmtConsoleWorkDir, TestInfo testInfo) {
-        this(cmtConsoleWorkDir,
-            testInfo.getTestClass().orElse(null),
-            testInfo.getTestMethod().orElse(null));
-    }
-
-    public WorkspaceFixtures(File cmtConsoleWorkDir, Class<?> testClass, java.lang.reflect.Method testMethod) {
+    public WorkspaceFixtures(File cmtConsoleWorkDir) {
         this.cmtConsoleDir = cmtConsoleWorkDir.toPath();
-        this.workspaceReportDir = cmtConsoleWorkDir.toPath().resolve("workspace/cmt/report");
-    }
-
-    public void copyConfToWorkspace(Path sourcePath) throws IOException {
-        copyConfToWorkspace(sourcePath, sourcePath.getFileName().toString());
-    }
-
-    public void copyConfToWorkspace(Path sourcePath, String destinationFilename) throws IOException {
-        if (!Files.exists(sourcePath)) {
-            throw new IOException("Resource file not found: " + sourcePath);
-        }
-
-        Path destinationPath = cmtConsoleDir.resolve(destinationFilename);
-        log.debug("Copying config {} to {}", sourcePath, destinationPath);
-        Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    public void cleanupConf() throws IOException {
-        Path confPath = cmtConsoleDir.resolve("db.conf");
-        Files.deleteIfExists(confPath);
+        this.workspaceReportDir = this.cmtConsoleDir.resolve("workspace/cmt/report");
     }
 
     public void cleanupWorkspace() throws IOException {
-        if (Files.exists(workspaceReportDir)) {
-            Files.walk(workspaceReportDir)
-                .filter(path -> !path.equals(workspaceReportDir))
+        if (!Files.exists(workspaceReportDir)) {
+            return;
+        }
+        try (Stream<Path> walk = Files.walk(workspaceReportDir)) {
+            walk.filter(path -> !path.equals(workspaceReportDir))
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
                 .forEach(f -> {
@@ -85,10 +61,12 @@ public class WorkspaceFixtures {
         }
 
         Path outputDir = cmtConsoleDir.resolve("output");
-        if (Files.exists(outputDir)) {
-            log.debug("Cleaning up migration output directory: {}", outputDir);
-            Files.walk(outputDir)
-                .sorted(Comparator.reverseOrder())
+        if (!Files.exists(outputDir)) {
+            return;
+        }
+        log.debug("Cleaning up migration output directory: {}", outputDir);
+        try (Stream<Path> walk = Files.walk(outputDir)) {
+            walk.sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
                 .forEach(f -> {
                     if (!f.delete()) {

@@ -1,7 +1,6 @@
 package com.cmt.e2e.framework.core;
 
 import com.cmt.e2e.framework.junit.TestResources;
-import org.junit.jupiter.api.TestInfo;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -28,10 +27,6 @@ public class TestPaths {
     private final String testMethodName;
     private final Path resourceDir;     // null when @TestResources is not declared
     private final Path artifactDir;
-
-    public TestPaths(TestInfo testInfo) throws IOException {
-        this(testInfo.getTestClass().orElseThrow(), testInfo.getTestMethod().orElseThrow());
-    }
 
     public TestPaths(Class<?> testClass, Method testMethod) throws IOException {
         this.testClassName = testClass.getSimpleName();

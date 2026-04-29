@@ -13,7 +13,7 @@ import com.cmt.e2e.framework.core.CmtTestContext;
 import com.cmt.e2e.framework.db.containers.CubridContainer;
 import com.cmt.e2e.framework.db.containers.DatabaseContainer;
 import com.cmt.e2e.framework.db.init.ClasspathSqlRunner;
-import com.cmt.e2e.framework.db.init.DatabaseInitializer;
+import com.cmt.e2e.framework.db.init.CubridDatabaseInitializer;
 import com.cmt.e2e.framework.junit.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
@@ -78,8 +78,8 @@ public class CubridToCubridTest {
         CubridContainer source = (CubridContainer) sourceDb;
         String dbaUrl = source.getJdbcUrl("cubdb", "dba");
         ClasspathSqlRunner.runDirectory(dbaUrl, "dba", "", "db/cubrid/init");
-        DatabaseInitializer.of(source, "cubdb", "REF_SCHEMA", "cmt").migrate("cubrid/ref_schema");
-        DatabaseInitializer.of(source, "cubdb", "MAIN_SCHEMA", "cmt").migrate("cubrid/main_schema");
+        CubridDatabaseInitializer.of(source, "cubdb", "REF_SCHEMA", "cmt").migrate("cubrid/ref_schema");
+        CubridDatabaseInitializer.of(source, "cubdb", "MAIN_SCHEMA", "cmt").migrate("cubrid/main_schema");
 
         ResolvedScript resolved = ScriptTemplateResolver.builder()
             .template(ctx.testPaths().getResourceDir().resolve("script.xml"))

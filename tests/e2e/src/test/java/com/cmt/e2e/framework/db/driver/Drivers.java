@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -54,34 +53,10 @@ public final class Drivers {
         DB.INFORMIX, List.of("informix-jdbc-*.jar")
     );
 
-    private static final Map<String, Path> CACHE = new ConcurrentHashMap<>();
-
-    private static String cacheKey(DB db, String versionOrNull) {
-        return db.name() + "::" + (versionOrNull == null ? "<latest>" : versionOrNull);
-    }
+    private static final Map<DB, Path> CACHE = new ConcurrentHashMap<>();
 
     public static Path latest(DB db) {
-        return resolve(db, null);
-    }
-
-    public static Path version(DB db, String versionSubString) {
-        Objects.requireNonNull(versionSubString, "versionSubString");
-        return resolve(db, versionSubString);
-    }
-
-    public static Path copyToConsoleJdbc(Path consoleHome, DB db, String versionSubstringOrNull) throws IOException {
-        Path jar = versionSubstringOrNull == null ? latest(db) : version(db, versionSubstringOrNull);
-        Path targetDir = consoleHome.resolve("jdbc");
-        Files.createDirectories(targetDir);
-        Path target = targetDir.resolve(jar.getFileName());
-        if (!Files.exists(target)) {
-            Files.copy(jar, target, StandardCopyOption.REPLACE_EXISTING);
-        }
-        return target.toAbsolutePath().normalize();
-    }
-
-    private static Path resolve(DB db, String versionSubStringOrNull) {
-        return CACHE.computeIfAbsent(cacheKey(db, versionSubStringOrNull), k -> {
+        return CACHE.computeIfAbsent(db, k -> {
             try {
                 Path dir = defaultDir();
                 List<Path> candidates = findCandidates(dir, db);
@@ -91,18 +66,8 @@ public final class Drivers {
                         " under " + dir + "\nLooked for patterns: " + PATTERNS.get(db));
                 }
 
-                Stream<Path> stream = candidates.stream();
-                if (versionSubStringOrNull != null) {
-                    stream = stream.filter(p -> p.getFileName().toString().contains(versionSubStringOrNull));
-                }
-                List<Path> filtered = stream.collect(Collectors.toList());
-                if (filtered.isEmpty()) {
-                    throw new IllegalStateException("No JDBC jar for " + db +
-                        " matching version substring '" + versionSubStringOrNull +"' under " + dir);
-                }
-
-                filtered.sort(Comparator.comparing(Drivers::extractVersionTokens, Drivers::compareVersionLists).reversed());
-                return filtered.get(0).toAbsolutePath().normalize();
+                candidates.sort(Comparator.comparing(Drivers::extractVersionTokens, Drivers::compareVersionLists).reversed());
+                return candidates.get(0).toAbsolutePath().normalize();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

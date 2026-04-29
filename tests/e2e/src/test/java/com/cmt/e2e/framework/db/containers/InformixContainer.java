@@ -1,13 +1,11 @@
 package com.cmt.e2e.framework.db.containers;
 
 import java.time.Duration;
-import java.util.Set;
 
 import com.cmt.e2e.framework.db.driver.Drivers.DB;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.lifecycle.Startable;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -125,7 +123,6 @@ public class InformixContainer implements DatabaseContainer {
     @Override public String  getHost()         { return container.getHost(); }
     @Override public Integer getDatabasePort() { return container.getMappedPort(INFORMIX_PORT); }
     @Override public DB      getDbType()       { return DB.INFORMIX; }
-    @Override public GenericContainer<?> getContainer() { return container; }
 
     @Override
     public String getJdbcUrl(String dbName, String user) {
@@ -133,8 +130,6 @@ public class InformixContainer implements DatabaseContainer {
             "jdbc:informix-sqli://%s:%d/%s:INFORMIXSERVER=%s",
             getHost(), getDatabasePort(), dbName, INFORMIX_SERVER);
     }
-
-    @Override public Set<Startable> getDependencies() { return container.getDependencies(); }
 
     public String getDatabaseName()   { return DATABASE_NAME; }
     public String getInformixServer() { return INFORMIX_SERVER; }

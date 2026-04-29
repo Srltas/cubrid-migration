@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
  * call applies all {@code V*.sql} files in the given scenario folder in
  * version order against the configured user.
  */
-public final class DatabaseInitializer {
+public final class CubridDatabaseInitializer {
 
-    private static final Logger log = LoggerFactory.getLogger(DatabaseInitializer.class);
+    private static final Logger log = LoggerFactory.getLogger(CubridDatabaseInitializer.class);
 
     private static final String CUBRID_DRIVER = "cubrid.jdbc.driver.CUBRIDDriver";
     private static final String SCENARIO_BASE  = "classpath:db/";
@@ -24,7 +24,7 @@ public final class DatabaseInitializer {
     private final String userName;
     private final String password;
 
-    private DatabaseInitializer(CubridContainer container, String dbName, String userName, String password) {
+    private CubridDatabaseInitializer(CubridContainer container, String dbName, String userName, String password) {
         this.container = container;
         this.dbName    = dbName;
         this.userName  = userName;
@@ -32,13 +32,13 @@ public final class DatabaseInitializer {
     }
 
     /** Convenience overload for users without a password (e.g. {@code dba} on a fresh CUBRID). */
-    public static DatabaseInitializer of(CubridContainer container,
+    public static CubridDatabaseInitializer of(CubridContainer container,
                                          String dbName,
                                          String userName) {
         return of(container, dbName, userName, "");
     }
 
-    public static DatabaseInitializer of(CubridContainer container,
+    public static CubridDatabaseInitializer of(CubridContainer container,
                                          String dbName,
                                          String userName,
                                          String password) {
@@ -46,7 +46,7 @@ public final class DatabaseInitializer {
         if (dbName == null || dbName.isBlank()) throw new IllegalArgumentException("dbName must not be blank");
         if (userName == null || userName.isBlank()) throw new IllegalArgumentException("userName must not be blank");
         if (password == null) throw new IllegalArgumentException("password must not be null (use \"\" for none)");
-        return new DatabaseInitializer(container, dbName, userName, password);
+        return new CubridDatabaseInitializer(container, dbName, userName, password);
     }
 
     public void migrate(String scenarioName) {
@@ -64,12 +64,12 @@ public final class DatabaseInitializer {
         }
 
         String location = SCENARIO_BASE + scenarioName;
-        log.info("[DatabaseInitializer] migrate start: scenario='{}', db='{}', user='{}'",
+        log.info("[CubridDatabaseInitializer] migrate start: scenario='{}', db='{}', user='{}'",
             scenarioName, dbName, userName);
 
         try {
             MigrateResult result = buildFlyway(location).migrate();
-            log.info("[DatabaseInitializer] migrate complete: executed={}, success={}",
+            log.info("[CubridDatabaseInitializer] migrate complete: executed={}, success={}",
                 result.migrationsExecuted, result.success);
 
             if (!result.success) {

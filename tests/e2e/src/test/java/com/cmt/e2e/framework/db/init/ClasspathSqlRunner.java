@@ -146,7 +146,21 @@ public final class ClasspathSqlRunner {
         }
     }
 
-    /** Naive splitter: drops {@code --} line comments, splits on top-level {@code ;}. */
+    /**
+     * Naive splitter: drops {@code --} line comments, splits on top-level {@code ;}.
+     *
+     * <p>Limitations (kept narrow on purpose — bootstrap scripts here are tiny):
+     * <ul>
+     *   <li>String escape: only backslash escape ({@code \'}) is recognised.
+     *       Doubled-quote escape ({@code ''}) is NOT — a {@code ;} inside such
+     *       a literal would split the statement incorrectly.</li>
+     *   <li>No support for {@code /* ... *}{@code /} block comments,
+     *       dollar-quoting, or {@code DELIMITER} directives.</li>
+     * </ul>
+     * Bootstrap files (e.g. CUBRID {@code CREATE USER}) keep within these
+     * limits. If a future init script needs richer SQL, switch to a real
+     * driver-side script runner instead of broadening this splitter.
+     */
     static List<String> splitStatements(String sql) {
         StringBuilder cleaned = new StringBuilder();
         for (String line : sql.split("\n", -1)) {

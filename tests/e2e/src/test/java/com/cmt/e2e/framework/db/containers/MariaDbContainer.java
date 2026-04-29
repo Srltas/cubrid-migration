@@ -1,12 +1,10 @@
 package com.cmt.e2e.framework.db.containers;
 
 import java.time.Duration;
-import java.util.Set;
 
 import com.cmt.e2e.framework.db.driver.Drivers.DB;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.lifecycle.Startable;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -65,7 +63,6 @@ public class MariaDbContainer implements DatabaseContainer {
     @Override public String  getHost()         { return container.getHost(); }
     @Override public Integer getDatabasePort() { return container.getMappedPort(MARIADB_PORT); }
     @Override public DB      getDbType()       { return DB.MARIADB; }
-    @Override public GenericContainer<?> getContainer() { return container; }
 
     @Override
     public String getJdbcUrl(String dbName, String user) {
@@ -75,7 +72,6 @@ public class MariaDbContainer implements DatabaseContainer {
 
     @Override public void start() { container.start(); }
     @Override public void stop()  { container.stop(); }
-    @Override public Set<Startable> getDependencies() { return container.getDependencies(); }
 
     public String getMainUser()     { return MAIN_USER; }
     public String getMainPassword() { return MAIN_PASSWORD; }

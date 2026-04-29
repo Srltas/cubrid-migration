@@ -1,12 +1,10 @@
 package com.cmt.e2e.framework.db.containers;
 
 import java.time.Duration;
-import java.util.Set;
 
 import com.cmt.e2e.framework.db.driver.Drivers.DB;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.lifecycle.Startable;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -102,11 +100,6 @@ public class OracleContainer implements DatabaseContainer {
     }
 
     @Override
-    public GenericContainer<?> getContainer() {
-        return container;
-    }
-
-    @Override
     public String getJdbcUrl(String dbName, String user) {
         // 11g XE always exposes SID=XE; dbName/user args ignored.
         return String.format("jdbc:oracle:thin:@%s:%d:%s",
@@ -120,9 +113,4 @@ public class OracleContainer implements DatabaseContainer {
     public String getDbaUser()      { return DBA_USER; }
     public String getDbaPassword()  { return DBA_PASSWORD; }
     public String getSid()          { return SID; }
-
-    @Override
-    public Set<Startable> getDependencies() {
-        return container.getDependencies();
-    }
 }
