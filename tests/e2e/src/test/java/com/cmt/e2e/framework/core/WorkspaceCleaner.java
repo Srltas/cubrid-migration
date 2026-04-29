@@ -15,13 +15,13 @@ import org.slf4j.LoggerFactory;
  * {@code output/}) between tests. Nothing happens in beforeEach; cleanup
  * runs only in afterEach.
  */
-public class WorkspaceFixtures {
-    private static final Logger log = LoggerFactory.getLogger(WorkspaceFixtures.class);
+public class WorkspaceCleaner {
+    private static final Logger log = LoggerFactory.getLogger(WorkspaceCleaner.class);
 
     private final Path cmtConsoleDir;
     private final Path workspaceReportDir;
 
-    public WorkspaceFixtures(File cmtConsoleWorkDir) {
+    public WorkspaceCleaner(File cmtConsoleWorkDir) {
         this.cmtConsoleDir = cmtConsoleWorkDir.toPath();
         this.workspaceReportDir = this.cmtConsoleDir.resolve("workspace/cmt/report");
     }

@@ -13,7 +13,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.cmt.e2e.framework.db.containers.DatabaseContainer;
-import com.cmt.e2e.framework.db.Drivers;
+import com.cmt.e2e.framework.db.JdbcDriverJars;
 
 /**
  * Replaces placeholders in a migration-script XML template with actual
@@ -120,7 +120,7 @@ public class ScriptTemplateResolver {
             .replace("%%SOURCE_HOST%%", source.getHost())
             .replace("%%SOURCE_PORT%%", source.getDatabasePort().toString())
             .replace("%%SOURCE_DRIVER%%",
-                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+                JdbcDriverJars.latest(source.getDbType()).toAbsolutePath().toString());
     }
 
     private String replaceTarget(String content) {
@@ -128,7 +128,7 @@ public class ScriptTemplateResolver {
             .replace("%%TARGET_HOST%%", target.getHost())
             .replace("%%TARGET_PORT%%", target.getDatabasePort().toString())
             .replace("%%TARGET_DRIVER%%",
-                Drivers.latest(target.getDbType()).toAbsolutePath().toString());
+                JdbcDriverJars.latest(target.getDbType()).toAbsolutePath().toString());
     }
 
     public static Builder builder() {

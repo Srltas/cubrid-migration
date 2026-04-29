@@ -29,7 +29,7 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
 
     private TestPaths testPaths;
     private CommandRunner commandRunner;
-    private WorkspaceFixtures workspaceFixtures;
+    private WorkspaceCleaner workspaceCleaner;
     private Path cmtConsoleHome;
 
     public CmtTestContext() {}
@@ -60,17 +60,17 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
         this.commandRunner = new CommandRunner(cmtConsoleWorkDir);
         log.debug("CommandRunner initialized with working directory: {}", cmtConsoleHome);
 
-        // Initialize WorkspaceFixtures
-        this.workspaceFixtures = new WorkspaceFixtures(cmtConsoleWorkDir);
-        log.debug("WorkspaceFixtures initialized.");
+        // Initialize WorkspaceCleaner
+        this.workspaceCleaner = new WorkspaceCleaner(cmtConsoleWorkDir);
+        log.debug("WorkspaceCleaner initialized.");
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
         try {
-            if (workspaceFixtures != null) {
-                workspaceFixtures.cleanupWorkspace();
-                workspaceFixtures.cleanupOutput();
+            if (workspaceCleaner != null) {
+                workspaceCleaner.cleanupWorkspace();
+                workspaceCleaner.cleanupOutput();
             }
         } finally {
             // Clear MDC so the next test does not leak logs into _bootstrap.
@@ -82,7 +82,7 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
 
     public TestPaths testPaths() { return testPaths; }
     public CommandRunner commandRunner() { return commandRunner; }
-    public WorkspaceFixtures workspaceFixtures() { return workspaceFixtures; }
+    public WorkspaceCleaner workspaceCleaner() { return workspaceCleaner; }
 
     /**
      * Returns the resolved {@code CMT_CONSOLE_HOME} as a {@link Path}.

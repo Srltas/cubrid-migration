@@ -11,8 +11,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class Drivers {
-    private Drivers() {}
+public final class JdbcDriverJars {
+    private JdbcDriverJars() {}
 
     /** Override with system property: -De2e.driver.dir=/abs/path/to/driver */
     private static final String PROP_DIR = "e2e.driver.dir";
@@ -66,7 +66,7 @@ public final class Drivers {
                         " under " + dir + "\nLooked for patterns: " + PATTERNS.get(db));
                 }
 
-                candidates.sort(Comparator.comparing(Drivers::extractVersionTokens, Drivers::compareVersionLists).reversed());
+                candidates.sort(Comparator.comparing(JdbcDriverJars::extractVersionTokens, JdbcDriverJars::compareVersionLists).reversed());
                 return candidates.get(0).toAbsolutePath().normalize();
             } catch (IOException e) {
                 throw new RuntimeException(e);

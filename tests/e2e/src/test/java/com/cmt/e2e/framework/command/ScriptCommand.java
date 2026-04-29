@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ScriptCommand extends CmtCommand {
+public class ScriptCommand extends AbstractCmtCommand {
 
     private ScriptCommand(List<String> options) {
         super("script", options);

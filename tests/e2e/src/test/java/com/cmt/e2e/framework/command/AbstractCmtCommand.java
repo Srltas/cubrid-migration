@@ -5,12 +5,12 @@ import java.util.List;
 
 import com.cmt.e2e.framework.command.Command;
 
-public abstract class CmtCommand implements Command {
+public abstract class AbstractCmtCommand implements Command {
     protected static final String MIGRATION_SHELL = "./migration.sh";
     protected final String subCommand;
     protected  final List<String> options;
 
-    public CmtCommand(String subCommand, List<String> options) {
+    public AbstractCmtCommand(String subCommand, List<String> options) {
         this.subCommand = subCommand;
         this.options = options;
     }

@@ -1,6 +1,6 @@
 package com.cmt.e2e.framework.db.containers;
 
-import com.cmt.e2e.framework.db.Drivers.DB;
+import com.cmt.e2e.framework.db.JdbcDriverJars.DB;
 import org.testcontainers.lifecycle.Startable;
 
 /**

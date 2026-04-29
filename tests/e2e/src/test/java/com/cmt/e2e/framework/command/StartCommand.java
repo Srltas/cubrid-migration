@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StartCommand extends CmtCommand {
+public class StartCommand extends AbstractCmtCommand {
 
     private StartCommand(List<String> options) {
         super("start", options);

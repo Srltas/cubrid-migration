@@ -19,7 +19,7 @@ import com.cmt.e2e.framework.db.containers.MariaDbContainer;
 import com.cmt.e2e.framework.db.containers.MsSqlContainer;
 import com.cmt.e2e.framework.db.containers.MySqlContainer;
 import com.cmt.e2e.framework.db.containers.OracleContainer;
-import com.cmt.e2e.framework.db.Drivers;
+import com.cmt.e2e.framework.db.JdbcDriverJars;
 import com.cmt.e2e.framework.db.init.InformixDatabaseInitializer;
 import com.cmt.e2e.framework.db.init.MariadbDatabaseInitializer;
 import com.cmt.e2e.framework.db.init.MssqlDatabaseInitializer;
@@ -471,7 +471,7 @@ public final class RegenerateScripts {
             OracleContainer oracle = (OracleContainer) source;
             appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "oracle");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
-                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+                JdbcDriverJars.latest(source.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".host", oracle.getHost());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".port", oracle.getDatabasePort().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", oracle.getSid());
@@ -487,7 +487,7 @@ public final class RegenerateScripts {
             // when scanning user objects of the e2e seed.
             appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "cubrid");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
-                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+                JdbcDriverJars.latest(source.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", "e2e_db");
@@ -504,7 +504,7 @@ public final class RegenerateScripts {
             MySqlContainer mysql = (MySqlContainer) source;
             appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "mysql");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
-                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+                JdbcDriverJars.latest(source.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", mysql.getMainDatabase());
@@ -521,7 +521,7 @@ public final class RegenerateScripts {
             MariaDbContainer mariadb = (MariaDbContainer) source;
             appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "mariadb");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
-                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+                JdbcDriverJars.latest(source.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", mariadb.getMainDatabase());
@@ -545,7 +545,7 @@ public final class RegenerateScripts {
             MsSqlContainer mssql = (MsSqlContainer) source;
             appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "mssql");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
-                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+                JdbcDriverJars.latest(source.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", mssql.getDatabaseName());
@@ -572,7 +572,7 @@ public final class RegenerateScripts {
             InformixContainer informix = (InformixContainer) source;
             appendProperty(conf, SOURCE_CONFIG_NAME + ".type", "informix");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".driver",
-                Drivers.latest(source.getDbType()).toAbsolutePath().toString());
+                JdbcDriverJars.latest(source.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", informix.getDatabaseName());
@@ -595,7 +595,7 @@ public final class RegenerateScripts {
             || scenario == Scenario.INFORMIX_TO_CUBRID) {
             appendProperty(conf, TARGET_CONFIG_NAME + ".type", "cubrid");
             appendProperty(conf, TARGET_CONFIG_NAME + ".driver",
-                Drivers.latest(target.getDbType()).toAbsolutePath().toString());
+                JdbcDriverJars.latest(target.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, TARGET_CONFIG_NAME + ".host", target.getHost());
             appendProperty(conf, TARGET_CONFIG_NAME + ".port", target.getDatabasePort().toString());
             appendProperty(conf, TARGET_CONFIG_NAME + ".dbname", "e2e_db");
