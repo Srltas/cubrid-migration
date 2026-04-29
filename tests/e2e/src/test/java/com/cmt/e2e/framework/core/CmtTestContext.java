@@ -104,6 +104,13 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
     public WorkspaceFixtures workspaceFixtures() { return workspaceFixtures; }
 
     /**
+     * Returns the resolved {@code CMT_CONSOLE_HOME} as a {@link Path}.
+     * Used by smoke tests that need to assert on workspace files (logs,
+     * reports) created by {@code migration.sh} invocations.
+     */
+    public Path cmtConsoleHome() { return cmtConsoleHome; }
+
+    /**
      * Returns a validation wrapper around a dump migration output directory.
      * The CMT_CONSOLE_HOME path stays hidden; callers only use the migration name.
      *
