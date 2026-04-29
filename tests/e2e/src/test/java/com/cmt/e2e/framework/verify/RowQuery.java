@@ -46,7 +46,7 @@ public final class RowQuery {
 
     /** Single scalar — first column of first row. {@code null} if no rows. */
     public String firstColumn() {
-        try (Connection conn = DriverManager.getConnection(jdbcUrl());
+        try (Connection conn = DriverManager.getConnection(connection.cubridJdbcUrl());
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             if (!rs.next()) return null;
@@ -57,18 +57,12 @@ public final class RowQuery {
     }
 
     private String runAsTable() {
-        try (Connection conn = DriverManager.getConnection(jdbcUrl());
+        try (Connection conn = DriverManager.getConnection(connection.cubridJdbcUrl());
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             return Tabulator.format(rs);
         } catch (SQLException e) {
             throw new RuntimeException("Query failed: " + sql, e);
         }
-    }
-
-    private String jdbcUrl() {
-        ConnectionConfig c = connection;
-        return String.format("jdbc:cubrid:%s:%d:%s:%s:%s::",
-            c.host(), c.port(), c.dbname(), c.user(), c.password());
     }
 }

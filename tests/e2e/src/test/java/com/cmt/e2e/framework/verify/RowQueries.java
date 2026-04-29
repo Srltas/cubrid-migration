@@ -60,7 +60,7 @@ public final class RowQueries {
     public RowQueries matchesSnapshot(String name) {
         List<LabeledQuery> queries = parse(readFile(sqlFile));
         StringBuilder sb = new StringBuilder();
-        try (Connection conn = DriverManager.getConnection(jdbcUrl())) {
+        try (Connection conn = DriverManager.getConnection(connection.cubridJdbcUrl())) {
             for (int i = 0; i < queries.size(); i++) {
                 LabeledQuery q = queries.get(i);
                 if (i > 0) sb.append('\n');
@@ -145,9 +145,4 @@ public final class RowQueries {
         }
     }
 
-    private String jdbcUrl() {
-        ConnectionConfig c = connection;
-        return String.format("jdbc:cubrid:%s:%d:%s:%s:%s::",
-            c.host(), c.port(), c.dbname(), c.user(), c.password());
-    }
 }

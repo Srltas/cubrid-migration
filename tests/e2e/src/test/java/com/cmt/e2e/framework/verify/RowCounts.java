@@ -57,7 +57,7 @@ public final class RowCounts {
     // -------------------------------------------------------------------------
 
     private String collect() {
-        String url = jdbcUrl();
+        String url = connection.cubridJdbcUrl();
         List<List<String>> rows = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(url)) {
             for (String[] t : listUserTables(conn)) {
@@ -109,9 +109,4 @@ public final class RowCounts {
         }
     }
 
-    private String jdbcUrl() {
-        ConnectionConfig c = connection;
-        return String.format("jdbc:cubrid:%s:%d:%s:%s:%s::",
-            c.host(), c.port(), c.dbname(), c.user(), c.password());
-    }
 }

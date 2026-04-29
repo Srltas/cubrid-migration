@@ -29,4 +29,28 @@ public record ConnectionConfig(
         if (charset == null || charset.isBlank()) throw new IllegalArgumentException("charset must not be blank");
         // timezone may be null
     }
+
+    /**
+     * CUBRID JDBC URL for this connection. Used by the verify layer to
+     * introspect target catalog / row data.
+     *
+     * <p>The CUBRID JDBC driver rejects an empty password slot
+     * ({@code ...:user:::}) as "invalid URL". When {@code password} is
+     * empty we therefore use the slot-less form {@code ...:user::} —
+     * PoC convention.
+     *
+     * @throws IllegalStateException if {@link #type()} is not CUBRID
+     */
+    public String cubridJdbcUrl() {
+        if (type != DB.CUBRID) {
+            throw new IllegalStateException(
+                "cubridJdbcUrl() is CUBRID-specific (got " + type + ")");
+        }
+        if (password.isEmpty()) {
+            return String.format("jdbc:cubrid:%s:%d:%s:%s::",
+                host, port, dbname, user);
+        }
+        return String.format("jdbc:cubrid:%s:%d:%s:%s:%s::",
+            host, port, dbname, user, password);
+    }
 }

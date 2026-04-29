@@ -70,7 +70,7 @@ public final class CatalogSnapshot {
     // -------------------------------------------------------------------------
 
     private String runQueryAsTable(String sql) {
-        String url = jdbcUrl(connection);
+        String url = connection.cubridJdbcUrl();
         try (Connection conn = DriverManager.getConnection(url);
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
@@ -79,10 +79,5 @@ public final class CatalogSnapshot {
             throw new RuntimeException(
                 "Catalog query failed:\n  url: " + url + "\n  sql: " + sql, e);
         }
-    }
-
-    private static String jdbcUrl(ConnectionConfig c) {
-        return String.format("jdbc:cubrid:%s:%d:%s:%s:%s::",
-            c.host(), c.port(), c.dbname(), c.user(), c.password());
     }
 }
