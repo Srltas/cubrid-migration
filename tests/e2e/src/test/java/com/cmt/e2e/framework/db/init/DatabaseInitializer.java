@@ -8,35 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Flyway-based helper for initializing CUBRID test databases.
- *
- * <h2>Usage</h2>
- * <pre>{@code
- * // Apply scenario scripts after starting the container
- * CubridContainer source = CubridContainer.withEmptyDb();
- * source.start();
- * DatabaseInitializer.of(source, "cubdb", "public")
- *     .migrate("cubrid/my_scenario");
- * }</pre>
- *
- * <h2>Scenario Directory Layout</h2>
- * <pre>
- * src/test/resources/db/
- * └── cubrid/
- *     └── my_scenario/
- *         ├── V1__schema.sql
- *         └── V2__seed.sql
- * </pre>
- *
- * <h2>Key Methods</h2>
- * <ul>
- *   <li>{@link #migrate(String)} - applies {@code V*.sql} files from a scenario folder in order</li>
- *   <li>{@link #clean()} - removes all objects from the current DB when reusing containers</li>
- *   <li>{@link #reset(String)} - runs {@code clean()} and then {@code migrate()} to reapply from scratch</li>
- * </ul>
- *
- * <p><b>Note</b>: if every test starts a fresh container, {@code clean()} is unnecessary.
- * Use {@code reset()} only when reusing a container and needing isolation.
+ * Flyway-based helper for CUBRID test databases. Each {@link #migrate}
+ * call applies all {@code V*.sql} files in the given scenario folder in
+ * version order against the configured user.
  */
 public final class DatabaseInitializer {
 
@@ -57,28 +31,13 @@ public final class DatabaseInitializer {
         this.password  = password;
     }
 
-    /**
-     * Creates a {@code DatabaseInitializer} for a user that has no password
-     * (the default for {@code dba} / {@code public} on a fresh CUBRID).
-     *
-     * @param container already-started {@code CubridContainer}
-     * @param dbName database name to connect to (for example {@code cubdb})
-     * @param userName login user and Flyway default schema (for example {@code public})
-     */
+    /** Convenience overload for users without a password (e.g. {@code dba} on a fresh CUBRID). */
     public static DatabaseInitializer of(CubridContainer container,
                                          String dbName,
                                          String userName) {
         return of(container, dbName, userName, "");
     }
 
-    /**
-     * Creates a {@code DatabaseInitializer} for a user that has a password.
-     *
-     * <p>Useful when bootstrapping a multi-user CUBRID seed: each schema role
-     * (for example {@code MAIN_SCHEMA}, {@code REF_SCHEMA}) is created via
-     * {@link ClasspathSqlRunner} as {@code dba} and then Flyway runs as the
-     * new user.
-     */
     public static DatabaseInitializer of(CubridContainer container,
                                          String dbName,
                                          String userName,
@@ -90,15 +49,6 @@ public final class DatabaseInitializer {
         return new DatabaseInitializer(container, dbName, userName, password);
     }
 
-    /**
-     * Applies {@code V*.sql} files from the given scenario folder to the database.
-     *
-     * <p>{@code flyway_schema_history} is created automatically.
-     * Already-applied scripts are skipped.
-     *
-     * @param scenarioName relative path under {@code src/test/resources/db/}
-     * @throws DatabaseInitializationException if script execution fails
-     */
     public void migrate(String scenarioName) {
         if (scenarioName == null || scenarioName.isBlank()) {
             throw new IllegalArgumentException("scenarioName must not be blank");

@@ -12,97 +12,35 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 /**
- * IBM Informix 14.10 Developer Edition Testcontainer.
+ * IBM Informix 14.10 Developer Edition Testcontainer (image
+ * {@code icr.io/informix/informix-developer-database:14.10.FC7W1DE}).
  *
- * <h2>Image</h2>
- * {@code icr.io/informix/informix-developer-database:14.10.FC7W1DE}
- * - Free-for-development Developer Edition (no license file, just
- *   {@code LICENSE=accept} env). Distinct from Tibero, where every
- *   container needs a hostname-bound license file from TmaxSoft.
- * - <b>Apple Silicon caveat</b>: this image is amd64-only; on ARM
- *   Macs it runs under Rosetta/QEMU emulation and startup takes
- *   ~5 minutes. The {@code withStartupTimeout(Duration.ofMinutes(8))}
- *   below covers that.
+ * <p>JDBC URL: {@code jdbc:informix-sqli://host:port/dbname:INFORMIXSERVER=informix}
+ * — the {@code INFORMIXSERVER=informix} suffix is hardcoded by CMT 's
+ * {@code InformixDatabase.makeUrl}, so the env var below must match.
  *
- * <h2>Connection Info</h2>
- * <pre>
- *   Port      : 9088 (SQLI)
- *   Database  : e2e_db (created by init script)
- *   informix  : informix / in4mix       (default DBA / superuser)
- *   Main user : main_user / CmtMain#2026 (owner of MAIN_SCHEMA objects)
- *   Ref user  : ref_user  / CmtRef#2026  (owner of REF_SCHEMA objects)
- * </pre>
- *
- * <h2>JDBC URL Format</h2>
- * {@code jdbc:informix-sqli://host:port/dbname:INFORMIXSERVER=informix}
- * - The trailing {@code :INFORMIXSERVER=informix} is hardcoded by
- *   CMT 's {@code InformixDatabase.makeUrl} (line 85). The
- *   environment variable {@code INFORMIXSERVER} below MUST resolve
- *   to literal {@code informix} so that CMT 's URL matches the
- *   instance name.
- *
- * <h2>OS User Provisioning</h2>
- * Informix grants ({@code GRANT CONNECT}, {@code GRANT RESOURCE}) reference
- * OS-level accounts. Before running the SQL init script we
- * {@code useradd} the main_user and ref_user inside the running
- * container. This requires privileged mode.
- *
- * <h2>Init Script Strategy</h2>
- * Two steps after the server is up:
- * <ol>
- *   <li>{@code execInContainer} — useradd / passwd for main_user, ref_user</li>
- *   <li>{@code execInContainer} — dbaccess to run
- *       {@code db/informix/init/00_prepare_database.sql} (mounted to
- *       {@code /tmp/init.sql}) which creates {@code e2e_db} and grants
- *       CONNECT/RESOURCE to the new users</li>
- * </ol>
- *
- * <h2>Wait Strategy</h2>
- * The image emits {@code Maximum server connections 32} and other
- * lines as the engine warms up. We wait on the message that the
- * Tomcat-style listener prints once the SQLI port binds:
- * {@code "On-Bar*"} sequence finishes, and the Informix dynamic
- * server has booted.
- *
- * <h2>Usage</h2>
- * <pre>{@code
- * InformixContainer source = InformixContainer.withMainUser();
- * source.start();
- * }</pre>
- *
- * @see <a href="https://hub.docker.com/r/ibmcom/informix-developer-database/">Docker Hub: Informix Developer DB</a>
- * @see <a href="file:../../../../../../resources/db/informix/init/00_prepare_database.sql">db/informix/init/00_prepare_database.sql</a>
+ * <p>Image is amd64-only; on Apple Silicon it runs under emulation
+ * (~5 minute startup), hence the 8-minute startup timeout.
  */
 public class InformixContainer implements DatabaseContainer {
 
     private static final DockerImageName IMAGE =
         DockerImageName.parse("icr.io/informix/informix-developer-database:14.10.FC7W1DE");
 
-    private static final int    INFORMIX_PORT  = 9088;
-    private static final String DBA_USER       = "informix";
-    private static final String DBA_PASSWORD   = "in4mix";
+    private static final int    INFORMIX_PORT   = 9088;
+    private static final String DBA_USER        = "informix";
+    private static final String DBA_PASSWORD    = "in4mix";
     private static final String INFORMIX_SERVER = "informix";
+    private static final String DATABASE_NAME   = "e2e_db";
 
-    private static final String DATABASE_NAME = "e2e_db";
-
-    /**
-     * Main migration target user. Owns objects in MAIN_SCHEMA per
-     * SEED_SPEC §2 (Informix uses owner = current user; there is no
-     * separate "schema" namespace).
-     */
     private static final String MAIN_USER     = "main_user";
     private static final String MAIN_PASSWORD = "CmtMain#2026";
     private static final String MAIN_SCHEMA   = "main_user";
+    private static final String REF_USER      = "ref_user";
+    private static final String REF_PASSWORD  = "CmtRef#2026";
+    private static final String REF_SCHEMA    = "ref_user";
 
-    /**
-     * Cross-schema reference user. Owns REF_SCHEMA objects (multi-schema mode).
-     */
-    private static final String REF_USER     = "ref_user";
-    private static final String REF_PASSWORD = "CmtRef#2026";
-    private static final String REF_SCHEMA   = "ref_user";
-
-    private static final String INIT_CLASSPATH =
-        "db/informix/init/00_prepare_database.sql";
+    private static final String INIT_CLASSPATH      = "db/informix/init/00_prepare_database.sql";
     private static final String INIT_CONTAINER_PATH = "/tmp/init.sql";
 
     private final GenericContainer<?> container;
@@ -130,34 +68,8 @@ public class InformixContainer implements DatabaseContainer {
         this.container = c;
     }
 
-    /**
-     * Empty Informix instance (no e2e_db, only the default databases
-     * shipped with the image).
-     */
-    public static InformixContainer withEmptyDb() {
-        return new InformixContainer(false);
-    }
-
-    /**
-     * Informix instance with {@code e2e_db} created and both
-     * {@code main_user} and {@code ref_user} provisioned (OS user
-     * + CONNECT/RESOURCE grants applied via
-     * {@code db/informix/init/00_prepare_database.sql}).
-     *
-     * <h2>Initialization Order</h2>
-     * <pre>
-     * 1. Container boots; informix DBA exists.
-     * 2. start() waits for "Maximum server connections" log, then:
-     *    a. useradd main_user + chpasswd
-     *    b. useradd ref_user + chpasswd
-     *    c. dbaccess - {@code /tmp/init.sql}  (CREATE DATABASE + GRANTs)
-     * 3. InformixDatabaseInitializer.migrateRef("informix/ref_schema")  — ref_user
-     * 4. InformixDatabaseInitializer.migrateMain("informix/main_schema") — main_user
-     * </pre>
-     */
-    public static InformixContainer withMainUser() {
-        return new InformixContainer(true);
-    }
+    public static InformixContainer withEmptyDb()  { return new InformixContainer(false); }
+    public static InformixContainer withMainUser() { return new InformixContainer(true); }
 
     @Override
     public void start() {
@@ -174,17 +86,11 @@ public class InformixContainer implements DatabaseContainer {
     }
 
     /**
-     * Add an OS-level account inside the container.
-     *
-     * <p>The Informix Developer Edition image runs as the {@code informix}
-     * user (UID 1001), <b>not</b> root. Even with {@code --privileged}, a
-     * non-root process cannot lock {@code /etc/passwd}. The image grants
-     * the informix user passwordless sudo, so we prefix the privileged
-     * commands with {@code sudo} (verified in the official docker hub
-     * README — "The informix user has sudo privileges").
+     * The Developer Edition image runs as the {@code informix} user (UID 1001),
+     * not root, so {@code useradd} is invoked via {@code sudo}. The image
+     * grants informix passwordless sudo (per docker hub README).
      */
     private void createOsUser(String name, String password) throws Exception {
-        // -m creates a home dir; -s /bin/false because the user only logs in via SQLI.
         Container.ExecResult addRes = container.execInContainer(
             "sudo", "useradd", "-m", "-s", "/bin/false", name);
         if (addRes.getExitCode() != 0 && !addRes.getStderr().contains("already exists")) {
@@ -192,8 +98,6 @@ public class InformixContainer implements DatabaseContainer {
                 "useradd " + name + " failed (exit " + addRes.getExitCode() + ")\n"
                     + "stderr:\n" + addRes.getStderr());
         }
-        // chpasswd reads "user:password" lines on stdin. Use bash -c with a
-        // here-string so sudo runs the whole pipeline as root.
         Container.ExecResult pwdRes = container.execInContainer(
             "sudo", "bash", "-c",
             "echo '" + name + ":" + password + "' | chpasswd");
@@ -204,11 +108,6 @@ public class InformixContainer implements DatabaseContainer {
         }
     }
 
-    /**
-     * Apply {@code db/informix/init/00_prepare_database.sql} via dbaccess
-     * as the informix DBA. dbaccess runs the file in command mode with
-     * implicit transaction (CREATE DATABASE is its own logical commit).
-     */
     private void runInitSql() throws Exception {
         Container.ExecResult result = container.execInContainer(
             "bash", "-lc",
@@ -228,12 +127,6 @@ public class InformixContainer implements DatabaseContainer {
     @Override public DB      getDbType()       { return DB.INFORMIX; }
     @Override public GenericContainer<?> getContainer() { return container; }
 
-    /**
-     * Builds an Informix JDBC URL pointing at the named database.
-     * The {@code INFORMIXSERVER=informix} suffix matches the env var
-     * set on the container and is hardcoded in CMT 's
-     * {@code InformixDatabase.makeUrl}.
-     */
     @Override
     public String getJdbcUrl(String dbName, String user) {
         return String.format(
@@ -243,28 +136,14 @@ public class InformixContainer implements DatabaseContainer {
 
     @Override public Set<Startable> getDependencies() { return container.getDependencies(); }
 
-    /** Database name created by the init script. */
-    public String getDatabaseName() { return DATABASE_NAME; }
-
-    /** INFORMIXSERVER name (matches CMT 's hardcoded URL suffix). */
+    public String getDatabaseName()   { return DATABASE_NAME; }
     public String getInformixServer() { return INFORMIX_SERVER; }
-
-    /** Main migration user. */
-    public String getMainUser()     { return MAIN_USER; }
-    /** Password for {@link #getMainUser()}. */
-    public String getMainPassword() { return MAIN_PASSWORD; }
-    /** Schema (= owner) for objects created by main_user. */
-    public String getMainSchema()   { return MAIN_SCHEMA; }
-
-    /** Reference-schema user (multi-schema mode). */
-    public String getRefUser()     { return REF_USER; }
-    /** Password for {@link #getRefUser()}. */
-    public String getRefPassword() { return REF_PASSWORD; }
-    /** Schema (= owner) for objects created by ref_user. */
-    public String getRefSchema()   { return REF_SCHEMA; }
-
-    /** Informix DBA user. */
-    public String getDbaUser()     { return DBA_USER; }
-    /** DBA password. */
-    public String getDbaPassword() { return DBA_PASSWORD; }
+    public String getMainUser()       { return MAIN_USER; }
+    public String getMainPassword()   { return MAIN_PASSWORD; }
+    public String getMainSchema()     { return MAIN_SCHEMA; }
+    public String getRefUser()        { return REF_USER; }
+    public String getRefPassword()    { return REF_PASSWORD; }
+    public String getRefSchema()      { return REF_SCHEMA; }
+    public String getDbaUser()        { return DBA_USER; }
+    public String getDbaPassword()    { return DBA_PASSWORD; }
 }

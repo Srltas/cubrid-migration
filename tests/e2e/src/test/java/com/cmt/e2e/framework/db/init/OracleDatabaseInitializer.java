@@ -8,53 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Flyway-based helper for initializing Oracle test databases.
- *
- * <h2>Single-User Usage</h2>
- * <pre>{@code
- * OracleContainer source = OracleContainer.withEmptyDb();
- * source.start();
- * OracleDatabaseInitializer.of(source)
- *     .migrate("oracle/main_schema");
- * }</pre>
- *
- * <h2>Two-User Usage (cross-schema grant/synonym)</h2>
- * <pre>{@code
- * OracleContainer source = OracleContainer.withTwoUsers();
- * source.start();
- * OracleDatabaseInitializer.of(source)
- *     .migrateAs(source.getRefUser(),  source.getRefPassword(),
- *                "oracle/ref_schema")    // create reference table + grant to MAIN_SCHEMA
- *     .migrateAs(source.getMainUser(), source.getMainPassword(),
- *                "oracle/main_schema");  // create own objects + synonym
- * }</pre>
- *
- * <h2>Scenario Directory Layout</h2>
- * <pre>
- * src/test/resources/db/
- * └── oracle/
- *     ├── init/
- *     │   └── 00_prepare_database.sql      <- runs as SYSDBA at container startup
- *     ├── ref_schema/                      <- executed as REF_SCHEMA via migrateAs
- *     │   ├── V1__schema_ref_objects.sql
- *     │   ├── V2__data_ref_objects.sql
- *     │   └── V3__grants_to_main.sql
- *     └── main_schema/                     <- executed as MAIN_SCHEMA via migrateAs
- *         ├── V1__schema_business_tables.sql
- *         ├── V2__schema_views.sql
- *         ├── V3__schema_type_test_tables.sql
- *         ├── V4__schema_routines.sql
- *         ├── V5__synonyms.sql
- *         └── V99__data.sql
- * </pre>
- *
- * <h2>Oracle Schema Isolation</h2>
- * In Oracle, a user and a schema are the same concept.
- * Flyway connections under different users manage independent
- * {@code flyway_schema_history} tables in each schema without extra configuration.
- *
- * <p><b>Note</b>: {@link DatabaseInitializer} is CUBRID-specific.
- * Use this class for Oracle initialization.
+ * Flyway-based helper for Oracle test databases. In Oracle schema == user,
+ * so each {@link #migrateAs} call manages its own
+ * {@code flyway_schema_history} under the connecting user 's schema.
  */
 public final class OracleDatabaseInitializer {
 
@@ -69,36 +25,14 @@ public final class OracleDatabaseInitializer {
         this.container = container;
     }
 
-    /**
-     * Creates an {@code OracleDatabaseInitializer} instance.
-     *
-     * @param container already-started {@code OracleContainer}
-     */
     public static OracleDatabaseInitializer of(OracleContainer container) {
         if (container == null) throw new IllegalArgumentException("container must not be null");
         return new OracleDatabaseInitializer(container);
     }
 
     /**
-     * Connects as the specified user and applies scenario {@code V*.sql} files in version order.
-     *
-     * <p>Use this in two-user mode ({@code OracleContainer.withTwoUsers()}).
-     * Call it in {@code REF_SCHEMA -> MAIN_SCHEMA} order because
+     * In two-user mode call as {@code REF_SCHEMA → MAIN_SCHEMA} because
      * {@code MAIN_SCHEMA} synonyms reference {@code REF_SCHEMA} objects.
-     *
-     * <pre>{@code
-     * OracleDatabaseInitializer.of(sourceDb)
-     *     .migrateAs(sourceDb.getRefUser(),  sourceDb.getRefPassword(),
-     *                "oracle/ref_schema")
-     *     .migrateAs(sourceDb.getMainUser(), sourceDb.getMainPassword(),
-     *                "oracle/main_schema");
-     * }</pre>
-     *
-     * @param user Oracle user name (Oracle schema == user name)
-     * @param password user password
-     * @param scenarioName relative path under {@code src/test/resources/db/}
-     * @return {@code this} for chaining
-     * @throws DatabaseInitializationException if script execution fails
      */
     public OracleDatabaseInitializer migrateAs(String user, String password, String scenarioName) {
         if (user == null || user.isBlank()) {
@@ -140,21 +74,11 @@ public final class OracleDatabaseInitializer {
         return this;
     }
 
-    /**
-     * Builds a Flyway instance for the given user, password, and location.
-     * Because Oracle treats schema == user, both {@code defaultSchema} and
-     * {@code schemas} are set to the user name so Flyway tracks history
-     * in the correct schema.
-     */
     private Flyway buildFlyway(String location, String user, String password) {
-        // Oracle 11g XE: jdbc:oracle:thin:@host:port:XE
-        String jdbcUrl = container.getJdbcUrl(null, null);
-
         return Flyway.configure()
-            .dataSource(jdbcUrl, user, password)
+            .dataSource(container.getJdbcUrl(null, null), user, password)
             .driver(ORACLE_DRIVER)
-            // In Oracle, schema == user, so each user gets an independent
-            // flyway_schema_history automatically.
+            // Oracle: schema == user, so each user gets its own flyway_schema_history.
             .defaultSchema(user)
             .schemas(user)
             .locations(location)

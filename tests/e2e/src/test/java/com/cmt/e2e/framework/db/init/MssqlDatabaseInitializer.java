@@ -8,53 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Flyway-based helper for initializing MSSQL test databases.
- *
- * <h2>Usage</h2>
- * <pre>{@code
- * MsSqlContainer source = MsSqlContainer.withMainUser();
- * source.start();
- * MssqlDatabaseInitializer.of(source)
- *     .migrateRef("mssql/ref_schema")     // runs as ref_user, default schema=ref_schema
- *     .migrateMain("mssql/main_schema");  // runs as main_user, default schema=main_schema
- * }</pre>
- *
- * <h2>Scenario Directory Layout</h2>
- * <pre>
- * src/test/resources/db/
- * └── mssql/
- *     ├── init/
- *     │   └── 00_prepare_database.sql   <- runs via sqlcmd inside the container
- *     │                                    (mounted by MsSqlContainer.withMainUser)
- *     ├── ref_schema/                   <- runs as ref_user @ e2e_db (default schema=ref_schema)
- *     │   ├── V1__schema_ref_objects.sql
- *     │   └── V2__data_ref_objects.sql
- *     └── main_schema/                  <- runs as main_user @ e2e_db (default schema=main_schema)
- *         ├── V1__schema_business_tables.sql
- *         ├── V2__schema_views.sql
- *         ├── V3__schema_type_test_tables.sql
- *         ├── V4__schema_extensions.sql
- *         ├── V5__synonyms.sql
- *         └── V99__data.sql
- * </pre>
- *
- * <p>Multi-schema is the {@link MsSqlContainer.withMainUser()} default. If
- * the first run shows CMT MSSQL fetcher cannot extract objects from both
- * schemas, the seed collapses to single-schema (main_schema only) and
- * ref_schema becomes anti-coverage — see SEED_SPEC §1 / §2.
- *
- * <h2>MSSQL Schema vs Database</h2>
- * MSSQL separates database (catalog) and schema (namespace within a
- * database). One Flyway invocation connects to a single database via the
- * JDBC URL and Flyway 's {@code defaultSchema} pins the unqualified DDL
- * to a specific schema. We use the same {@code e2e_db} database for
- * both roles and switch only the user + default schema.
- *
- * <p><b>Note</b>: {@link DatabaseInitializer} is CUBRID-specific,
- * {@link OracleDatabaseInitializer} is Oracle-specific,
- * {@link MysqlDatabaseInitializer} is MySQL-specific,
- * {@link MariadbDatabaseInitializer} is MariaDB-specific. Use this class
- * for MSSQL initialization.
+ * Flyway-based helper for MSSQL test databases. MSSQL separates database
+ * (catalog) and schema (namespace within a database); both roles share
+ * the same {@code e2e_db} database and only the connecting user + Flyway
+ * {@code defaultSchema} differ.
  */
 public final class MssqlDatabaseInitializer {
 
@@ -69,20 +26,12 @@ public final class MssqlDatabaseInitializer {
         this.container = container;
     }
 
-    /**
-     * Creates an {@code MssqlDatabaseInitializer} instance.
-     *
-     * @param container already-started {@code MsSqlContainer}
-     */
     public static MssqlDatabaseInitializer of(MsSqlContainer container) {
         if (container == null) throw new IllegalArgumentException("container must not be null");
         return new MssqlDatabaseInitializer(container);
     }
 
-    /**
-     * Convenience: run a scenario as the container 's main user (
-     * {@code main_user}) against {@code main_schema} in the e2e database.
-     */
+    /** Convenience: run a scenario as main_user against main_schema in e2e_db. */
     public MssqlDatabaseInitializer migrateMain(String scenarioName) {
         return migrateAs(container.getDatabaseName(),
                          container.getMainSchema(),
@@ -92,10 +41,8 @@ public final class MssqlDatabaseInitializer {
     }
 
     /**
-     * Convenience: run a scenario as the container 's ref user (
-     * {@code ref_user}) against {@code ref_schema} in the e2e database.
-     * Use this in multi-schema mode before {@link #migrateMain} so cross-schema
-     * synonyms have their target object available.
+     * Convenience: run a scenario as ref_user against ref_schema. Call
+     * before {@link #migrateMain} so cross-schema synonym targets exist.
      */
     public MssqlDatabaseInitializer migrateRef(String scenarioName) {
         return migrateAs(container.getDatabaseName(),
@@ -105,19 +52,6 @@ public final class MssqlDatabaseInitializer {
                          scenarioName);
     }
 
-    /**
-     * Connects to the given database with the given user and applies
-     * scenario {@code V*.sql} files in version order, with Flyway 's
-     * {@code defaultSchema} set to the given schema.
-     *
-     * @param database     SQL Server database name (becomes the JDBC databaseName)
-     * @param schema       SQL Server schema (Flyway defaultSchema; default for unqualified DDL)
-     * @param user         login user
-     * @param password     login user 's password
-     * @param scenarioName relative path under {@code src/test/resources/db/}
-     * @return {@code this} for chaining
-     * @throws DatabaseInitializationException if script execution fails
-     */
     public MssqlDatabaseInitializer migrateAs(
             String database, String schema, String user, String password, String scenarioName) {
         if (database == null || database.isBlank()) {

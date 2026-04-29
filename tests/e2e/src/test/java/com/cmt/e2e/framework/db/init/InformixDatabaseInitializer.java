@@ -8,60 +8,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Flyway-based helper for initializing Informix test databases.
+ * Flyway-based helper for Informix test databases. Informix has no
+ * separate "schema" namespace — every object 's schema is its creating
+ * user, so {@link #migrateAs} 's {@code schema} arg matches the user.
  *
- * <h2>Usage</h2>
- * <pre>{@code
- * InformixContainer source = InformixContainer.withMainUser();
- * source.start();
- * InformixDatabaseInitializer.of(source)
- *     .migrateMain("informix/main_schema");  // runs as main_user @ e2e_db
- * }</pre>
+ * <p>{@code ref_schema} is absent (single-user pattern); see SEED_SPEC §1
+ * for the cross-schema anti-coverage rationale.
  *
- * <h2>Scenario Directory Layout</h2>
- * <pre>
- * src/test/resources/db/
- * └── informix/
- *     ├── init/
- *     │   └── 00_prepare_database.sql   <- runs via dbaccess inside the container
- *     │                                    (mounted by InformixContainer.withMainUser)
- *     └── main_schema/                  <- runs as main_user (owner = main_user)
- *         ├── V1__schema_business_tables.sql
- *         ├── V2__schema_views.sql
- *         ├── V3__schema_type_test_tables.sql
- *         ├── V4__schema_extensions.sql
- *         └── V99__data.sql
- * </pre>
- *
- * <p>{@code ref_schema} is intentionally absent. The first run confirmed
- * that CMT 's {@code InformixSchemaFetcher} writes an empty
- * {@code schema=""} attribute on source-side {@code <table>} elements
- * even when {@code getSchemas()} returns multiple owners, so multi-user
- * seed objects cannot be exported by CMT. Following the MySQL/MariaDB
- * pattern, the Informix seed collapses to single-user — see SEED_SPEC §1
- * anti-coverage entry on cross-schema.
- *
- * <h2>Informix Schema vs Owner</h2>
- * Informix has no separate "schema" namespace — every object 's schema is
- * its creating user. This initializer connects with different users for
- * MAIN_SCHEMA vs REF_SCHEMA migrations, and Flyway 's {@code defaultSchema}
- * is set to the connecting user 's name so {@code flyway_schema_history}
- * lands under that owner.
- *
- * <h2>Flyway Compatibility</h2>
- * Flyway 10.x discovers DB-specific {@code DatabaseType} implementations
- * via {@code java.util.ServiceLoader}. The
- * {@code org.flywaydb:flyway-database-informix:${flyway.version}}
- * community plugin registers the handler for
- * {@code jdbc:informix-sqli:} URLs. Without it, Flyway raises
- * "No database found to handle &lt;url&gt;" at migrate time.
- *
- * <p><b>Note</b>: {@link DatabaseInitializer} is CUBRID-specific,
- * {@link OracleDatabaseInitializer} is Oracle-specific,
- * {@link MysqlDatabaseInitializer} is MySQL-specific,
- * {@link MariadbDatabaseInitializer} is MariaDB-specific,
- * {@link MssqlDatabaseInitializer} is MSSQL-specific. Use this class
- * for Informix initialization.
+ * <p>Requires the {@code flyway-database-informix} plugin on the classpath
+ * — Flyway 10.x discovers {@code jdbc:informix-sqli:} support via
+ * ServiceLoader and would otherwise raise "No database found to handle ...".
  */
 public final class InformixDatabaseInitializer {
 
@@ -76,21 +32,12 @@ public final class InformixDatabaseInitializer {
         this.container = container;
     }
 
-    /**
-     * Creates an {@code InformixDatabaseInitializer} instance.
-     *
-     * @param container already-started {@code InformixContainer}
-     */
     public static InformixDatabaseInitializer of(InformixContainer container) {
         if (container == null) throw new IllegalArgumentException("container must not be null");
         return new InformixDatabaseInitializer(container);
     }
 
-    /**
-     * Convenience: run a scenario as the container 's main user
-     * ({@code main_user}) against {@code e2e_db}. All objects created
-     * land under owner = main_user (Informix has no separate schema).
-     */
+    /** Convenience: run a scenario as main_user against {@code e2e_db}. */
     public InformixDatabaseInitializer migrateMain(String scenarioName) {
         return migrateAs(container.getDatabaseName(),
                          container.getMainSchema(),
@@ -99,19 +46,6 @@ public final class InformixDatabaseInitializer {
                          scenarioName);
     }
 
-    /**
-     * Connects to the given database with the given user and applies
-     * scenario {@code V*.sql} files in version order.
-     *
-     * @param database     Informix database name (becomes the JDBC URL path)
-     * @param schema       Informix object owner (Flyway defaultSchema; for
-     *                     Informix this is the connecting user 's name)
-     * @param user         login user
-     * @param password     login user 's password
-     * @param scenarioName relative path under {@code src/test/resources/db/}
-     * @return {@code this} for chaining
-     * @throws DatabaseInitializationException if script execution fails
-     */
     public InformixDatabaseInitializer migrateAs(
             String database, String schema, String user, String password, String scenarioName) {
         if (database == null || database.isBlank()) {

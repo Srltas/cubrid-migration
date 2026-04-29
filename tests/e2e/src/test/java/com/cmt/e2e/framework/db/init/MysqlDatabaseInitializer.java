@@ -8,46 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Flyway-based helper for initializing MySQL test databases.
- *
- * <h2>Usage</h2>
- * <pre>{@code
- * MySqlContainer source = MySqlContainer.withMainUser();
- * source.start();
- * MysqlDatabaseInitializer.of(source)
- *     .migrate("mysql/main_schema");
- * }</pre>
- *
- * <h2>Scenario Directory Layout</h2>
- * <pre>
- * src/test/resources/db/
- * └── mysql/
- *     ├── init/
- *     │   └── 00_prepare_database.sql      <- runs as root at container startup
- *     │                                       (mounted by MySqlContainer.withMainUser)
- *     └── main_schema/                     <- executed as main_user via migrate / migrateMain
- *         ├── V1__schema_business_tables.sql
- *         ├── V2__schema_views.sql
- *         ├── V3__schema_type_test_tables.sql
- *         ├── V4__schema_extensions.sql
- *         ├── V5__schema_routines.sql
- *         └── V99__data.sql
- * </pre>
- *
- * <p>{@code ref_schema} is intentionally absent — see SEED_SPEC §1
- * anti-coverage: CMT MySQL fetcher does not implement {@code buildGrant} /
- * {@code buildSynonym} and collapses everything into a single connection-user
- * namespace.
- *
- * <h2>MySQL Schema Isolation</h2>
- * In MySQL, "schema" and "database" are synonyms. Each Flyway invocation
- * connects to a single database via the JDBC URL path component, and Flyway 's
- * {@code defaultSchema} is set to that database so the
- * {@code flyway_schema_history} table is created inside it.
- *
- * <p><b>Note</b>: {@link DatabaseInitializer} is CUBRID-specific,
- * {@link OracleDatabaseInitializer} is Oracle-specific. Use this class for
- * MySQL initialization.
+ * Flyway-based helper for MySQL test databases. MySQL "schema" == database;
+ * each {@link #migrateAs} call connects to one database and Flyway tracks
+ * {@code flyway_schema_history} inside it.
  */
 public final class MysqlDatabaseInitializer {
 
@@ -62,20 +25,12 @@ public final class MysqlDatabaseInitializer {
         this.container = container;
     }
 
-    /**
-     * Creates a {@code MysqlDatabaseInitializer} instance.
-     *
-     * @param container already-started {@code MySqlContainer}
-     */
     public static MysqlDatabaseInitializer of(MySqlContainer container) {
         if (container == null) throw new IllegalArgumentException("container must not be null");
         return new MysqlDatabaseInitializer(container);
     }
 
-    /**
-     * Convenience: run a scenario as the container 's main user against the
-     * main database.
-     */
+    /** Convenience: run a scenario as main_user against the main database. */
     public MysqlDatabaseInitializer migrateMain(String scenarioName) {
         return migrateAs(container.getMainDatabase(),
                          container.getMainUser(),
@@ -83,17 +38,6 @@ public final class MysqlDatabaseInitializer {
                          scenarioName);
     }
 
-    /**
-     * Connects as the specified user against the specified database and applies
-     * scenario {@code V*.sql} files in version order.
-     *
-     * @param database     MySQL database / schema name (becomes the JDBC URL path)
-     * @param user         login user
-     * @param password     login user 's password
-     * @param scenarioName relative path under {@code src/test/resources/db/}
-     * @return {@code this} for chaining
-     * @throws DatabaseInitializationException if script execution fails
-     */
     public MysqlDatabaseInitializer migrateAs(String database, String user, String password, String scenarioName) {
         if (database == null || database.isBlank()) {
             throw new IllegalArgumentException("database must not be blank");
