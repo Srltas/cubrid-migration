@@ -4,10 +4,15 @@ import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import java.util.List;
+
 import com.cmt.e2e.framework.command.CommandResult;
 import com.cmt.e2e.framework.source.Source;
 import com.cmt.e2e.framework.target.Target;
 import com.cmt.e2e.framework.verify.CatalogSnapshot;
+import com.cmt.e2e.framework.verify.RowCounts;
+import com.cmt.e2e.framework.verify.RowQueries;
+import com.cmt.e2e.framework.verify.RowQuery;
 
 /**
  * Outcome of one {@link Migration#run(Path)} call. Tests use this to
@@ -109,12 +114,42 @@ public final class MigrationOutcome {
      * Online-target only; throws on dump-file targets.
      */
     public CatalogSnapshot catalog() {
+        requireOnlineTarget("catalog()");
+        return new CatalogSnapshot(target.connection(), scenarioName);
+    }
+
+    /**
+     * Returns a row-count snapshot helper. With no arguments, all user
+     * tables (owner not in DBA/PUBLIC) are counted. Pass owner names to
+     * restrict (e.g. {@code rowCounts("MAIN_SCHEMA")}).
+     */
+    public RowCounts rowCounts(String... ownerSchemas) {
+        requireOnlineTarget("rowCounts()");
+        return new RowCounts(target.connection(), scenarioName, List.of(ownerSchemas));
+    }
+
+    /** Single arbitrary SQL query against the target. */
+    public RowQuery query(String sql) {
+        requireOnlineTarget("query()");
+        return new RowQuery(sql, target.connection(), scenarioName);
+    }
+
+    /**
+     * Run all queries from a labelled SQL file
+     * ({@code src/test/resources/queries/<scenario>.sql} by convention)
+     * and snapshot the concatenated output.
+     */
+    public RowQueries queries(java.nio.file.Path sqlFile) {
+        requireOnlineTarget("queries()");
+        return new RowQueries(sqlFile, target.connection(), scenarioName);
+    }
+
+    private void requireOnlineTarget(String op) {
         if (target.isDumpfile()) {
             throw new IllegalStateException(
-                "catalog() is for online targets; this is a dump-file scenario. "
+                op + " is for online targets; this is a dump-file scenario. "
                 + "Use dumpfile() instead (Phase 3.5).");
         }
-        return new CatalogSnapshot(target.connection(), scenarioName);
     }
 
     // -------------------------------------------------------------------------
