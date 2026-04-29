@@ -1,7 +1,8 @@
 -- Representative-row queries for the CUBRID → CUBRID migration test.
--- Same shape as oracle_to_cubrid.sql; values reflect the CUBRID e2e seed.
+-- Same scenario shape as oracle_to_cubrid.sql but referenced columns
+-- match the CUBRID seed (docs/seed/cubrid/SEED_SPEC.md §5).
 --
--- We connect to the target CUBRID as 'dba', so schema-qualification
+-- We connect to the target CUBRID as 'dba'; schema-qualification
 -- ("OWNER"."TABLE") is required.
 
 -- @label customer business values (id=1)
@@ -22,13 +23,13 @@ FROM "MAIN_SCHEMA"."e2e_employee" e
 JOIN "MAIN_SCHEMA"."e2e_employee" m ON m.employee_id = e.manager_id
 WHERE e.employee_id = 2;
 
--- @label text type R_MIN row (id=3)
-SELECT char_byte_col, varchar_char_col, nchar_col, nvarchar_col
+-- @label text type R_MIN row (id=3) — CUBRID columns
+SELECT char_col, varchar_col, nchar_col, nvarchar_col
 FROM "MAIN_SCHEMA"."e2e_text_types"
 WHERE id = 3;
 
--- @label numeric type R_REPRESENTATIVE row (id=6)
-SELECT integer_col, decimal_col, number_ps_col
+-- @label numeric type R_REPRESENTATIVE row (id=6) — CUBRID columns
+SELECT int_col, numeric_col, double_col
 FROM "MAIN_SCHEMA"."e2e_numeric_types"
 WHERE id = 6;
 

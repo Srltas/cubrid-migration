@@ -67,6 +67,24 @@ class ScriptXmlBuilderTest {
     }
 
     @Test
+    void strips_cubrid_system_schemas() {
+        String input = """
+            <schemas>
+                <schema source="MAIN_SCHEMA" target="MAIN_SCHEMA"/>
+                <schema source="REF_SCHEMA" target="REF_SCHEMA"/>
+                <schema source="DBA" target="DBA"/>
+                <schema source="PUBLIC" target="PUBLIC"/>
+            </schemas>
+            """;
+        String output = ScriptXmlBuilder.sanitize(input);
+        assertThat(output)
+            .contains("MAIN_SCHEMA")
+            .contains("REF_SCHEMA")
+            .doesNotContain("source=\"DBA\"")
+            .doesNotContain("source=\"PUBLIC\"");
+    }
+
+    @Test
     void strips_flyway_schema_history_multi_line_table_blocks() {
         // Mirrors CMT's actual output shape: <table ...>...</table>
         // with nested <columns> and <constraints>.

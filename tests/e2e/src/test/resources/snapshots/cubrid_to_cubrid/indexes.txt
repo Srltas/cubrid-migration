@@ -1,0 +1,19 @@
+ owner_name  | class_name            | index_name                         | is_unique | is_primary_key | is_foreign_key | key_count | have_function
+-------------+-----------------------+------------------------------------+-----------+----------------+----------------+-----------+---------------
+ MAIN_SCHEMA | e2e_binary_types      | pk_e2e_binary_types_id             | YES       | YES            | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_cubrid_enum_types | pk_e2e_cubrid_enum_types_id        | YES       | YES            | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_cubrid_json_types | pk_e2e_cubrid_json_types_id        | YES       | YES            | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_customer          | pk_e2e_customer_customer_id        | YES       | YES            | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_customer          | uk_e2e_customer_code               | YES       | NO             | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_employee          | fk_e2e_employee_manager            | NO        | NO             | YES            | 1         | NO
+ MAIN_SCHEMA | e2e_employee          | pk_e2e_employee_employee_id        | YES       | YES            | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_numeric_types     | pk_e2e_numeric_types_id            | YES       | YES            | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_order             | fk_e2e_order_customer              | NO        | NO             | YES            | 1         | NO
+ MAIN_SCHEMA | e2e_order             | idx_e2e_order_customer             | NO        | NO             | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_order             | idxd_e2e_order_ordered_at          | NO        | NO             | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_order             | pk_e2e_order_order_id              | YES       | YES            | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_order_line        | fk_e2e_order_line_order            | NO        | NO             | YES            | 1         | NO
+ MAIN_SCHEMA | e2e_order_line        | pk_e2e_order_line_order_id_line_no | YES       | YES            | NO             | 2         | NO
+ MAIN_SCHEMA | e2e_temporal_types    | pk_e2e_temporal_types_id           | YES       | YES            | NO             | 1         | NO
+ MAIN_SCHEMA | e2e_text_types        | pk_e2e_text_types_id               | YES       | YES            | NO             | 1         | NO
+ REF_SCHEMA  | e2e_ref_audit         | pk_e2e_ref_audit_audit_id          | YES       | YES            | NO             | 1         | NO

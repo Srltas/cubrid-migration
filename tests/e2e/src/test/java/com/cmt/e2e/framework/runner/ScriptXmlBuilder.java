@@ -128,6 +128,43 @@ public final class ScriptXmlBuilder {
             "(?m)\\s*<\\w+\\b[^>]*\\bname=\"flyway_schema_history\"[^>]*/>\\s*\\R?",
             "");
 
+        // (3) CUBRID system schemas (DBA, PUBLIC). When CMT introspects a
+        // CUBRID source as 'dba' it also picks up these system namespaces
+        // and emits <schema source="DBA"/> / <schema source="PUBLIC"/>.
+        // Migrating them fails ("system class cannot be created") and
+        // their data rows show up as record import failures. Strip them
+        // so only user schemas (MAIN_SCHEMA, REF_SCHEMA) are migrated.
+        content = content.replaceAll(
+            "(?m)\\s*<schema\\s+source=\"(?:DBA|PUBLIC)\"[^>]*/>\\s*\\R?",
+            "");
+
+        // (4) CMT anti-coverage tables. {@code e2e_cubrid_collection_types}
+        // exercises CUBRID-specific SET / LIST / SEQUENCE column types,
+        // which CMT cannot round-trip cleanly (records fail to import,
+        // breaking MIGRATION RESULT). The table is exercised by the
+        // CUBRID seed for completeness but is excluded from migration
+        // per docs/seed/cubrid/SEED_SPEC.md anti-coverage notes.
+        // No-op for non-CUBRID sources (the table doesn't exist there).
+        content = content.replaceAll(
+            "(?s)\\s*<table\\b[^>]*\\bname=\"e2e_cubrid_collection_types\"[^>]*>.*?</table>\\s*",
+            "\n            ");
+        content = content.replaceAll(
+            "(?m)\\s*<\\w+\\b[^>]*\\bname=\"e2e_cubrid_collection_types\"[^>]*/>\\s*\\R?",
+            "");
+
+        // (5) Functional indexes ({@code idxf_*}) on CUBRID source.
+        // CUBRIDSchemaFetcher does not emit the function expression, so
+        // CMT writes {@code fields=""} on the source-side <index> and
+        // a stub {@code <index name="idxf_..." target_name="idxf_..."/>}
+        // on the target side. Without the expression, the import fails.
+        // Strip both so they're absent from the migration plan
+        // entirely — anti-coverage on CUBRID source until the fetcher
+        // gains expression support. No-op for non-CUBRID sources (which
+        // don't use the {@code idxf_} naming convention).
+        content = content.replaceAll(
+            "(?m)\\s*<index\\b[^>]*\\bname=\"idxf_[^\"]*\"[^>]*/>\\s*\\R?",
+            "");
+
         return content;
     }
 
