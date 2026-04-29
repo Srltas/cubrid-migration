@@ -132,48 +132,6 @@ public final class DatabaseInitializer {
         }
     }
 
-    /**
-     * Removes every object in the current database schema
-     * such as tables, views, and sequences.
-     *
-     * <p>{@code flyway_schema_history} is also removed, so the next
-     * {@link #migrate(String)} starts from the beginning.
-     *
-     * <p><b>Warning</b>: use this only when reusing containers.
-     * It is unnecessary when each test starts a fresh container.
-     *
-     * @throws DatabaseInitializationException if clean fails
-     */
-    public void clean() {
-        log.info("[DatabaseInitializer] clean start: db='{}', user='{}'", dbName, userName);
-        try {
-            // clean() does not use locations, so pass a placeholder location.
-            buildFlyway(SCENARIO_BASE + "_clean_placeholder").clean();
-            log.info("[DatabaseInitializer] clean complete");
-        } catch (FlywayException e) {
-            throw new DatabaseInitializationException(
-                "Failed to clean db '" + dbName + "': " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Reinitializes the database from a clean state by running
-     * {@link #clean()} and then {@link #migrate(String)}.
-     *
-     * <p>Use this when reusing a container and resetting the schema before each test.
-     *
-     * @param scenarioName relative path under {@code src/test/resources/db/}
-     * @throws DatabaseInitializationException if the reset fails
-     */
-    public void reset(String scenarioName) {
-        clean();
-        migrate(scenarioName);
-    }
-
-    // -------------------------------------------------------------------------
-    // private helpers
-    // -------------------------------------------------------------------------
-
     private Flyway buildFlyway(String location) {
         String jdbcUrl = container.getJdbcUrl(dbName, userName);
         return Flyway.configure()
@@ -181,7 +139,7 @@ public final class DatabaseInitializer {
             .driver(CUBRID_DRIVER)
             .defaultSchema(userName)        // CUBRID: schema == user name
             .locations(location)
-            .cleanDisabled(false)           // allow clean() in tests
+            .cleanDisabled(true)
             // Fresh CUBRID users can already look "non-empty" to Flyway because
             // the cross-schema GRANT applied during ref_schema bootstrap leaves
             // catalog entries owned by the grantee. Baseline at version 0 so

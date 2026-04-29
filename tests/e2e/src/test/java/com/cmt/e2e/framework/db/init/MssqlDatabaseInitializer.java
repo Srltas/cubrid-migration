@@ -80,14 +80,6 @@ public final class MssqlDatabaseInitializer {
     }
 
     /**
-     * Convenience: run a scenario as the container 's main user against the
-     * main schema.
-     */
-    public MssqlDatabaseInitializer migrate(String scenarioName) {
-        return migrateMain(scenarioName);
-    }
-
-    /**
      * Convenience: run a scenario as the container 's main user (
      * {@code main_user}) against {@code main_schema} in the e2e database.
      */
@@ -189,7 +181,7 @@ public final class MssqlDatabaseInitializer {
             .defaultSchema(schema)          // MSSQL: schema is independent of database
             .schemas(schema)
             .locations(location)
-            .cleanDisabled(false)
+            .cleanDisabled(true)
             .baselineOnMigrate(false)
             .validateOnMigrate(true)
             .load();

@@ -87,14 +87,6 @@ public final class InformixDatabaseInitializer {
     }
 
     /**
-     * Convenience: run a scenario as the container 's main user against the
-     * main schema (= main_user 's owned objects).
-     */
-    public InformixDatabaseInitializer migrate(String scenarioName) {
-        return migrateMain(scenarioName);
-    }
-
-    /**
      * Convenience: run a scenario as the container 's main user
      * ({@code main_user}) against {@code e2e_db}. All objects created
      * land under owner = main_user (Informix has no separate schema).
@@ -205,7 +197,7 @@ public final class InformixDatabaseInitializer {
             // top-level test.* / migration.* fixtures via standard naming.
             .table("flyway_schema_history_" + schema)
             .locations(location)
-            .cleanDisabled(false)
+            .cleanDisabled(true)
             .baselineOnMigrate(false)
             .validateOnMigrate(true)
             .load();

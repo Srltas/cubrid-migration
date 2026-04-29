@@ -57,7 +57,7 @@ import static com.cmt.e2e.framework.assertion.DatabaseAsserts.row;
 public class MysqlToCubridTest {
 
     @RegisterExtension
-    final CmtTestContext ctx = CmtTestContext.builder().build();
+    final CmtTestContext ctx = new CmtTestContext();
 
     @Container
     private final MySqlContainer sourceDb = MySqlContainer.withMainUser();

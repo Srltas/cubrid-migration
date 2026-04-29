@@ -65,7 +65,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CliSmokeTest {
 
     @RegisterExtension
-    final CmtTestContext ctx = CmtTestContext.builder().build();
+    final CmtTestContext ctx = new CmtTestContext();
 
     // ---------------------------------------------------------------------
     // Group A — Dispatch routing

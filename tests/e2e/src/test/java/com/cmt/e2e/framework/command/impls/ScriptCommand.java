@@ -32,24 +32,6 @@ public class ScriptCommand extends CmtCommand {
             return this;
         }
 
-        /** @deprecated Use {@link #sourceConfig(String)}. */
-        @Deprecated
-        public Builder source(String source) {
-            return sourceConfig(source);
-        }
-
-        /** @deprecated Use {@link #targetConfig(String)}. */
-        @Deprecated
-        public Builder target(String target) {
-            return targetConfig(target);
-        }
-
-        /** @deprecated Use {@link #outputDir(String)}. */
-        @Deprecated
-        public Builder output(String outputPath) {
-            return outputDir(outputPath);
-        }
-
         public ScriptCommand build() {
             return new ScriptCommand(options);
         }

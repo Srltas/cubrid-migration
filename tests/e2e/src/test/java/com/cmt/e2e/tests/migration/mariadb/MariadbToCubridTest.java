@@ -49,7 +49,7 @@ import static com.cmt.e2e.framework.assertion.DatabaseAsserts.row;
 public class MariadbToCubridTest {
 
     @RegisterExtension
-    final CmtTestContext ctx = CmtTestContext.builder().build();
+    final CmtTestContext ctx = new CmtTestContext();
 
     @Container
     private final MariaDbContainer sourceDb = MariaDbContainer.withMainUser();

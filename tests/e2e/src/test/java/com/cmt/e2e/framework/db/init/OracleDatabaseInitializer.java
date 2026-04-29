@@ -80,20 +80,6 @@ public final class OracleDatabaseInitializer {
     }
 
     /**
-     * Applies the given scenario using the container main user ({@code MAIN_SCHEMA}).
-     *
-     * <p>Used for single-user scenarios. It supports chaining but is also fine
-     * as a standalone call.
-     *
-     * @param scenarioName relative path under {@code src/test/resources/db/}
-     * @return {@code this} for chaining
-     * @throws DatabaseInitializationException if script execution fails
-     */
-    public OracleDatabaseInitializer migrate(String scenarioName) {
-        return migrateAs(container.getMainUser(), container.getMainPassword(), scenarioName);
-    }
-
-    /**
      * Connects as the specified user and applies scenario {@code V*.sql} files in version order.
      *
      * <p>Use this in two-user mode ({@code OracleContainer.withTwoUsers()}).
@@ -155,32 +141,6 @@ public final class OracleDatabaseInitializer {
     }
 
     /**
-     * Removes all objects from the current main-user schema.
-     * Useful when reusing a container and unnecessary when each test starts a new one.
-     */
-    public void clean() {
-        log.info("[OracleDatabaseInitializer] clean start: user='{}'", container.getMainUser());
-        try {
-            buildFlyway(SCENARIO_BASE + "_clean_placeholder",
-                        container.getMainUser(), container.getMainPassword()).clean();
-            log.info("[OracleDatabaseInitializer] clean complete");
-        } catch (FlywayException e) {
-            throw new DatabaseInitializationException(
-                "Failed to clean Oracle schema '" + container.getMainUser() + "': " + e.getMessage(), e);
-        }
-    }
-
-    /** Runs {@link #clean()} and then {@link #migrate(String)} when reusing containers. */
-    public void reset(String scenarioName) {
-        clean();
-        migrate(scenarioName);
-    }
-
-    // ---------------------------------------------------------------------------
-    // Internal helpers
-    // ---------------------------------------------------------------------------
-
-    /**
      * Builds a Flyway instance for the given user, password, and location.
      * Because Oracle treats schema == user, both {@code defaultSchema} and
      * {@code schemas} are set to the user name so Flyway tracks history
@@ -198,7 +158,7 @@ public final class OracleDatabaseInitializer {
             .defaultSchema(user)
             .schemas(user)
             .locations(location)
-            .cleanDisabled(false)           // allow clean() in tests
+            .cleanDisabled(true)
             .baselineOnMigrate(false)
             .validateOnMigrate(true)
             .load();

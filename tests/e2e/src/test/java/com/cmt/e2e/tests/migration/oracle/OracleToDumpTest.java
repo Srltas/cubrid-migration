@@ -74,7 +74,7 @@ public class OracleToDumpTest {
         .build();
 
     @RegisterExtension
-    final CmtTestContext ctx = CmtTestContext.builder().build();
+    final CmtTestContext ctx = new CmtTestContext();
 
     @Container
     private final OracleContainer sourceDb = OracleContainer.withTwoUsers();

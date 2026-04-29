@@ -22,22 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * JUnit 5 extension that initializes the common components needed
- * by every E2E test.
- *
- * <p>Register this from a test class with {@code @RegisterExtension}.
- *
- * <pre>
- * class MyTest {
- *     {@literal @}RegisterExtension
- *     final CmtTestContext ctx = CmtTestContext.builder().build();
- *
- *     {@literal @}Test
- *     void myTest() throws Exception {
- *         CommandResult result = ctx.commandRunner().run(startCommand);
- *         // ... assertions ...
- *     }
- * }
- * </pre>
+ * by every E2E test. Register from a test class with
+ * {@code @RegisterExtension final CmtTestContext ctx = new CmtTestContext()}.
  */
 public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
     private static final Logger log = LoggerFactory.getLogger(CmtTestContext.class);
@@ -50,7 +36,7 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
     private WorkspaceFixtures workspaceFixtures;
     private Path cmtConsoleHome;
 
-    private CmtTestContext() {}
+    public CmtTestContext() {}
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
@@ -145,16 +131,6 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
                     + "' under " + outputBase);
         }
         return migrationDir;
-    }
-
-    // --- Builder ---
-
-    public static Builder builder() { return new Builder(); }
-
-    public static class Builder {
-        public CmtTestContext build() {
-            return new CmtTestContext();
-        }
     }
 
     // --- Internal ---

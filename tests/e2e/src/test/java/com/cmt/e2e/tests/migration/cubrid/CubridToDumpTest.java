@@ -65,7 +65,7 @@ public class CubridToDumpTest {
         .build();
 
     @RegisterExtension
-    final CmtTestContext ctx = CmtTestContext.builder().build();
+    final CmtTestContext ctx = new CmtTestContext();
 
     @Container
     private final DatabaseContainer sourceDb = CubridContainer.withEmptyDb();

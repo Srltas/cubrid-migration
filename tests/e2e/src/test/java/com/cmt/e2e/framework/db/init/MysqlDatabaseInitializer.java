@@ -74,16 +74,6 @@ public final class MysqlDatabaseInitializer {
 
     /**
      * Convenience: run a scenario as the container 's main user against the
-     * main database. Equivalent to
-     * {@link #migrateAs(String, String, String, String)
-     * migrateAs(getMainDatabase(), getMainUser(), getMainPassword(), scenarioName)}.
-     */
-    public MysqlDatabaseInitializer migrate(String scenarioName) {
-        return migrateMain(scenarioName);
-    }
-
-    /**
-     * Convenience: run a scenario as the container 's main user against the
      * main database.
      */
     public MysqlDatabaseInitializer migrateMain(String scenarioName) {
@@ -147,35 +137,6 @@ public final class MysqlDatabaseInitializer {
         return this;
     }
 
-    /**
-     * Removes all objects from the main database. Useful when reusing a
-     * container; unnecessary when each test starts a fresh one.
-     */
-    public void clean() {
-        log.info("[MysqlDatabaseInitializer] clean start: database='{}', user='{}'",
-            container.getMainDatabase(), container.getMainUser());
-        try {
-            buildFlyway(SCENARIO_BASE + "_clean_placeholder",
-                        container.getMainDatabase(),
-                        container.getMainUser(),
-                        container.getMainPassword()).clean();
-            log.info("[MysqlDatabaseInitializer] clean complete");
-        } catch (FlywayException e) {
-            throw new DatabaseInitializationException(
-                "Failed to clean MySQL database '" + container.getMainDatabase() + "': " + e.getMessage(), e);
-        }
-    }
-
-    /** Runs {@link #clean()} and then {@link #migrate(String)} when reusing containers. */
-    public void reset(String scenarioName) {
-        clean();
-        migrate(scenarioName);
-    }
-
-    // -------------------------------------------------------------------------
-    // private helpers
-    // -------------------------------------------------------------------------
-
     private Flyway buildFlyway(String location, String database, String user, String password) {
         // jdbc:mysql://host:port/database — the path component pins the connection
         // to one database, which Flyway also uses as defaultSchema for history tracking.
@@ -187,7 +148,7 @@ public final class MysqlDatabaseInitializer {
             .defaultSchema(database)        // MySQL: schema == database
             .schemas(database)
             .locations(location)
-            .cleanDisabled(false)           // allow clean() in tests
+            .cleanDisabled(true)
             .baselineOnMigrate(false)
             .validateOnMigrate(true)
             .load();

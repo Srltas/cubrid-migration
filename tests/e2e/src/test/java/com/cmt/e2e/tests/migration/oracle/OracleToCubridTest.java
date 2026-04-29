@@ -53,7 +53,7 @@ import static com.cmt.e2e.framework.assertion.CubridMetadataAsserts.synonym;
 public class OracleToCubridTest {
 
     @RegisterExtension
-    final CmtTestContext ctx = CmtTestContext.builder().build();
+    final CmtTestContext ctx = new CmtTestContext();
 
     @Container
     private final OracleContainer sourceDb = OracleContainer.withTwoUsers();
