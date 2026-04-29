@@ -76,10 +76,10 @@ public class CubridToDumpTest {
     void should_generateDumpFiles_when_sourceIsCubridE2eSeed() throws IOException, InterruptedException {
         // Arrange: bootstrap the two-user e2e seed.
         CubridContainer cubrid = (CubridContainer) sourceDb;
-        String dbaUrl = cubrid.getJdbcUrl("cubdb", "dba");
+        String dbaUrl = cubrid.getJdbcUrl("e2e_db", "dba");
         ClasspathSqlRunner.runDirectory(dbaUrl, "dba", "", "db/cubrid/init");
-        CubridDatabaseInitializer.of(cubrid, "cubdb", "REF_SCHEMA", "cmt").migrate("cubrid/ref_schema");
-        CubridDatabaseInitializer.of(cubrid, "cubdb", "MAIN_SCHEMA", "cmt").migrate("cubrid/main_schema");
+        CubridDatabaseInitializer.of(cubrid, "e2e_db", "REF_SCHEMA", "cmt").migrate("cubrid/ref_schema");
+        CubridDatabaseInitializer.of(cubrid, "e2e_db", "MAIN_SCHEMA", "cmt").migrate("cubrid/main_schema");
 
         ResolvedScript resolved = ScriptTemplateResolver.builder()
             .template(ctx.testPaths().getResourceDir().resolve("script.xml"))

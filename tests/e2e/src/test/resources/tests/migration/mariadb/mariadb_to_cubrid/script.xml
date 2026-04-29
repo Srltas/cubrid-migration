@@ -3,7 +3,7 @@
 <migration name="MARIADB_main_schema_202604280330" version="11.1.0" wizard_start_date_time="202604280330">
     <connections>
         <connection id="source" host="%%SOURCE_HOST%%" port="%%SOURCE_PORT%%" driver="%%SOURCE_DRIVER%%" name="main_schema" user="root" password="cmt" charset="utf8mb4" timezone="GMT+00:00" user_jdbc_url="" db_type="MARIADB"/>
-        <connection id="target" host="%%TARGET_HOST%%" port="%%TARGET_PORT%%" driver="%%TARGET_DRIVER%%" name="cubdb" user="dba" password="" charset="utf-8" timezone="" user_jdbc_url="" create_constraints_before_data="no" write_error_records="no" add_schema="yes"/>
+        <connection id="target" host="%%TARGET_HOST%%" port="%%TARGET_PORT%%" driver="%%TARGET_DRIVER%%" name="e2e_db" user="dba" password="" charset="utf-8" timezone="" user_jdbc_url="" create_constraints_before_data="no" write_error_records="no" add_schema="yes"/>
     </connections>
     <schemas>
         <schema source="ROOT" target="ROOT"/>

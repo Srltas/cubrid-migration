@@ -144,15 +144,15 @@ public final class RegenerateScripts {
 
                     // Bootstrap the two-user e2e seed (REF_SCHEMA + MAIN_SCHEMA)
                     // before CMT inspects the source database.
-                    String dbaUrl = source.getJdbcUrl("cubdb", "dba");
+                    String dbaUrl = source.getJdbcUrl("e2e_db", "dba");
                     com.cmt.e2e.framework.db.init.ClasspathSqlRunner.runDirectory(
                         dbaUrl, "dba", "", "db/cubrid/init");
 
                     com.cmt.e2e.framework.db.init.CubridDatabaseInitializer
-                        .of(source, "cubdb", "REF_SCHEMA", "cmt")
+                        .of(source, "e2e_db", "REF_SCHEMA", "cmt")
                         .migrate("cubrid/ref_schema");
                     com.cmt.e2e.framework.db.init.CubridDatabaseInitializer
-                        .of(source, "cubdb", "MAIN_SCHEMA", "cmt")
+                        .of(source, "e2e_db", "MAIN_SCHEMA", "cmt")
                         .migrate("cubrid/main_schema");
 
                     Path raw = runCmtScript(source, null, this);
@@ -171,15 +171,15 @@ public final class RegenerateScripts {
 
                     // Bootstrap the two-user e2e seed on the source only;
                     // the target receives the schema via CMT online migration.
-                    String dbaUrl = source.getJdbcUrl("cubdb", "dba");
+                    String dbaUrl = source.getJdbcUrl("e2e_db", "dba");
                     com.cmt.e2e.framework.db.init.ClasspathSqlRunner.runDirectory(
                         dbaUrl, "dba", "", "db/cubrid/init");
 
                     com.cmt.e2e.framework.db.init.CubridDatabaseInitializer
-                        .of(source, "cubdb", "REF_SCHEMA", "cmt")
+                        .of(source, "e2e_db", "REF_SCHEMA", "cmt")
                         .migrate("cubrid/ref_schema");
                     com.cmt.e2e.framework.db.init.CubridDatabaseInitializer
-                        .of(source, "cubdb", "MAIN_SCHEMA", "cmt")
+                        .of(source, "e2e_db", "MAIN_SCHEMA", "cmt")
                         .migrate("cubrid/main_schema");
 
                     Path raw = runCmtScript(source, target, this);
@@ -477,7 +477,7 @@ public final class RegenerateScripts {
             appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", oracle.getSid());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".user", oracle.getMainUser());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".password", oracle.getMainPassword());
-            appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "AL32UTF8");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "utf-8");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".timezone", "GMT+00:00");
             return;
         }
@@ -490,7 +490,7 @@ public final class RegenerateScripts {
                 Drivers.latest(source.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".host", source.getHost());
             appendProperty(conf, SOURCE_CONFIG_NAME + ".port", source.getDatabasePort().toString());
-            appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", "cubdb");
+            appendProperty(conf, SOURCE_CONFIG_NAME + ".dbname", "e2e_db");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".user", "dba");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".password", "");
             appendProperty(conf, SOURCE_CONFIG_NAME + ".charset", "utf-8");
@@ -598,7 +598,7 @@ public final class RegenerateScripts {
                 Drivers.latest(target.getDbType()).toAbsolutePath().toString());
             appendProperty(conf, TARGET_CONFIG_NAME + ".host", target.getHost());
             appendProperty(conf, TARGET_CONFIG_NAME + ".port", target.getDatabasePort().toString());
-            appendProperty(conf, TARGET_CONFIG_NAME + ".dbname", "cubdb");
+            appendProperty(conf, TARGET_CONFIG_NAME + ".dbname", "e2e_db");
             appendProperty(conf, TARGET_CONFIG_NAME + ".user", "dba");
             appendProperty(conf, TARGET_CONFIG_NAME + ".password", "");
             appendProperty(conf, TARGET_CONFIG_NAME + ".charset", "utf-8");

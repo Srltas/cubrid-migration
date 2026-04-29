@@ -101,10 +101,10 @@ public class OracleToCubridTest {
      *   - MAIN_SCHEMA Oracle extension     : oracle_locator_types 1
      */
     private void assertMigratedRows() {
-        DatabaseAsserts.expectRecords(targetDb, "cubdb", "REF_SCHEMA", Map.of(
+        DatabaseAsserts.expectRecords(targetDb, "e2e_db", "REF_SCHEMA", Map.of(
             "e2e_ref_audit", 1
         ));
-        DatabaseAsserts.expectRecords(targetDb, "cubdb", "MAIN_SCHEMA", Map.ofEntries(
+        DatabaseAsserts.expectRecords(targetDb, "e2e_db", "MAIN_SCHEMA", Map.ofEntries(
             Map.entry("e2e_customer",             4),
             Map.entry("e2e_order",                4),
             Map.entry("e2e_order_line",           4),
@@ -128,7 +128,7 @@ public class OracleToCubridTest {
     private void assertMigratedMetadata() {
         // Order matches the catalog query's ORDER BY owner_name, class_type, class_name:
         // MAIN_SCHEMA (alphabetically first) → CLASS rows → VCLASS row, then REF_SCHEMA.
-        CubridMetadataAsserts.expectClasses(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectClasses(targetDb, "e2e_db", List.of(
             clazz("MAIN_SCHEMA", "e2e_binary_types", "CLASS"),
             clazz("MAIN_SCHEMA", "e2e_customer", "CLASS"),
             clazz("MAIN_SCHEMA", "e2e_employee", "CLASS"),
@@ -144,7 +144,7 @@ public class OracleToCubridTest {
 
         // Order matches the catalog query's ORDER BY class_name, def_order:
         // e2e_customer → e2e_order → e2e_order_line → e2e_temporal_types alphabetically.
-        CubridMetadataAsserts.expectColumns(targetDb, "cubdb", "MAIN_SCHEMA", List.of(
+        CubridMetadataAsserts.expectColumns(targetDb, "e2e_db", "MAIN_SCHEMA", List.of(
             column("e2e_customer", "customer_id", 0, "NUMERIC", 10, 0, "NO"),
             column("e2e_customer", "customer_code", 1, "CHAR", 4, 0, "NO"),
             column("e2e_customer", "customer_name", 2, "STRING", 100, 0, "NO"),
@@ -181,7 +181,7 @@ public class OracleToCubridTest {
         //   pk_e2e_customer        -> pk_e2e_customer_customer_id
         //   pk_e2e_order_line      -> pk_e2e_order_line_order_id_line_no  (composite)
         // Order matches catalog query's ORDER BY class_name, index_name (alphabetical).
-        CubridMetadataAsserts.expectIndexes(targetDb, "cubdb", "MAIN_SCHEMA", List.of(
+        CubridMetadataAsserts.expectIndexes(targetDb, "e2e_db", "MAIN_SCHEMA", List.of(
             index("e2e_customer", "pk_e2e_customer_customer_id", true, true, false, 1, false),
             index("e2e_customer", "uk_e2e_customer_code", true, false, false, 1, false),
             index("e2e_employee", "fk_e2e_employee_manager", false, false, true, 1, false),
@@ -195,7 +195,7 @@ public class OracleToCubridTest {
             index("e2e_order_line", "pk_e2e_order_line_order_id_line_no", true, true, false, 2, false)
         ));
 
-        CubridMetadataAsserts.expectIndexKeys(targetDb, "cubdb", "MAIN_SCHEMA", List.of(
+        CubridMetadataAsserts.expectIndexKeys(targetDb, "e2e_db", "MAIN_SCHEMA", List.of(
             indexKey("e2e_customer", "pk_e2e_customer_customer_id", "customer_id", 0, "ASC"),
             indexKey("e2e_customer", "uk_e2e_customer_code", "customer_code", 0, "ASC"),
             indexKey("e2e_employee", "fk_e2e_employee_manager", "manager_id", 0, "ASC"),
@@ -211,20 +211,20 @@ public class OracleToCubridTest {
 
         // Sequence current_val mirrors Oracle's start value (5) per
         // oracle/SEED_SPEC.md §4.1; CMT preserves it as the next-to-be-issued value.
-        CubridMetadataAsserts.expectSerials(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectSerials(targetDb, "e2e_db", List.of(
             serial("e2e_customer_seq", "5", "1", "1"),
             serial("e2e_order_seq", "5", "1", "1")
         ));
-        CubridMetadataAsserts.expectSynonyms(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectSynonyms(targetDb, "e2e_db", List.of(
             synonym("MAIN_SCHEMA", "e2e_ref_audit_syn", "REF_SCHEMA", "e2e_ref_audit")
         ));
-        CubridMetadataAsserts.expectGrants(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectGrants(targetDb, "e2e_db", List.of(
             grant("REF_SCHEMA", "MAIN_SCHEMA", "CLASS", "e2e_ref_audit", "REF_SCHEMA", "DELETE", "NO"),
             grant("REF_SCHEMA", "MAIN_SCHEMA", "CLASS", "e2e_ref_audit", "REF_SCHEMA", "INSERT", "NO"),
             grant("REF_SCHEMA", "MAIN_SCHEMA", "CLASS", "e2e_ref_audit", "REF_SCHEMA", "SELECT", "NO"),
             grant("REF_SCHEMA", "MAIN_SCHEMA", "CLASS", "e2e_ref_audit", "REF_SCHEMA", "UPDATE", "NO")
         ));
-        CubridMetadataAsserts.expectRoutines(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectRoutines(targetDb, "e2e_db", List.of(
             routine("MAIN_SCHEMA", "e2e_customer_label_fn", "FUNCTION", "DEFINER"),
             routine("MAIN_SCHEMA", "e2e_upsert_customer_proc", "PROCEDURE", "DEFINER")
         ));
@@ -236,7 +236,7 @@ public class OracleToCubridTest {
      * e2e dataset — see SEED_SPEC §5 for the canonical battery rows.
      */
     private void assertRepresentativeData() {
-        DatabaseAsserts.expectQueryResults(targetDb, "cubdb", "MAIN_SCHEMA", List.of(
+        DatabaseAsserts.expectQueryResults(targetDb, "e2e_db", "MAIN_SCHEMA", List.of(
             QueryExpectation.of(
                 "customer business values",
                 """

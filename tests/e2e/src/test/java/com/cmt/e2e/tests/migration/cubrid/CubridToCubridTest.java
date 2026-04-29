@@ -76,10 +76,10 @@ public class CubridToCubridTest {
     void should_migrateToCubrid_when_sourceIsCubridE2eSeed() throws Exception {
         // Arrange: bootstrap the two-user e2e seed on the source.
         CubridContainer source = (CubridContainer) sourceDb;
-        String dbaUrl = source.getJdbcUrl("cubdb", "dba");
+        String dbaUrl = source.getJdbcUrl("e2e_db", "dba");
         ClasspathSqlRunner.runDirectory(dbaUrl, "dba", "", "db/cubrid/init");
-        CubridDatabaseInitializer.of(source, "cubdb", "REF_SCHEMA", "cmt").migrate("cubrid/ref_schema");
-        CubridDatabaseInitializer.of(source, "cubdb", "MAIN_SCHEMA", "cmt").migrate("cubrid/main_schema");
+        CubridDatabaseInitializer.of(source, "e2e_db", "REF_SCHEMA", "cmt").migrate("cubrid/ref_schema");
+        CubridDatabaseInitializer.of(source, "e2e_db", "MAIN_SCHEMA", "cmt").migrate("cubrid/main_schema");
 
         ResolvedScript resolved = ScriptTemplateResolver.builder()
             .template(ctx.testPaths().getResourceDir().resolve("script.xml"))
@@ -121,10 +121,10 @@ public class CubridToCubridTest {
      * data round-trip is covered by the dump-file scenario.
      */
     private void assertMigratedRows() {
-        DatabaseAsserts.expectRecords(targetDb, "cubdb", "REF_SCHEMA", Map.of(
+        DatabaseAsserts.expectRecords(targetDb, "e2e_db", "REF_SCHEMA", Map.of(
             "e2e_ref_audit", 1
         ));
-        DatabaseAsserts.expectRecords(targetDb, "cubdb", "MAIN_SCHEMA", Map.ofEntries(
+        DatabaseAsserts.expectRecords(targetDb, "e2e_db", "MAIN_SCHEMA", Map.ofEntries(
             Map.entry("e2e_customer",                  4),
             Map.entry("e2e_order",                     4),
             Map.entry("e2e_order_line",                4),
@@ -151,7 +151,7 @@ public class CubridToCubridTest {
     private void assertMigratedMetadata() {
         // Order matches the catalog query's ORDER BY owner_name, class_type, class_name:
         // MAIN_SCHEMA (alphabetically first) -> CLASS rows -> VCLASS row, then REF_SCHEMA.
-        CubridMetadataAsserts.expectClasses(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectClasses(targetDb, "e2e_db", List.of(
             clazz("MAIN_SCHEMA", "e2e_binary_types", "CLASS"),
             clazz("MAIN_SCHEMA", "e2e_cubrid_collection_types", "CLASS"),
             clazz("MAIN_SCHEMA", "e2e_cubrid_enum_types", "CLASS"),
@@ -171,7 +171,7 @@ public class CubridToCubridTest {
         // e2e_customer -> e2e_order -> e2e_order_line -> e2e_temporal_types alphabetically.
         // Note: db_attribute reports CUBRID native precision (INTEGER=10, SHORT=5)
         // unlike Oracle's catalog which leaves prec=0 for those types.
-        CubridMetadataAsserts.expectColumns(targetDb, "cubdb", "MAIN_SCHEMA", List.of(
+        CubridMetadataAsserts.expectColumns(targetDb, "e2e_db", "MAIN_SCHEMA", List.of(
             column("e2e_customer", "customer_id", 0, "INTEGER", 10, 0, "NO"),
             column("e2e_customer", "customer_code", 1, "CHAR", 4, 0, "NO"),
             column("e2e_customer", "customer_name", 2, "STRING", 100, 0, "NO"),
@@ -213,7 +213,7 @@ public class CubridToCubridTest {
         // does not capture the function expression or the reverse flag, so the
         // script.xml fixture drops both. Only standard B-tree indexes survive
         // the round-trip. Order matches catalog ORDER BY class_name, index_name.
-        CubridMetadataAsserts.expectIndexes(targetDb, "cubdb", "MAIN_SCHEMA", List.of(
+        CubridMetadataAsserts.expectIndexes(targetDb, "e2e_db", "MAIN_SCHEMA", List.of(
             index("e2e_customer", "pk_e2e_customer_customer_id", true, true, false, 1, false),
             index("e2e_customer", "uk_e2e_customer_code", true, false, false, 1, false),
             index("e2e_employee", "fk_e2e_employee_manager", false, false, true, 1, false),
@@ -226,7 +226,7 @@ public class CubridToCubridTest {
             index("e2e_order_line", "pk_e2e_order_line_order_id_line_no", true, true, false, 2, false)
         ));
 
-        CubridMetadataAsserts.expectIndexKeys(targetDb, "cubdb", "MAIN_SCHEMA", List.of(
+        CubridMetadataAsserts.expectIndexKeys(targetDb, "e2e_db", "MAIN_SCHEMA", List.of(
             indexKey("e2e_customer", "pk_e2e_customer_customer_id", "customer_id", 0, "ASC"),
             indexKey("e2e_customer", "uk_e2e_customer_code", "customer_code", 0, "ASC"),
             indexKey("e2e_employee", "fk_e2e_employee_manager", "manager_id", 0, "ASC"),
@@ -244,14 +244,14 @@ public class CubridToCubridTest {
         // CMT preserves it as the next-to-be-issued value. min_val=5 reflects
         // CUBRID's default behavior: when CREATE SERIAL omits MIN VALUE the
         // server adopts START WITH as the minimum, and that round-trips.
-        CubridMetadataAsserts.expectSerials(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectSerials(targetDb, "e2e_db", List.of(
             serial("e2e_customer_seq", "5", "1", "5"),
             serial("e2e_order_seq", "5", "1", "5")
         ));
-        CubridMetadataAsserts.expectSynonyms(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectSynonyms(targetDb, "e2e_db", List.of(
             synonym("MAIN_SCHEMA", "e2e_ref_audit_syn", "REF_SCHEMA", "e2e_ref_audit")
         ));
-        CubridMetadataAsserts.expectGrants(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectGrants(targetDb, "e2e_db", List.of(
             grant("REF_SCHEMA", "MAIN_SCHEMA", "CLASS", "e2e_ref_audit", "REF_SCHEMA", "DELETE", "NO"),
             grant("REF_SCHEMA", "MAIN_SCHEMA", "CLASS", "e2e_ref_audit", "REF_SCHEMA", "INSERT", "NO"),
             grant("REF_SCHEMA", "MAIN_SCHEMA", "CLASS", "e2e_ref_audit", "REF_SCHEMA", "SELECT", "NO"),
@@ -265,7 +265,7 @@ public class CubridToCubridTest {
      * CUBRID e2e dataset — see SEED_SPEC §3 / §5 for the canonical battery.
      */
     private void assertRepresentativeData() {
-        DatabaseAsserts.expectQueryResults(targetDb, "cubdb", "MAIN_SCHEMA", List.of(
+        DatabaseAsserts.expectQueryResults(targetDb, "e2e_db", "MAIN_SCHEMA", List.of(
             QueryExpectation.of(
                 "customer business values",
                 """

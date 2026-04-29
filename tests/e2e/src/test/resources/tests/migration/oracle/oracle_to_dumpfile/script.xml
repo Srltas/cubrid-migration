@@ -2,7 +2,7 @@
 
 <migration name="ORACLE_XE_202604210703" version="11.1.0" wizard_start_date_time="202604210703">
     <connections>
-        <connection id="source" host="%%SOURCE_HOST%%" port="%%SOURCE_PORT%%" driver="%%SOURCE_DRIVER%%" name="XE" user="MAIN_SCHEMA" password="cmt" charset="AL32UTF8" timezone="GMT+00:00" user_jdbc_url="" db_type="ORACLE"/>
+        <connection id="source" host="%%SOURCE_HOST%%" port="%%SOURCE_PORT%%" driver="%%SOURCE_DRIVER%%" name="XE" user="MAIN_SCHEMA" password="cmt" charset="utf-8" timezone="GMT+00:00" user_jdbc_url="" db_type="ORACLE"/>
     </connections>
     <schemas>
         <schema source="REF_SCHEMA" target="REF_SCHEMA"/>

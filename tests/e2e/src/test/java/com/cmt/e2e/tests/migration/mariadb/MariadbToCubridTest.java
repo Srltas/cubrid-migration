@@ -93,7 +93,7 @@ public class MariadbToCubridTest {
      * with a SPEC update.
      */
     private void assertMigratedRows() {
-        DatabaseAsserts.expectRecords(targetDb, "cubdb", "ROOT", Map.ofEntries(
+        DatabaseAsserts.expectRecords(targetDb, "e2e_db", "ROOT", Map.ofEntries(
             Map.entry("e2e_customer",            4),
             Map.entry("e2e_order",               4),
             Map.entry("e2e_order_line",          4),
@@ -109,7 +109,7 @@ public class MariadbToCubridTest {
 
     /** Sanity-check expected CUBRID classes. */
     private void assertMigratedClasses() {
-        CubridMetadataAsserts.expectClasses(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectClasses(targetDb, "e2e_db", List.of(
             clazz("ROOT", "e2e_binary_types", "CLASS"),
             clazz("ROOT", "e2e_customer", "CLASS"),
             clazz("ROOT", "e2e_employee", "CLASS"),
@@ -125,7 +125,7 @@ public class MariadbToCubridTest {
 
     /** Spot-check a representative row in each migrated table. */
     private void assertRepresentativeData() {
-        DatabaseAsserts.expectQueryResults(targetDb, "cubdb", "ROOT", List.of(
+        DatabaseAsserts.expectQueryResults(targetDb, "e2e_db", "ROOT", List.of(
             QueryExpectation.of(
                 "customer business values",
                 """

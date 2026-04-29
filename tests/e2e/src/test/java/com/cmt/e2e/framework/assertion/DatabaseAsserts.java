@@ -54,7 +54,7 @@ public class DatabaseAsserts {
      * Validates row counts for multiple tables in a single call.
      *
      * <pre>
-     * DatabaseAsserts.expectRecords(db, "cubdb", "MAIN_SCHEMA", Map.ofEntries(
+     * DatabaseAsserts.expectRecords(db, "e2e_db", "MAIN_SCHEMA", Map.ofEntries(
      *     Map.entry("e2e_customer",   4),
      *     Map.entry("e2e_order",      4),
      *     Map.entry("e2e_order_line", 4)

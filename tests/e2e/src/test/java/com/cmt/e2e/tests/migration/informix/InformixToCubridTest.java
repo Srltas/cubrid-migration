@@ -121,7 +121,7 @@ public class InformixToCubridTest {
      * implementation detail rather than CMT signal).
      */
     private void assertMigratedRows() {
-        DatabaseAsserts.expectRecords(targetDb, "cubdb", "MAIN_USER", Map.ofEntries(
+        DatabaseAsserts.expectRecords(targetDb, "e2e_db", "MAIN_USER", Map.ofEntries(
             Map.entry("e2e_customer",          4),
             Map.entry("e2e_order",             4),
             Map.entry("e2e_order_line",        4),
@@ -139,7 +139,7 @@ public class InformixToCubridTest {
      * value corruption.
      */
     private void assertRepresentativeData() {
-        DatabaseAsserts.expectQueryResults(targetDb, "cubdb", "MAIN_USER", List.of(
+        DatabaseAsserts.expectQueryResults(targetDb, "e2e_db", "MAIN_USER", List.of(
             QueryExpectation.of(
                 "customer business values",
                 """
@@ -178,7 +178,7 @@ public class InformixToCubridTest {
      * 메타데이터만 검증한다.
      */
     private void assertMigratedClasses() {
-        CubridMetadataAsserts.expectClasses(targetDb, "cubdb", List.of(
+        CubridMetadataAsserts.expectClasses(targetDb, "e2e_db", List.of(
             clazz("MAIN_USER", "e2e_binary_types",   "CLASS"),
             clazz("MAIN_USER", "e2e_customer",       "CLASS"),
             clazz("MAIN_USER", "e2e_employee",       "CLASS"),
