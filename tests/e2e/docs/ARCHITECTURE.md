@@ -251,6 +251,12 @@ explains the change in the commit message.
 | D2 | 0 | 2026-04-29 | Aligned-table snapshot format | §1, §7 |
 | D3 | 0 | 2026-04-29 | `script.xml` generated dynamically per test | §1 |
 | D4 | 0 | 2026-04-29 | DEFERRED DBs frozen on PoC, not imported | §1 |
+| D5 | 4.4 | 2026-04-29 | `WorkspaceCleaner.cleanupOutput()` runs in `@BeforeAll` to defeat CMT's append-mode dump output between class runs | §10 Phase 4.4 |
+| D6 | 4.4 | 2026-04-29 | `flyway_schema_history` is a seed implementation detail, not part of the migration contract — strip from generated `script.xml` and from catalog/RowCounts queries | §10 Phase 4.4 |
+| D7 | 5.2 | 2026-04-29 | CUBRID system schemas (`DBA`, `PUBLIC`) auto-introspected by `dba` connect — stripped from `<schemas>` in generated `script.xml` | CUBRID source only |
+| D8 | 5.2 | 2026-04-29 | CUBRID `e2e_cubrid_collection_types` (SET/LIST/SEQUENCE) is anti-coverage — CMT cannot round-trip CUBRID collection columns. Excluded at script-generation time | docs/seed/cubrid/SEED_SPEC.md anti-coverage |
+| D9 | 5.2 | 2026-04-29 | CUBRID functional indexes (`idxf_*`) are anti-coverage — `CUBRIDSchemaFetcher` does not emit the function expression. Excluded at script-generation time | CUBRID source only |
+| D10 | 5.3 | 2026-04-29 | CUBRID dump uses `one_table_one_file=true`. Single-file mode is non-deterministic (CMT does not stabilise the table order in the combined `_object` file) | overrides PoC default for CUBRID |
 
 Mid-implementation overrides land here as new rows.
 
@@ -260,13 +266,13 @@ Mid-implementation overrides land here as new rows.
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
-| 0 | Branch + ARCHITECTURE skeleton | **in progress** |
-| 1 | `framework/env`, `source`, `target`, `junit` (lifecycle) | pending |
-| 2 | `framework/runner` — Migration + ScriptXmlBuilder | pending |
-| 3 | `framework/verify` — SnapshotStore + CatalogQueries + Tabulator | pending |
-| 4 | Oracle TC ×2 + first snapshot capture | pending |
-| 5 | CUBRID TC ×2 + first snapshot capture | pending |
-| 6 | PoC asset cleanup (template/, RegenerateScripts, fixtures) | pending |
+| 0 | Branch + ARCHITECTURE skeleton | ✅ done |
+| 1 | `framework/env`, `source`, `target`, `junit` (lifecycle) | ✅ done |
+| 2 | `framework/runner` — Migration + ScriptXmlBuilder | ✅ done |
+| 3 | `framework/verify` — SnapshotStore + CatalogQueries + Tabulator | ✅ done |
+| 4 | Oracle TC ×2 + first snapshot capture | ✅ done |
+| 5 | CUBRID TC ×2 + first snapshot capture | ✅ done |
+| 6 | PoC asset cleanup (template/, RegenerateScripts, fixtures) | ✅ done |
 | 7 | CI + local mvn profiles + final docs | pending |
 
 Each phase ships as one or more commits on `e2e-v2`. Cutover to a PR

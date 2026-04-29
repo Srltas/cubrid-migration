@@ -16,15 +16,18 @@ import org.junit.jupiter.api.Test;
  * mirrors the directory tree CMT writes under
  * {@code $CMT_CONSOLE_HOME/output/<migration-name>/}.
  *
- * <p>Dump-file options match PoC: {@code file_prefix="demodb"} and
- * {@code one_table_one_file=false}.
+ * <p>Dump-file options: {@code file_prefix="demodb"},
+ * {@code one_table_one_file=true}. PoC used {@code false} (single
+ * combined data dump), but CMT does not stabilise the table order
+ * inside that combined file — snapshots fail under regression mode.
+ * Splitting per table gives a deterministic file-per-class layout.
  */
 @MigrationE2E(name = "cubrid_to_dumpfile")
 @DisplayName("CUB-DO: CUBRID e2e dataset → CMT dump file")
 class CubridToDumpTest extends AbstractMigrationE2E {
 
     @Override protected Source source() { return Sources.cubridE2eSeed(); }
-    @Override protected Target target() { return Targets.dumpFile("demodb", false); }
+    @Override protected Target target() { return Targets.dumpFile("demodb", true); }
 
     @Test
     @DisplayName("CMT exits 0 with MIGRATION RESULT: SUCCESS, no fatal stderr")
