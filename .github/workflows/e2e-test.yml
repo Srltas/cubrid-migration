@@ -11,6 +11,10 @@ on:
   schedule:
     # Nightly at 2:00 AM UTC
     - cron: '0 2 * * *'
+  # Manual trigger from the GitHub Actions UI. Useful for ad-hoc test
+  # runs against a feature branch (no PR required) and for debugging
+  # workflow changes before opening a PR.
+  workflow_dispatch:
 
 jobs:
   e2e:
