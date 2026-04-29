@@ -91,14 +91,24 @@ jobs:
           path: tests/e2e/target/surefire-reports/**
           if-no-files-found: ignore
 
-      # Per-test artifact dirs (resolved script.xml, test.log, captured
-      # dump output, diff.patch when goldens fail). Uploaded only on
-      # failure — surefire XML tells you WHICH test failed; this tells
-      # you WHY by giving the migration log and the dump-vs-golden diff.
+      # Per-test artifact dirs uploaded only on failure — surefire XML
+      # tells you WHICH test failed; these tell you WHY:
+      #
+      #   target/e2e/<Class>/<method>/test.log
+      #     Logback SiftingAppender per-test log (CMT stdout/stderr +
+      #     framework debug) routed via the testId MDC key. See
+      #     src/test/resources/logback-test.xml.
+      #
+      #   target/e2e-v2/<scenario>/script.xml + raw/
+      #     v2 Migration runner's per-scenario working dir — the
+      #     dynamically generated and sanitized script.xml plus the raw
+      #     CMT output that fed into it.
       - name: Upload E2E Failure Artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-failure-artifacts
-          path: tests/e2e/target/e2e/**
+          path: |
+            tests/e2e/target/e2e/**
+            tests/e2e/target/e2e-v2/**
           if-no-files-found: ignore
