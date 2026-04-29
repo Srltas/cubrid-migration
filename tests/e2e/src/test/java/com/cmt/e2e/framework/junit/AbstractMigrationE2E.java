@@ -3,6 +3,8 @@ package com.cmt.e2e.framework.junit;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.cmt.e2e.framework.core.WorkspaceCleaner;
+import com.cmt.e2e.framework.env.CmtConsoleEnv;
 import com.cmt.e2e.framework.runner.Migration;
 import com.cmt.e2e.framework.runner.MigrationOutcome;
 import com.cmt.e2e.framework.source.Source;
@@ -57,6 +59,13 @@ public abstract class AbstractMigrationE2E {
 
     @BeforeAll
     final void e2eStartup() throws Exception {
+        // Clean leftover output from any previous CMT run.
+        // CMT 's function/procedure dump files are append-mode within an
+        // output directory; without this, a second run on the same
+        // CMT_CONSOLE_HOME yields doubled snapshot content (catalog
+        // metadata is unaffected; this only matters for dump-file targets).
+        new WorkspaceCleaner(CmtConsoleEnv.resolve().toFile()).cleanupOutput();
+
         this.source = source();
         this.target = target();
         log.info("[{}] starting source ({}) and target", scenarioName(), source.type());

@@ -85,16 +85,3 @@ CREATE TABLE [MAIN_SCHEMA].[e2e_text_types](
 [nclob_col] varchar(1073741823)
 )
 ;
-CREATE TABLE [MAIN_SCHEMA].[flyway_schema_history](
-[installed_rank] int,
-[version] varchar(50),
-[description] varchar(200) NOT NULL,
-[type] varchar(20) NOT NULL,
-[script] varchar(1000) NOT NULL,
-[checksum] int,
-[installed_by] varchar(100) NOT NULL,
-[installed_on] timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-[execution_time] int NOT NULL,
-[success] numeric(1,0) NOT NULL
-)
-;

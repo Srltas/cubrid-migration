@@ -23,11 +23,17 @@ public final class CatalogQueries {
 
     private CatalogQueries() {}
 
+    // class_name NOT LIKE 'flyway_%' filters Flyway-generated metadata
+    // (flyway_schema_history + its index) from class/column/index queries.
+    // Flyway is a seed implementation detail, not part of the migration
+    // contract; filtering here keeps snapshots focused on user objects.
+
     private static final Map<String, String> QUERIES = Map.of(
         "classes", """
             SELECT owner_name, class_name, class_type
             FROM db_class
             WHERE owner_name NOT IN ('DBA', 'PUBLIC')
+              AND class_name NOT LIKE 'flyway_%'
             ORDER BY owner_name, class_type, class_name
             """,
         "columns", """
@@ -35,6 +41,7 @@ public final class CatalogQueries {
                    data_type, prec, scale, is_nullable
             FROM db_attribute
             WHERE owner_name NOT IN ('DBA', 'PUBLIC')
+              AND class_name NOT LIKE 'flyway_%'
             ORDER BY owner_name, class_name, def_order
             """,
         "indexes", """
@@ -42,6 +49,7 @@ public final class CatalogQueries {
                    is_primary_key, is_foreign_key, key_count, have_function
             FROM db_index
             WHERE owner_name NOT IN ('DBA', 'PUBLIC')
+              AND class_name NOT LIKE 'flyway_%'
             ORDER BY owner_name, class_name, index_name
             """,
         "index_keys", """
@@ -49,6 +57,7 @@ public final class CatalogQueries {
                    key_order, asc_desc, func
             FROM db_index_key
             WHERE owner_name NOT IN ('DBA', 'PUBLIC')
+              AND class_name NOT LIKE 'flyway_%'
             ORDER BY owner_name, class_name, index_name, key_order
             """,
         "serials", """

@@ -9,6 +9,5 @@
  MAIN_SCHEMA | e2e_order_line           | CLASS
  MAIN_SCHEMA | e2e_temporal_types       | CLASS
  MAIN_SCHEMA | e2e_text_types           | CLASS
- MAIN_SCHEMA | flyway_schema_history    | CLASS
  MAIN_SCHEMA | e2e_order_summary_v      | VCLASS
  REF_SCHEMA  | e2e_ref_audit            | CLASS

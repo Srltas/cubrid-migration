@@ -48,4 +48,57 @@ class ScriptXmlBuilderTest {
         String xml = "<migration name=\"CUBRID_e2e_db\" version=\"11.1.0\"/>";
         assertThat(ScriptXmlBuilder.extractMigrationName(xml)).isEqualTo("CUBRID_e2e_db");
     }
+
+    @Test
+    void strips_flyway_schema_history_self_closing_entries() {
+        String input = """
+            <tables>
+                <table name="e2e_customer" target="e2e_customer"/>
+                <table name="flyway_schema_history" target="flyway_schema_history"/>
+                <table name="e2e_order" target="e2e_order"/>
+                <sourceTable name="flyway_schema_history" schema="MAIN_SCHEMA"/>
+            </tables>
+            """;
+        String output = ScriptXmlBuilder.sanitize(input);
+        assertThat(output)
+            .contains("e2e_customer")
+            .contains("e2e_order")
+            .doesNotContain("flyway_schema_history");
+    }
+
+    @Test
+    void strips_flyway_schema_history_multi_line_table_blocks() {
+        // Mirrors CMT's actual output shape: <table ...>...</table>
+        // with nested <columns> and <constraints>.
+        String input = """
+            <tables>
+                <table schema="MAIN_SCHEMA" name="e2e_customer" target_name="e2e_customer">
+                    <columns>
+                        <column name="customer_id"/>
+                    </columns>
+                </table>
+                <table schema="MAIN_SCHEMA" name="flyway_schema_history" target_name="flyway_schema_history">
+                    <columns>
+                        <column name="installed_rank"/>
+                        <column name="version"/>
+                    </columns>
+                    <constraints>
+                        <index name="flyway_schema_history_s_idx" target_name="flyway_schema_history_s_idx"/>
+                    </constraints>
+                </table>
+                <table schema="MAIN_SCHEMA" name="e2e_order" target_name="e2e_order">
+                    <columns>
+                        <column name="order_id"/>
+                    </columns>
+                </table>
+            </tables>
+            """;
+        String output = ScriptXmlBuilder.sanitize(input);
+        assertThat(output)
+            .contains("e2e_customer")
+            .contains("e2e_order")
+            .doesNotContain("flyway_schema_history")
+            .doesNotContain("flyway_schema_history_s_idx")
+            .doesNotContain("installed_rank");
+    }
 }

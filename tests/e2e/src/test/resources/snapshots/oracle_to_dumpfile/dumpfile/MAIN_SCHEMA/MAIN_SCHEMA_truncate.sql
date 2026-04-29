@@ -7,4 +7,3 @@ TRUNCATE TABLE [MAIN_SCHEMA].[e2e_order];
 TRUNCATE TABLE [MAIN_SCHEMA].[e2e_order_line];
 TRUNCATE TABLE [MAIN_SCHEMA].[e2e_temporal_types];
 TRUNCATE TABLE [MAIN_SCHEMA].[e2e_text_types];
-TRUNCATE TABLE [MAIN_SCHEMA].[flyway_schema_history];

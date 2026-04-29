@@ -7,4 +7,3 @@ ALTER /*+ NO_STATS */ TABLE [MAIN_SCHEMA].[e2e_order] ADD PRIMARY KEY([order_id]
 ALTER /*+ NO_STATS */ TABLE [MAIN_SCHEMA].[e2e_order_line] ADD PRIMARY KEY([order_id],[line_no]);
 ALTER /*+ NO_STATS */ TABLE [MAIN_SCHEMA].[e2e_temporal_types] ADD PRIMARY KEY([id]);
 ALTER /*+ NO_STATS */ TABLE [MAIN_SCHEMA].[e2e_text_types] ADD PRIMARY KEY([id]);
-ALTER /*+ NO_STATS */ TABLE [MAIN_SCHEMA].[flyway_schema_history] ADD PRIMARY KEY([installed_rank]);

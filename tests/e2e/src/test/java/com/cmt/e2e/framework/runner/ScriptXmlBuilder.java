@@ -91,12 +91,20 @@ public final class ScriptXmlBuilder {
     // -------------------------------------------------------------------------
 
     /**
-     * Strips the trailing {@code _<12-digit timestamp>} (CMT's
-     * {@code yyyyMMddHHmm} format) from {@code <migration name="...">} and
-     * zeroes the {@code wizard_start_date_time} attribute. Both fields are
-     * CMT-generated wall-clock state irrelevant to migration correctness.
+     * Two-step normalization for snapshot determinism:
+     *
+     * <ol>
+     *   <li>Strip CMT's wall-clock state from migration metadata
+     *       ({@code <migration name>} timestamp suffix and
+     *       {@code wizard_start_date_time}).</li>
+     *   <li>Drop the Flyway-generated {@code flyway_schema_history}
+     *       table from the migration plan. It is a seed implementation
+     *       detail, not part of the migration contract; its data is also
+     *       wall-clock state which would break dump-file determinism.</li>
+     * </ol>
      */
     static String sanitize(String content) {
+        // (1) wall-clock state in <migration ...>
         // <migration name="CUBRID_e2e_db_202604062341" ...>
         //                                ^^^^^^^^^^^^^ strip (12 digits)
         content = content.replaceAll(
@@ -106,6 +114,20 @@ public final class ScriptXmlBuilder {
         content = content.replaceAll(
             "(wizard_start_date_time=\")\\d{12}(\")",
             "$1000000000000$2");
+
+        // (2) Flyway metadata removal. CMT references flyway_schema_history
+        // in two element shapes:
+        //   - self-closing tags carrying its name (sourceTable, table, etc.)
+        //   - multi-line <table ...>...</table> blocks with nested
+        //     <columns>/<constraints> on both source-side and target-side
+        // Strip both. (?s) = DOTALL so '.' matches newlines.
+        content = content.replaceAll(
+            "(?s)\\s*<table\\b[^>]*\\bname=\"flyway_schema_history\"[^>]*>.*?</table>\\s*",
+            "\n            ");
+        content = content.replaceAll(
+            "(?m)\\s*<\\w+\\b[^>]*\\bname=\"flyway_schema_history\"[^>]*/>\\s*\\R?",
+            "");
+
         return content;
     }
 

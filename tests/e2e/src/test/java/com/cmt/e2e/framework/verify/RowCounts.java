@@ -80,6 +80,7 @@ public final class RowCounts {
                 FROM db_class
                 WHERE class_type = 'CLASS'
                   AND owner_name NOT IN ('DBA', 'PUBLIC')
+                  AND class_name NOT LIKE 'flyway_%'
                 ORDER BY owner_name, class_name
                 """;
         } else {
@@ -88,7 +89,9 @@ public final class RowCounts {
                 .reduce((a, b) -> a + ", " + b)
                 .orElseThrow();
             sql = "SELECT owner_name, class_name FROM db_class "
-                + "WHERE class_type = 'CLASS' AND owner_name IN (" + inList + ") "
+                + "WHERE class_type = 'CLASS' "
+                + "  AND owner_name IN (" + inList + ") "
+                + "  AND class_name NOT LIKE 'flyway_%' "
                 + "ORDER BY owner_name, class_name";
         }
         try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
