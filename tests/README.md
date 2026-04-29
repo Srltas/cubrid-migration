@@ -108,17 +108,19 @@ tests/
 
 ## 새 source DB 추가 — 단계별
 
-(현재 Oracle / CUBRID 활성, 나머지 5 개는 DEFERRED 상태. 새 DB 추가 시 동일 흐름.)
+(현재 Oracle / CUBRID 활성. 나머지 source DB 는 PoC tag `poc-final`
+에 동결되어 있으며 v2 branch 에서는 사용하지 않는다. 새 DB 추가 시 동일 흐름.)
 
 1. CMT plugin 분석 — fetcher 의 anti-coverage 식별 (`buildSynonym` / `buildGrant` / 등 미구현 부분)
 2. `tests/e2e/docs/seed/<dbname>/SEED_SPEC.md` 작성 — 시드 설계 + anti-coverage 표
 3. `tests/e2e/src/test/resources/db/<dbname>/{init,main_schema}/V*.sql` 시드 SQL
 4. `tests/e2e/src/test/java/com/cmt/e2e/framework/db/containers/<XxxContainer>.java` + `init/<XxxDatabaseInitializer>.java`
-5. `Drivers.<XXX>` enum + `pom.xml` JDBC dependency
-6. `RegenerateScripts` 에 시나리오 추가
-7. 테스트 클래스 작성 (`<DbName>To{Cubrid,Dump}Test.java`)
-8. `bin/regenerate-scripts.sh <scenario>` 로 script.xml 픽스처 + dump goldens 생성
-9. 첫 회 실행 결과로 SEED_SPEC tentative 항목 확정
+5. `JdbcDriverJars.DB.<XXX>` enum + `pom.xml` JDBC dependency
+6. `framework/source/<XxxSource>.java` + `Sources.xxxE2eSeed()` 팩토리
+7. 테스트 클래스 (`<DbName>To{Cubrid,Dump}Test.java`) — `AbstractMigrationE2E` 상속
+8. `tests/e2e/src/test/resources/queries/<scenario>.sql` (representative SELECTs)
+9. 첫 capture: `mvn -Dsnapshot.update=true test -Dtest=<DbName>ToCubridTest`
+10. snapshot 파일 review → SEED_SPEC tentative 항목 확정
 
 ---
 
@@ -143,27 +145,28 @@ mkdir -p cmt-console
 tar xzf target/CUBRID-Migration-Toolkit-console-*.tar.gz \
     --strip-components=1 -C cmt-console
 
-# E2E 실행
+# E2E 실행 (Apple Silicon 은 docker compose 권장 — bundled JRE 가 amd64)
 export CMT_CONSOLE_HOME=<repo-root>/cmt-console
 cd tests/e2e
-mvn test
+docker compose run --rm e2e-test mvn test
 ```
 
-또는 docker-compose 로:
+특정 시나리오만:
 
 ```bash
-cd tests/e2e
-CMT_CONSOLE_HOME=<repo-root>/cmt-console docker compose run --rm e2e-test
+docker compose run --rm e2e-test mvn test -Dtest=OracleToCubridTest
+docker compose run --rm e2e-test mvn test -Dtest=CliSmokeTest
 ```
 
-특정 테스트만:
+Snapshot 캡처 / 갱신 (CMT 출력 변경을 의도적으로 받아들일 때):
 
 ```bash
-mvn test -Dtest='OracleToCubridTest'
-mvn test -Dtest='CliSmokeTest'
+docker compose run --rm e2e-test mvn test \
+    -Dtest='OracleToCubridTest,CubridToCubridTest' \
+    -Dsnapshot.update=true
 ```
 
-`@Disabled` 처리된 테스트 (MySQL / MariaDB / Informix / MSSQL / Tibero) 는 자동 skip.
+자세한 내용은 `tests/e2e/README.md` + `tests/e2e/docs/ARCHITECTURE.md`.
 
 ---
 
