@@ -7,9 +7,11 @@ import java.util.regex.Pattern;
 import java.util.List;
 
 import com.cmt.e2e.framework.command.CommandResult;
+import com.cmt.e2e.framework.env.CmtConsoleEnv;
 import com.cmt.e2e.framework.source.Source;
 import com.cmt.e2e.framework.target.Target;
 import com.cmt.e2e.framework.verify.CatalogSnapshot;
+import com.cmt.e2e.framework.verify.DumpSnapshot;
 import com.cmt.e2e.framework.verify.RowCounts;
 import com.cmt.e2e.framework.verify.RowQueries;
 import com.cmt.e2e.framework.verify.RowQuery;
@@ -46,15 +48,17 @@ public final class MigrationOutcome {
     private final Source source;
     private final Target target;
     private final Path scriptXml;
+    private final String migrationName;
     private final String scenarioName;
 
     public MigrationOutcome(CommandResult result, Source source, Target target,
-                            Path scriptXml, String scenarioName) {
-        this.result       = result;
-        this.source       = source;
-        this.target       = target;
-        this.scriptXml    = scriptXml;
-        this.scenarioName = scenarioName;
+                            Path scriptXml, String migrationName, String scenarioName) {
+        this.result        = result;
+        this.source        = source;
+        this.target        = target;
+        this.scriptXml     = scriptXml;
+        this.migrationName = migrationName;
+        this.scenarioName  = scenarioName;
     }
 
     // -------------------------------------------------------------------------
@@ -144,11 +148,28 @@ public final class MigrationOutcome {
         return new RowQueries(sqlFile, target.connection(), scenarioName);
     }
 
+    /**
+     * Returns a dump-file snapshot helper rooted at
+     * {@code $CMT_CONSOLE_HOME/output/<migration-name>/}.
+     * Dump-file target only.
+     */
+    public DumpSnapshot dumpfile() {
+        if (!target.isDumpfile()) {
+            throw new IllegalStateException(
+                "dumpfile() is for dump-file targets; this is an online migration. "
+                + "Use catalog() / rowCounts() / query() instead.");
+        }
+        Path outputBase = CmtConsoleEnv.resolve()
+            .resolve("output")
+            .resolve(migrationName);
+        return new DumpSnapshot(outputBase, scenarioName);
+    }
+
     private void requireOnlineTarget(String op) {
         if (target.isDumpfile()) {
             throw new IllegalStateException(
                 op + " is for online targets; this is a dump-file scenario. "
-                + "Use dumpfile() instead (Phase 3.5).");
+                + "Use dumpfile() instead.");
         }
     }
 

@@ -42,4 +42,10 @@ class ScriptXmlBuilderTest {
         String output = ScriptXmlBuilder.sanitize(input);
         assertThat(output).isEqualTo(input);
     }
+
+    @Test
+    void extractMigrationName_reads_attribute() {
+        String xml = "<migration name=\"CUBRID_e2e_db\" version=\"11.1.0\"/>";
+        assertThat(ScriptXmlBuilder.extractMigrationName(xml)).isEqualTo("CUBRID_e2e_db");
+    }
 }

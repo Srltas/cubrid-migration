@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.cmt.e2e.framework.command.CommandResult;
 import com.cmt.e2e.framework.command.CommandRunner;
@@ -34,14 +36,19 @@ public final class ScriptXmlBuilder {
 
     private ScriptXmlBuilder() {}
 
+    /** Result of {@link #generate} — sanitized script path + migration name. */
+    public record Result(Path scriptXml, String migrationName) {}
+
     /**
      * @param consoleHome  path to {@code CMT_CONSOLE_HOME}
      * @param dbConf       full {@code db.conf} text (use {@link DbConfBuilder})
      * @param outputDir    where to place the sanitized {@code script.xml}.
      *                     A {@code raw/} subdir holds the unsanitized CMT output.
-     * @return absolute path to the sanitized {@code script.xml}
+     * @return path to the sanitized {@code script.xml} and the deterministic
+     *         {@code <migration name="...">} value (CMT writes dump output
+     *         under {@code $CMT_CONSOLE_HOME/output/<name>/...})
      */
-    public static Path generate(Path consoleHome, String dbConf, Path outputDir) throws Exception {
+    public static Result generate(Path consoleHome, String dbConf, Path outputDir) throws Exception {
         Files.createDirectories(outputDir);
         Path rawDir = outputDir.resolve("raw");
         recreateDirectory(rawDir);
@@ -68,7 +75,15 @@ public final class ScriptXmlBuilder {
         String sanitized = sanitize(Files.readString(raw));
         Path out = outputDir.resolve("script.xml");
         Files.writeString(out, sanitized);
-        return out.toAbsolutePath();
+        return new Result(out.toAbsolutePath(), extractMigrationName(sanitized));
+    }
+
+    static String extractMigrationName(String content) {
+        Matcher m = Pattern.compile("<migration\\s+name=\"([^\"]+)\"").matcher(content);
+        if (!m.find()) {
+            throw new IllegalStateException("script.xml missing <migration name=...>");
+        }
+        return m.group(1);
     }
 
     // -------------------------------------------------------------------------

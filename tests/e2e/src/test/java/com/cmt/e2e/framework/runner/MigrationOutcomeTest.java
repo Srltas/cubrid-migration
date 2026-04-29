@@ -75,6 +75,6 @@ class MigrationOutcomeTest {
     }
 
     private MigrationOutcome outcome(CommandResult result) {
-        return new MigrationOutcome(result, null, null, null, "smoke_unit_test");
+        return new MigrationOutcome(result, null, null, null, "MIGRATION_NAME", "smoke_unit_test");
     }
 }

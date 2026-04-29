@@ -59,14 +59,18 @@ public final class Migration {
         String dbConf = DbConfBuilder.build(source, target);
         log.debug("[Migration] db.conf built ({} chars)", dbConf.length());
 
-        Path scriptXml = ScriptXmlBuilder.generate(consoleHome, dbConf, workDir);
-        log.info("[Migration] script.xml generated: {}", scriptXml);
+        ScriptXmlBuilder.Result generated = ScriptXmlBuilder.generate(consoleHome, dbConf, workDir);
+        log.info("[Migration] script.xml generated: {} (migration name: {})",
+            generated.scriptXml(), generated.migrationName());
 
-        StartCommand cmd = StartCommand.builder().script(scriptXml).build();
+        StartCommand cmd = StartCommand.builder().script(generated.scriptXml()).build();
         CommandRunner runner = new CommandRunner(consoleHome.toFile());
         CommandResult result = runner.run(cmd);
         log.info("[Migration] start exited with {}", result.exitCode());
 
-        return new MigrationOutcome(result, source, target, scriptXml, scenarioName);
+        return new MigrationOutcome(
+            result, source, target,
+            generated.scriptXml(), generated.migrationName(),
+            scenarioName);
     }
 }
