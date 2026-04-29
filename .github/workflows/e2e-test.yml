@@ -49,6 +49,18 @@ jobs:
           NO_COLOR: '1'
           CLICOLOR: '0'
           TERM: dumb
+          # Oracle 11g XE ships an old timezone file (v4) that does not
+          # recognize newer region IDs (UTC, Asia/Seoul, ...). If ojdbc8
+          # sends the JVM timezone as a region name during authentication,
+          # Oracle raises "ORA-01882: timezone region not found".
+          #
+          # Forcing the driver to send a numeric UTC offset (e.g. +00:00)
+          # instead bypasses the lookup. JAVA_TOOL_OPTIONS is honored by
+          # every child JVM (Maven, Surefire fork, the migration.sh CMT
+          # process), so the property reaches the actual JDBC connection
+          # site even though that runs in a separate process tree.
+          # docker-compose.yml has the same setting for local runs.
+          JAVA_TOOL_OPTIONS: -Doracle.jdbc.timezoneAsRegion=false
         run: |
           mvn -B clean test \
             -Dmaven.test.failure.ignore=true \
