@@ -12,7 +12,6 @@ import com.cmt.e2e.framework.junit.annotation.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.junit.jupiter.Container;
@@ -35,7 +34,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * on the first run and should be reconciled by updating either the manifest
  * or the golden files (whichever is the truth).
  */
-@Tag("db-required")
 @Testcontainers
 @DisplayName("ORA-DO-01: Oracle e2e dataset -> dump file migration")
 public class OracleToDumpTest {

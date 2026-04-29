@@ -16,7 +16,6 @@ import com.cmt.e2e.framework.junit.annotation.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.junit.jupiter.Container;
@@ -42,7 +41,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * into the resource directory. The manifest below is the best-known shape;
  * any discrepancies surface as DumpGoldenVerifier failures on the first run.
  */
-@Tag("db-required")
 @Testcontainers
 @DisplayName("CUB-DO-01: CUBRID e2e dataset -> dump file migration")
 public class CubridToDumpTest {

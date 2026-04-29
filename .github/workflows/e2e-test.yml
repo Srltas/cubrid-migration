@@ -57,7 +57,11 @@ jobs:
         with:
           check_name: E2E Test Results
           files: tests/e2e/target/surefire-reports/*.xml
-          comment_mode: always
+          # 'failures' keeps the PR conversation clean: no comment when the
+          # suite is green, only when there is something to act on.
+          # ('always' previously added a fresh comment on every no-op
+          # rebase / force-push.)
+          comment_mode: failures
           report_individual_runs: true
           check_run_annotations: all tests, skipped tests
           action_fail: true
@@ -69,4 +73,16 @@ jobs:
         with:
           name: surefire-reports
           path: tests/e2e/target/surefire-reports/**
+          if-no-files-found: ignore
+
+      # Per-test artifact dirs (resolved script.xml, test.log, captured
+      # dump output, diff.patch when goldens fail). Uploaded only on
+      # failure — surefire XML tells you WHICH test failed; this tells
+      # you WHY by giving the migration log and the dump-vs-golden diff.
+      - name: Upload E2E Failure Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure-artifacts
+          path: tests/e2e/target/e2e/**
           if-no-files-found: ignore

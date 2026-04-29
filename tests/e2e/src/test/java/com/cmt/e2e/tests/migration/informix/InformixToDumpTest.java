@@ -16,7 +16,6 @@ import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.junit.jupiter.Container;
@@ -40,7 +39,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * {@code DumpGoldenVerifier} failures on the first run.
  */
 @Disabled("DEFERRED — see docs/seed/informix/SEED_SPEC.md §0.")
-@Tag("db-required")
 @Testcontainers
 @DisplayName("IFX-DO-01: Informix e2e dataset -> dump file migration")
 public class InformixToDumpTest {

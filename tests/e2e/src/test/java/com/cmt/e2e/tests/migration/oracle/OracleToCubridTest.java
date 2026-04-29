@@ -18,7 +18,6 @@ import com.cmt.e2e.framework.junit.annotation.TestResources;
 import com.cmt.e2e.framework.template.ResolvedScript;
 import com.cmt.e2e.framework.template.ScriptTemplateResolver;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.junit.jupiter.Container;
@@ -49,7 +48,6 @@ import static com.cmt.e2e.framework.assertion.CubridMetadataAsserts.synonym;
  * mismatches against the first successful run rather than treating the
  * initial assertions as ground truth.
  */
-@Tag("db-required")
 @Testcontainers
 @DisplayName("ORA-ON-01: Oracle e2e dataset -> CUBRID online migration")
 public class OracleToCubridTest {
