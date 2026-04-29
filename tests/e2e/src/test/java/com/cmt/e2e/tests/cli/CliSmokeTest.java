@@ -3,8 +3,8 @@ package com.cmt.e2e.tests.cli;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.cmt.e2e.framework.command.execution.CommandResult;
-import com.cmt.e2e.framework.command.impls.RawCommand;
+import com.cmt.e2e.framework.command.CommandResult;
+import com.cmt.e2e.framework.command.RawCommand;
 import com.cmt.e2e.framework.core.CmtTestContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

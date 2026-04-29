@@ -1,4 +1,4 @@
-package com.cmt.e2e.framework.command.impls;
+package com.cmt.e2e.framework.command;
 
 import java.util.Arrays;
 import java.util.List;

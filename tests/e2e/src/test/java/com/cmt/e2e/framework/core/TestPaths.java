@@ -1,7 +1,5 @@
 package com.cmt.e2e.framework.core;
 
-import com.cmt.e2e.framework.junit.TestResources;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;

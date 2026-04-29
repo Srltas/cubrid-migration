@@ -2,7 +2,7 @@ package com.cmt.e2e.framework.db.containers;
 
 import java.time.Duration;
 
-import com.cmt.e2e.framework.db.driver.Drivers.DB;
+import com.cmt.e2e.framework.db.Drivers.DB;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;

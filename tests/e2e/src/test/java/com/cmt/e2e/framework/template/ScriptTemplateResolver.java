@@ -13,7 +13,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.cmt.e2e.framework.db.containers.DatabaseContainer;
-import com.cmt.e2e.framework.db.driver.Drivers;
+import com.cmt.e2e.framework.db.Drivers;
 
 /**
  * Replaces placeholders in a migration-script XML template with actual

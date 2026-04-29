@@ -1,4 +1,4 @@
-package com.cmt.e2e.framework.junit;
+package com.cmt.e2e.framework.core;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,4 +1,4 @@
-package com.cmt.e2e.framework.command.impls;
+package com.cmt.e2e.framework.command;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.cmt.e2e.framework.db.driver;
+package com.cmt.e2e.framework.db;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -1,4 +1,4 @@
-package com.cmt.e2e.framework.command.execution;
+package com.cmt.e2e.framework.command;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -1,4 +1,4 @@
-package com.cmt.e2e.framework.command.execution;
+package com.cmt.e2e.framework.command;
 
 public record CommandResult(String stdout, String stderr, String combinedOutput, int exitCode, boolean timedOut) {
 }

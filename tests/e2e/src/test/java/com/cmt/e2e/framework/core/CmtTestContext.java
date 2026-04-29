@@ -1,7 +1,7 @@
 package com.cmt.e2e.framework.core;
 
 import com.cmt.e2e.framework.assertion.MigrationOutput;
-import com.cmt.e2e.framework.command.execution.CommandRunner;
+import com.cmt.e2e.framework.command.CommandRunner;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;

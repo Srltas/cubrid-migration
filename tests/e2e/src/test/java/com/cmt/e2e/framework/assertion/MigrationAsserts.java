@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.cmt.e2e.framework.command.execution.CommandResult;
+import com.cmt.e2e.framework.command.CommandResult;
 
 /**
  * Helper for validating CMT Console migration results
