@@ -1,6 +1,5 @@
 package com.cmt.e2e.framework.core;
 
-import com.cmt.e2e.framework.assertion.MigrationOutput;
 import com.cmt.e2e.framework.command.CommandRunner;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -11,7 +10,6 @@ import org.slf4j.MDC;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,42 +88,4 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
      * reports) created by {@code migration.sh} invocations.
      */
     public Path cmtConsoleHome() { return cmtConsoleHome; }
-
-    /**
-     * Returns a validation wrapper around a dump migration output directory.
-     * The CMT_CONSOLE_HOME path stays hidden; callers only use the migration name.
-     *
-     * <p>CMT Console writes file-target migration outputs under
-     * {@code {CMT_CONSOLE_HOME}/output/{migration.name}/{schema}}.
-     * Tests therefore use the script's {@code migration/@name} value directly.
-     *
-     * @param migrationName output directory name, for example
-     *                      {@code "CUBRID_demodb_202604062341"}
-     * @param schema schema name, for example {@code "PUBLIC"}
-     */
-    public MigrationOutput migrationOutput(String migrationName, String schema) {
-        Path outputBase = cmtConsoleHome.resolve("output");
-        Path migrationDir = findMigrationDir(outputBase, migrationName);
-        Path baseDir = migrationDir.resolve(schema);
-        return new MigrationOutput(baseDir);
-    }
-
-    /**
-     * Returns the directory under {@code outputBase} whose name exactly matches
-     * the migration name. Throws {@link AssertionError} if it cannot be found.
-     */
-    private Path findMigrationDir(Path outputBase, String migrationName) {
-        assertThat(outputBase)
-            .as("CMT Console output base directory")
-            .isDirectory();
-
-        Path migrationDir = outputBase.resolve(migrationName);
-        if (!Files.isDirectory(migrationDir)) {
-            throw new AssertionError(
-                "No migration output directory found with name '" + migrationName
-                    + "' under " + outputBase);
-        }
-        return migrationDir;
-    }
-
 }
