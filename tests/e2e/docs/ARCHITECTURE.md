@@ -329,6 +329,7 @@ checkout, reviewed in the resulting PR diff.
 | D11 | 8.1 | 2026-04-29 | `CliSmokeTest` → `CliTest`. The class is naming-inconsistent with the other `*Test` migration TCs and its 8 cases are functional (dispatch + first-run filesystem) rather than mere smoke | also `CLI-SMOKE-NN` → `CLI-NN` IDs |
 | D12 | 8.2 | 2026-04-29 | Framework unit tests for self-evident logic (`SnapshotStore`, `DbConfBuilder`, `MigrationOutcome`, `Tabulator`, `RowQueries.parse`) dropped — their failures surface in the integration suite without delay. `ScriptXmlBuilderTest` retained because sanitize regex bugs are silent (a corrupted `script.xml` still runs to completion with garbage output, so the explicit safety net carries its weight) | -30 unit `@Test` cases; framework smoke `MigrationRunnerSmokeIT` also dropped (redundant with active migration TCs) |
 | D13 | 9 | 2026-04-29 | `ScriptXmlBuilderTest` also dropped. The e2e module is for end-to-end tests; framework-internal unit tests do not belong here. Sanitize regex regressions are caught at the next snapshot capture / regression run (snapshot diff fails when sanitize misbehaves). Visibility narrowed: `sanitize` and `extractMigrationName` are now `private static` | overrides D12 — supersedes the safety-net argument; the e2e module's purity outweighs the marginal earlier detection |
+| D14 | 10 | 2026-04-30 | Naming convention for scenario id, test class, package, DisplayName + `@MigrationE2E.options[]` declarative metadata. **No "default" TC** — every TC explicitly declares the CMT options that affect its verification (§12.0). Single sub-package `regression/` for L4 bug fixtures; migration TCs sit flat at the source-package top level. Scenario id `_to_dumpfile` renamed to `_to_dump` for source/target/class consistency | §12; rejecting "core vs variant" framing avoids silent meaning-shift when CMT changes its defaults |
 
 Mid-implementation overrides land here as new rows.
 
@@ -346,6 +347,7 @@ Mid-implementation overrides land here as new rows.
 | 5 | CUBRID TC ×2 + first snapshot capture | ✅ done |
 | 6 | PoC asset cleanup (template/, RegenerateScripts, fixtures) | ✅ done |
 | 7 | CI + local mvn profiles + final docs | ✅ done |
+| 10 | Naming convention (D14, §12) — explicit-options-per-TC, no defaults; `_to_dumpfile` → `_to_dump` rename; `regression/` sub-package marker only | ✅ done |
 
 Each phase ships as one or more commits on `e2e-v2`. Cutover to a PR
 against the integration branch happens after Phase 6 passes
@@ -369,3 +371,234 @@ The LOC overshoot on (5) is intentional — every additional line over
 the original 3,800 estimate ships as comment / regex / single-purpose
 sanitize for a documented CMT quirk, not generic abstraction. We
 prefer that to under-documented brevity.
+
+---
+
+## 12. Naming convention (TC / scenario / package)
+
+Adopted in Phase 10 (ADR D14). Every new TC, every scenario id, and
+every snapshot directory follows this section; PR review rejects
+deviations.
+
+### 12.0 Guiding principle — no implicit defaults
+
+There is **no "default" TC**. Every migration TC explicitly declares
+the CMT options that affect its observable output. A TC's identity is
+the **set of options it has chosen** — not "what's left when the TC
+takes nothing." This rule comes from a concrete failure mode: CMT can
+change its built-in defaults across releases. If a TC silently leans
+on those defaults, it silently changes meaning when CMT does — the
+snapshot diff gets blamed on the test instead of the upstream change.
+
+Practical consequences:
+- No "core vs variant" framing. Every TC is a peer.
+- Every TC's `@MigrationE2E.options[]` lists the option values that
+  matter for *its* verification. If the test reads from a dump file,
+  it lists every option that affects dump structure. If it queries a
+  catalog, it lists every option that affects catalog content. If
+  there's nothing to declare (e.g. an online migration with no
+  configuration knobs being toggled), `options = {}` is accurate.
+- `target()` (and where applicable `source()`) sets those same option
+  values explicitly. The annotation describes; `target()` enacts. They
+  must agree — review catches drift.
+
+### 12.1 Three identifying dimensions
+
+A scenario is identified by these three dimensions. Class name,
+scenario id, snapshot dir, and `DisplayName` prefix are all derived
+from them.
+
+| Dimension | Values (current / planned) | Notes |
+|-----------|---------------------------|-------|
+| **Source** | `oracle`, `cubrid`, `postgres`(future), DEFERRED: `mysql`,`mariadb`,`mssql`,`informix` | Origin DB. |
+| **Target** | `cubrid`, `dump` | Online vs offline. (`dump` not `dumpfile` — D14.) |
+| **Discriminator** | (omitted), `flat`, `per_table`, `bug_cmt_1234`, … | What distinguishes this TC from siblings sharing the same source/target. Free-form snake_case noun phrase that names the TC's *observable behaviour* or its *purpose* (regression). Omitted when there's only one TC for the source/target pair. |
+
+Layer (L1 / L2 / L3 / L4) is orthogonal — every `@Test` declares one
+layer in its `@DisplayName`, but it does not enter the scenario
+identifier (§3).
+
+### 12.2 Scenario id grammar (`@MigrationE2E.name`)
+
+```
+<source>_to_<target>[__<discriminator>]
+```
+
+Rules:
+- Dimension boundary: `__` (double underscore).
+- Word boundary inside a token: `_` (single).
+- The discriminator is a snake_case noun phrase describing the TC's
+  observable behaviour (what makes it distinct from siblings). Do not
+  encode literal flag values like `_true`/`_false`/`_yes`/`_no`/
+  `_on`/`_off` — those make the test depend on the *flag* rather than
+  the *behaviour*, and read awkwardly when promoted to PascalCase.
+  Prefer behaviour names: `flat`, `per_table`, `merged_files`,
+  `with_triggers`, …
+- Bug fixtures use `bug_<lowercase Jira id with `-` → `_`>`:
+  `CMT-1234` → `bug_cmt_1234`.
+
+| Scenario id | Class | Reading |
+|-------------|-------|---------|
+| `oracle_to_cubrid` | `OracleToCubridTest` | the only Oracle → CUBRID online TC |
+| `oracle_to_dump` | `OracleToDumpTest` | the primary Oracle → dump TC |
+| `oracle_to_dump__flat` | `OracleToDumpFlatTest` | Oracle → dump, output collapsed to a single combined file |
+| `oracle_to_dump__per_table` | `OracleToDumpPerTableTest` | Oracle → dump, one file per table |
+| `oracle_to_cubrid__bug_cmt_1234` | `OracleToCubridBugCmt1234Test` | regression for CMT-1234 |
+| `postgres_to_cubrid` | `PostgresToCubridTest` | future source DB |
+
+When a second TC lands for an existing source/target pair, **both**
+TCs gain a discriminator (the originally unsuffixed one is renamed if
+its identity is no longer obvious). This is a deliberate one-time
+migration cost — the alternative (leaving the first one as
+`<source>_to_<target>` while siblings get suffixes) creates an
+implicit "this one is special" that contradicts §12.0.
+
+The scenario id is the **single source of truth**. It drives:
+- snapshot directory: `src/test/resources/snapshots/<id>/`
+- queries file (when applicable): `src/test/resources/queries/<id>.sql`
+- v2 runner working dir: `target/e2e-v2/<id>/`
+- log MDC `testId` and per-class log filename
+
+### 12.3 Class name (PascalCase mirror, no underscores)
+
+```
+<Source>To<Target>[<Discriminator>]Test
+```
+
+The mirror drops the dimension separator (`__`) and the word separator
+(`_`); each word boundary becomes a PascalCase break. Underscores are
+**not** used inside class names — when the discriminator gets long
+enough to feel cluttered, that's a signal to choose a tighter
+behaviour name, not to introduce visual separators.
+
+### 12.4 Package layout
+
+Source DB is the only first-class taxonomic axis. Migration TCs sit
+flat at the source-package top level. The single sub-package is
+`regression/` for L4 bug/feature fixtures, isolated because their
+lifecycle is shorter than the rest (a fixture can be retired once the
+upstream change makes the bug structurally impossible).
+
+```
+tests/migration/
+├── oracle/
+│   ├── OracleToCubridTest.java
+│   ├── OracleToDumpTest.java
+│   ├── OracleToDumpFlatTest.java          ← peer of OracleToDumpTest, not a "variant"
+│   └── regression/
+│       └── OracleToCubridBugCmt1234Test.java
+├── cubrid/
+│   ├── CubridToCubridTest.java
+│   ├── CubridToDumpTest.java
+│   └── regression/
+└── postgres/                              ← new source DBs add a peer dir
+    └── PostgresToCubridTest.java
+```
+
+`regression/` carries a `package-info.java` describing what belongs
+inside; the migration top level does not — the source package's name
+is its own description. There is no `options/` sub-package: the
+TCs there would just be peers of the source-level TCs and there is no
+"core" to distinguish them from (§12.0).
+
+### 12.5 Inner classes — escape hatch only
+
+Inner `@Nested` classes are reserved for cases where a single
+migration outcome legitimately produces multiple cross-cutting fact
+sets that warrant grouping in one file. Until such a case shows up,
+every TC is its own top-level class file.
+
+### 12.6 `@DisplayName` prefix
+
+Every migration TC declares a `@DisplayName` whose prefix encodes the
+identity in shorthand. The prefix lets reports and IDE views sort and
+filter by source/target without parsing.
+
+```
+<SRC>-<TGT>[-<DISCRIMINATOR>] [<purpose>]: <description>
+```
+
+| Token | Source code | Target code |
+|-------|-------------|-------------|
+| Source | `ORA`, `CUB`, `PG`, … (3-letter) | — |
+| Target | — | `ON` (online), `DO` (dump output) |
+
+| Class | DisplayName |
+|-------|-------------|
+| `OracleToCubridTest` | `ORA-ON: Oracle e2e dataset → CUBRID online migration` |
+| `OracleToDumpTest` | `ORA-DO: Oracle e2e dataset → CMT dump file` |
+| `OracleToDumpFlatTest` | `ORA-DO-FLAT: Oracle → dump (schema+data combined into a single file)` |
+| `OracleToDumpPerTableTest` | `ORA-DO-PER-TABLE: Oracle → dump (one file per table)` |
+| `OracleToCubridBugCmt1234Test` | `ORA-ON [bug:CMT-1234]: FK ON DELETE CASCADE 회귀` |
+
+Discriminator tokens use `-` (not `_`) inside the prefix and
+uppercase throughout. The DisplayName description should mention the
+key option values in plain English so the test's contract is readable
+in surefire / IDE without opening the class. The original Jira id
+(`CMT-1234`) is preserved in the `[bug:...]` tail so reviewers see the
+source ticket directly.
+
+### 12.7 `@MigrationE2E.options[]`
+
+Every TC explicitly lists the CMT options that influence the output it
+verifies. The annotation is metadata; the runtime behaviour is still
+set by `target()` (and where applicable `source()`). They must agree.
+
+```java
+@MigrationE2E(
+    name = "oracle_to_dump__flat",
+    options = {
+        "split_schema=false",
+        "one_table_one_file=false",
+        "file_prefix=XE",
+    })
+@DisplayName("ORA-DO-FLAT: Oracle → dump (schema+data combined into a single file)")
+class OracleToDumpFlatTest extends AbstractMigrationE2E {
+    @Override protected Source source() { return Sources.oracleE2eSeed(); }
+    @Override protected Target target() {
+        return Targets.dumpFile("XE", false).withSplitSchema(false);
+    }
+}
+```
+
+What to list:
+- Every option whose value affects something the snapshots or
+  assertions read. If you're verifying dump structure, list every
+  option that influences file layout / naming / content.
+- Do not list options whose values are irrelevant to the assertions —
+  noise hides the meaningful ones. (`file_prefix` is borderline:
+  list it for dump TCs because file names appear in the snapshot
+  tree; omit it for online TCs.)
+
+What not to do:
+- Do not write `options = {}` and lean on CMT defaults for an option
+  the test cares about. If `split_schema`'s value matters, set it
+  explicitly even if you happen to want today's CMT default.
+
+The framework does **not** parse `options[]` at runtime. Drift between
+the annotation and `target()` is caught at review, not by JVM error.
+
+### 12.8 Putting it together — checklist for a new TC
+
+When you write a new TC:
+
+1. Pick the source / target / discriminator (§12.1, §12.2).
+2. Compose the scenario id (§12.2) and class name (§12.3).
+3. Place the class:
+   - migration → `tests/migration/<source>/<Class>.java`
+   - regression → `tests/migration/<source>/regression/<Class>.java`
+4. Annotate with `@MigrationE2E(name=..., options={...})` listing
+   every option whose value matters to the verification (§12.7).
+5. Have `target()` (and `source()` if relevant) set those same option
+   values explicitly. Do not depend on CMT defaults for any option
+   you cared enough to list.
+6. Add `@DisplayName` with the §12.6 prefix and a description that
+   mentions the key options in plain English.
+7. Create the snapshot directory `snapshots/<scenario_id>/` (capture
+   mode will populate it on first run).
+8. Update `README.md` table of active scenarios.
+9. If you're adding a second TC for an existing `<source>_to_<target>`
+   pair and the original is unsuffixed, also rename the original to
+   give it a discriminator (§12.2). Land the rename in the same PR
+   so review can verify both names describe behaviour, not "this is
+   the default one."

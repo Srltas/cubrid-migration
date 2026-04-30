@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Oracle 11g e2e dataset → CMT {@code unload} dump file.
  *
- * <p>Snapshot: {@code src/test/resources/snapshots/oracle_to_dumpfile/dumpfile/}
+ * <p>Snapshot: {@code src/test/resources/snapshots/oracle_to_dump/dumpfile/}
  * mirrors the directory tree CMT writes under
  * {@code $CMT_CONSOLE_HOME/output/<migration-name>/}.
  *
@@ -20,8 +20,14 @@ import org.junit.jupiter.api.Test;
  * {@code one_table_one_file=true} (Oracle is the only DB where each
  * table gets its own dump file in the PoC convention).
  */
-@MigrationE2E(name = "oracle_to_dumpfile")
-@DisplayName("ORA-DO: Oracle e2e dataset → CMT dump file")
+@MigrationE2E(
+    name = "oracle_to_dump",
+    options = {
+        "file_prefix=XE",
+        "split_schema=true",
+        "one_table_one_file=true",
+    })
+@DisplayName("ORA-DO: Oracle e2e dataset → CMT dump file (file_prefix=XE, split_schema=true, one_table_one_file=true)")
 class OracleToDumpTest extends AbstractMigrationE2E {
 
     @Override protected Source source() { return Sources.oracleE2eSeed(); }

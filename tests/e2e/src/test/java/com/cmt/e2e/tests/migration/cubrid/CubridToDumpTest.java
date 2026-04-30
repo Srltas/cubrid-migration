@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 /**
  * CUBRID e2e dataset → CMT {@code unload} dump file.
  *
- * <p>Snapshot: {@code src/test/resources/snapshots/cubrid_to_dumpfile/dumpfile/}
+ * <p>Snapshot: {@code src/test/resources/snapshots/cubrid_to_dump/dumpfile/}
  * mirrors the directory tree CMT writes under
  * {@code $CMT_CONSOLE_HOME/output/<migration-name>/}.
  *
@@ -22,8 +22,14 @@ import org.junit.jupiter.api.Test;
  * inside that combined file — snapshots fail under regression mode.
  * Splitting per table gives a deterministic file-per-class layout.
  */
-@MigrationE2E(name = "cubrid_to_dumpfile")
-@DisplayName("CUB-DO: CUBRID e2e dataset → CMT dump file")
+@MigrationE2E(
+    name = "cubrid_to_dump",
+    options = {
+        "file_prefix=demodb",
+        "split_schema=true",
+        "one_table_one_file=true",
+    })
+@DisplayName("CUB-DO: CUBRID e2e dataset → CMT dump file (file_prefix=demodb, split_schema=true, one_table_one_file=true)")
 class CubridToDumpTest extends AbstractMigrationE2E {
 
     @Override protected Source source() { return Sources.cubridE2eSeed(); }

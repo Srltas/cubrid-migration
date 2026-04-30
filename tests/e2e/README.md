@@ -14,9 +14,9 @@ or dump file) round-trip verification.
 | ID | Source | Target | Class |
 |----|--------|--------|-------|
 | `oracle_to_cubrid` | Oracle 11g XE | CUBRID 11.4 (online) | `OracleToCubridTest` |
-| `oracle_to_dumpfile` | Oracle 11g XE | dump file | `OracleToDumpTest` |
+| `oracle_to_dump` | Oracle 11g XE | dump file | `OracleToDumpTest` |
 | `cubrid_to_cubrid` | CUBRID 11.4 | CUBRID 11.4 (online) | `CubridToCubridTest` |
-| `cubrid_to_dumpfile` | CUBRID 11.4 | dump file | `CubridToDumpTest` |
+| `cubrid_to_dump` | CUBRID 11.4 | dump file | `CubridToDumpTest` |
 
 Plus `CliTest` (8 `@Test`) — `migration.sh` dispatch / first-run
 filesystem contracts (no DB).
@@ -121,7 +121,7 @@ See `docs/ARCHITECTURE.md` §9 ADR D6 / D7 / D8 / D9.
 ```
 tests/e2e/
 ├── docs/
-│   ├── ARCHITECTURE.md                  ← v2 design + ADR
+│   ├── ARCHITECTURE.md                  ← v2 design + ADR (incl. §12 naming)
 │   ├── SEED_DATA_GUIDE.md
 │   └── seed/
 │       ├── COMMON_SEED_CONTRACT.md
@@ -129,9 +129,46 @@ tests/e2e/
 │       └── cubrid/SEED_SPEC.md
 ├── src/test/java/com/cmt/e2e/
 │   ├── framework/                       ← v2 building blocks (9 packages)
-│   └── tests/{cli, migration/{oracle,cubrid}}/
+│   └── tests/
+│       ├── cli/
+│       └── migration/
+│           ├── oracle/
+│           │   ├── *Test.java           ← migration TCs (peers, no "default")
+│           │   └── regression/          ← L4 bug fixtures
+│           └── cubrid/
+│               ├── *Test.java
+│               └── regression/
 └── src/test/resources/
     ├── db/<engine>/{init,ref_schema,main_schema}/V*.sql   ← Flyway seed
     ├── queries/<scenario>.sql           ← labelled SQL for RowQueries
     └── snapshots/<scenario>/...         ← golden text tables + dump tree
 ```
+
+---
+
+## Naming convention (cheat sheet)
+
+Full grammar: `docs/ARCHITECTURE.md` §12. Quick form:
+
+```
+scenario id  : <source>_to_<target>[__<discriminator>]
+class name   : <Source>To<Target>[<Discriminator>]Test     (no underscores)
+DisplayName  : <SRC>-<TGT>[-<DISCRIMINATOR>] [<purpose>]: <description>
+```
+
+**Guiding principle (§12.0):** there is **no "default" TC**. Every TC
+explicitly declares the CMT options that affect its verification in
+`@MigrationE2E.options[]`. CMT's built-in defaults can change between
+releases — leaning on them silently shifts a test's meaning. So every
+peer migration TC names its observable behaviour and lists its options.
+
+| Kind | Scenario id | Class | Location |
+|------|-------------|-------|----------|
+| migration TC | `oracle_to_cubrid` | `OracleToCubridTest` | `migration/oracle/` |
+| migration TC (sibling) | `oracle_to_dump__flat` | `OracleToDumpFlatTest` | `migration/oracle/` |
+| regression | `oracle_to_cubrid__bug_cmt_1234` | `OracleToCubridBugCmt1234Test` | `migration/oracle/regression/` |
+
+Discriminator is a **behaviour name** (`flat`, `per_table`, …), not a
+flag value (`split_off`, `_yes/_no`, `_true/_false`). Bug regressions
+preserve the original Jira id (`CMT-1234`) in the `[bug:...]` tail of
+the DisplayName for traceability.
