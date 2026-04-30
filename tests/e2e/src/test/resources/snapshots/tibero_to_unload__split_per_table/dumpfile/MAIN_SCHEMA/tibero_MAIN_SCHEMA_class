@@ -1,0 +1,38 @@
+CREATE TABLE [MAIN_SCHEMA].[e2e_customer](
+[customer_id] numeric(10,0),
+[customer_code] char(4) NOT NULL COMMENT 'business key',
+[customer_name] varchar(100) NOT NULL,
+[customer_alias] varchar(60) COMMENT '고객 별칭 (다국어 검증)',
+[status] char(1),
+[credit_limit] numeric(15,2),
+[created_on] datetime,
+[updated_on] datetime
+)
+;
+CREATE TABLE [MAIN_SCHEMA].[e2e_employee](
+[employee_id] numeric(10,0),
+[manager_id] numeric(10,0) COMMENT 'Self-FK to direct manager',
+[emp_name] varchar(100) NOT NULL,
+[hired_on] datetime
+)
+;
+CREATE TABLE [MAIN_SCHEMA].[e2e_order](
+[order_id] numeric(10,0),
+[customer_id] numeric(10,0) NOT NULL,
+[order_no] varchar(30),
+[order_status] varchar(20),
+[total_amount] numeric(18,2),
+[ordered_at] datetime,
+[settled_at] datetime,
+[source_comment] varchar(200) COMMENT '주문 비고: 다국어/특수문자 검증'
+)
+;
+CREATE TABLE [MAIN_SCHEMA].[e2e_order_line](
+[order_id] numeric(10,0),
+[line_no] numeric(5,0),
+[sku] varchar(30),
+[qty] numeric(10,0),
+[unit_price] numeric(15,2),
+[line_note] varchar(200)
+)
+;

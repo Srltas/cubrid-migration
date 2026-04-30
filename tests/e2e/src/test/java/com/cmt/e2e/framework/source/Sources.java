@@ -21,4 +21,15 @@ public final class Sources {
     public static Source cubridE2eSeed() {
         return new CubridSource();
     }
+
+    /**
+     * Tibero 7 (custom {@code faketime-tibero:2026-fixed} image) with the
+     * two-user (REF + MAIN) e2e seed — business tables, view, sequence,
+     * synonym, cross-schema GRANT. Type-test tables (V3) and PL/SQL
+     * routines (V4) are deferred until the seed pipeline grows a
+     * PL/SQL-aware applier.
+     */
+    public static Source tiberoE2eSeed() {
+        return new TiberoSource();
+    }
 }

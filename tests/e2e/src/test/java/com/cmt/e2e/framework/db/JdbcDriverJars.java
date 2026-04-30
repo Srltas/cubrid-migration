@@ -41,7 +41,8 @@ public final class JdbcDriverJars {
         MYSQL,
         MARIADB,
         MSSQL,
-        INFORMIX
+        INFORMIX,
+        TIBERO
     }
 
     private static final Map<DB, List<String>> PATTERNS = Map.of(
@@ -50,7 +51,10 @@ public final class JdbcDriverJars {
         DB.MYSQL,    List.of("mysql-connector-j-*.jar", "mysql-connector-java-*.jar"),
         DB.MARIADB,  List.of("mariadb-java-client-*.jar"),
         DB.MSSQL,    List.of("mssql-jdbc-*.jar"),
-        DB.INFORMIX, List.of("informix-jdbc-*.jar")
+        DB.INFORMIX, List.of("informix-jdbc-*.jar"),
+        // tibero7-jdbc-{8,11,17,...}.jar — variant suffix encodes JDK target.
+        // We commit only the JDK 17 build (matches our test JVM).
+        DB.TIBERO,   List.of("tibero7-jdbc-17.jar", "tibero7-jdbc-*.jar")
     );
 
     private static final Map<DB, Path> CACHE = new ConcurrentHashMap<>();

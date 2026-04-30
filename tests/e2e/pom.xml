@@ -162,6 +162,22 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Tibero JDBC driver. Class com.tmax.tibero.jdbc.TbDriver.
+             Not on Maven Central — license-restricted by TmaxSoft. The jar is
+             committed to ${project.basedir}/lib/ and referenced via system
+             scope. This is a pragmatic compromise (system scope is deprecated
+             in modern Maven) — the alternatives (mvn install:install-file
+             per-machine, or a local file:// repo) are more trouble than they
+             save for a single restricted-license jar in a test-only module.
+             See tests/e2e/tibero/README.md for jar provenance. -->
+        <dependency>
+            <groupId>com.tmax.tibero</groupId>
+            <artifactId>tibero7-jdbc</artifactId>
+            <version>17</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/tibero7-jdbc-17.jar</systemPath>
+        </dependency>
+
         <!-- Flyway Informix community plugin: registers the
              DatabaseType for jdbc:informix-sqli: URLs via the
              ServiceLoader-based discovery mechanism in flyway-core 10.x.
@@ -341,6 +357,35 @@
                                     <destFileName>informix-jdbc-${informix-jdbc.version}.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Tibero JDBC jar isn't on Maven Central (license-restricted). The
+                 jar lives in ${project.basedir}/lib/ and we copy it to the same
+                 driver directory the dependency-plugin uses for Maven-Central
+                 drivers, so JdbcDriverJars.latest(DB.TIBERO) finds it next to
+                 the others without special-casing. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-tibero-jdbc-driver</id>
+                        <phase>generate-test-resources</phase>
+                        <goals><goal>copy-resources</goal></goals>
+                        <configuration>
+                            <outputDirectory>${project.build.testOutputDirectory}/driver</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/lib</directory>
+                                    <includes>
+                                        <include>tibero7-jdbc-*.jar</include>
+                                    </includes>
+                                </resource>
+                            </resources>
                         </configuration>
                     </execution>
                 </executions>
