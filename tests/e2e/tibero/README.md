@@ -82,7 +82,25 @@ The Maven `tibero` profile auto-activates from the jar's presence.
 
 ### Step 5 — Optional overrides
 
-If your environment differs from defaults:
+Three values are read by
+`com.cmt.e2e.framework.core.E2eTestProperties` with precedence
+**system property → `e2e-test.properties` → hardcoded default**.
+
+**Properties file (preferred for persistent local config)**:
+
+```bash
+cp tests/e2e/e2e-test.properties.example tests/e2e/e2e-test.properties
+# edit the new file — only fill in keys you actually want to override:
+#   e2e.tibero.image=my-registry/tibero:custom-tag
+#   e2e.tibero.hostname=my-license-hostname
+#   e2e.tibero.license=/abs/path/to/license.xml
+```
+
+`tests/e2e/e2e-test.properties` is `.gitignore`d — your edits never
+leak into the repo. Empty / blank values fall through to the next
+level, so leaving a key with no value is the same as omitting it.
+
+**Command-line system property (one-off / CI)**:
 
 ```bash
 mvn test \
@@ -90,6 +108,9 @@ mvn test \
   -De2e.tibero.hostname=my-license-hostname \
   -De2e.tibero.license=/abs/path/to/license.xml
 ```
+
+Wins over the file when both are set — handy for CI runs that should
+not depend on a developer-machine file.
 
 ## Manual smoke (matches the Testcontainers config)
 

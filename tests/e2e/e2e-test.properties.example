@@ -1,0 +1,43 @@
+# =============================================================
+# tests/e2e/e2e-test.properties — local-only configuration template
+# =============================================================
+#
+# Copy this file to e2e-test.properties (no .example suffix) and fill
+# in any values you want to override. The real file is gitignored —
+# put machine-specific paths, internal image registries, license
+# locations there without leaking them into the repo.
+#
+# Resolution order (per com.cmt.e2e.framework.core.E2eTestProperties):
+#   1. -Dkey=value command-line system property (CI / one-off override)
+#   2. This file
+#   3. Hardcoded default in the consuming class
+#
+# Empty / blank values fall through to the next level — leaving a key
+# with no value is the same as omitting the key.
+#
+# -------------------------------------------------------------
+# CMT Console binary location
+# -------------------------------------------------------------
+# Absolute path to an extracted CMT Console release (the directory
+# that contains migration.sh + jdbcDrivers/ + jre/). Leave blank to
+# inherit from the CMT_CONSOLE_HOME environment variable.
+cmt.console.home=
+
+# -------------------------------------------------------------
+# Tibero source-DB scenario (dev-private; see tests/e2e/tibero/README.md)
+# -------------------------------------------------------------
+# All three values have working defaults. Override only when your local
+# environment differs (different image registry / hostname / license path).
+
+# Custom Tibero Docker image. Default: faketime-tibero:2026-fixed
+# (built from tests/e2e/tibero/dockerfile).
+e2e.tibero.image=
+
+# License-bound hostname — must equal the licensee suffix in license.xml.
+# Default: tibero-3-100
+e2e.tibero.hostname=
+
+# Path to license.xml on the host. Relative paths resolve against the
+# e2e module root (= the working directory during `mvn test`).
+# Default: tibero/license.xml
+e2e.tibero.license=

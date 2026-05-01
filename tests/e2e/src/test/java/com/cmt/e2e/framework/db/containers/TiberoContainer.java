@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 
+import com.cmt.e2e.framework.core.E2eTestProperties;
 import com.cmt.e2e.framework.db.JdbcDriverJars.DB;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -17,35 +18,45 @@ import org.testcontainers.utility.MountableFile;
  * <h3>Dev-private prerequisites (TmaxSoft license, not on public registries)</h3>
  * Three things are not in the public repo:
  * <ul>
- *   <li><b>Custom Docker image</b> — defaults to
+ *   <li><b>Custom Docker image</b> — default
  *       {@code faketime-tibero:2026-fixed}, built locally from
- *       {@code tests/e2e/tibero/dockerfile} on top of
- *       {@code tiberoofficial/tibero:7.2.4} + {@code libfaketime}. Override
- *       with {@code -De2e.tibero.image=<image:tag>}.</li>
+ *       {@code tests/e2e/tibero/dockerfile}.</li>
  *   <li><b>JDBC driver</b> ({@code com.tmax.tibero.jdbc.TbDriver}) — not on
  *       Maven Central; place at {@code tests/e2e/lib/tibero7-jdbc-17.jar}.
  *       The {@code tibero} Maven profile auto-activates on the jar's
  *       presence and registers a system-scope dep.</li>
- *   <li><b>License file</b> — TmaxSoft 30-day trial, hostname-bound.
- *       Default location {@code tests/e2e/tibero/license.xml}; override with
- *       {@code -De2e.tibero.license=/abs/path}. Container hostname must
- *       match the licensee string or boot fails — default
- *       {@code tibero-3-100}, override with
- *       {@code -De2e.tibero.hostname=<hostname>}.</li>
+ *   <li><b>License file</b> — TmaxSoft 30-day trial, hostname-bound;
+ *       default location {@code tests/e2e/tibero/license.xml}.</li>
  * </ul>
  *
- * <p>If any of these is missing, Tibero {@code @Test} methods skip via
- * {@code @EnabledIf("...TiberoEnvironment#isAvailable")}; the rest of the
- * suite runs unchanged. See {@code tests/e2e/tibero/README.md} for the
- * full setup SOP.
+ * <h3>Configuration overrides</h3>
+ * Three keys are read via {@link E2eTestProperties} (system property →
+ * {@code e2e-test.properties} file → hardcoded default):
+ * <ul>
+ *   <li>{@code e2e.tibero.image} — Docker image tag. Default
+ *       {@value #IMAGE_DEFAULT}.</li>
+ *   <li>{@code e2e.tibero.hostname} — license-bound hostname. Default
+ *       {@value #HOSTNAME_DEFAULT}.</li>
+ *   <li>{@code e2e.tibero.license} — license file path (host-side).
+ *       Default {@value #LICENSE_DEFAULT} (relative to the e2e module
+ *       root, which is the cwd during {@code mvn test}).</li>
+ * </ul>
+ * If any of the three prerequisites is missing the Tibero {@code @Test}
+ * methods skip via {@code @EnabledIf("...TiberoEnvironment#isAvailable")};
+ * the rest of the suite runs unchanged. See
+ * {@code tests/e2e/tibero/README.md} for the full setup SOP.
  */
 public final class TiberoContainer implements DatabaseContainer {
 
-    private static final String IMAGE_PROP    = "e2e.tibero.image";
-    private static final String IMAGE_DEFAULT = "faketime-tibero:2026-fixed";
+    /** Configuration keys read via {@link E2eTestProperties}. Public
+     *  constants so {@link TiberoEnvironment} can use the same names. */
+    public static final String IMAGE_KEY    = "e2e.tibero.image";
+    public static final String HOSTNAME_KEY = "e2e.tibero.hostname";
+    public static final String LICENSE_KEY  = "e2e.tibero.license";
 
-    private static final String HOSTNAME_PROP    = "e2e.tibero.hostname";
-    private static final String HOSTNAME_DEFAULT = "tibero-3-100";
+    static final String IMAGE_DEFAULT    = "faketime-tibero:2026-fixed";
+    static final String HOSTNAME_DEFAULT = "tibero-3-100";
+    static final String LICENSE_DEFAULT  = "tibero/license.xml";  // relative to e2e module root
 
     private static final int    TIBERO_PORT    = 8629;
     private static final String SID            = "tibero";
@@ -56,8 +67,6 @@ public final class TiberoContainer implements DatabaseContainer {
     private static final String REF_USER       = "REF_SCHEMA";
     private static final String REF_PASSWORD   = "cmt";
 
-    private static final String LICENSE_PROP      = "e2e.tibero.license";
-    private static final String LICENSE_DEFAULT   = "tibero/license.xml";  // relative to e2e module root
     private static final String LICENSE_CONTAINER = "/opt/tibero7/license/license.xml";
 
     private final GenericContainer<?> container;
@@ -65,8 +74,8 @@ public final class TiberoContainer implements DatabaseContainer {
     private TiberoContainer() {
         Path licensePath = resolveLicensePath();
         DockerImageName image = DockerImageName.parse(
-            System.getProperty(IMAGE_PROP, IMAGE_DEFAULT));
-        String hostname = System.getProperty(HOSTNAME_PROP, HOSTNAME_DEFAULT);
+            E2eTestProperties.get(IMAGE_KEY, IMAGE_DEFAULT));
+        String hostname = E2eTestProperties.get(HOSTNAME_KEY, HOSTNAME_DEFAULT);
         this.container = new GenericContainer<>(image)
             // Force hostname (license binding) + amd64 platform (image is x86_64-only).
             .withCreateContainerCmdModifier(cmd -> {
@@ -94,14 +103,14 @@ public final class TiberoContainer implements DatabaseContainer {
     public static TiberoContainer create() { return new TiberoContainer(); }
 
     private static Path resolveLicensePath() {
-        String override = System.getProperty(LICENSE_PROP);
-        Path p = override != null ? Paths.get(override) : Paths.get(LICENSE_DEFAULT);
+        Path p = Paths.get(E2eTestProperties.get(LICENSE_KEY, LICENSE_DEFAULT));
         if (!Files.exists(p)) {
             // Reaching this branch means @EnabledIf("...TiberoEnvironment#isAvailable")
             // was bypassed — should never happen via the normal test entry point.
             throw new IllegalStateException(
                 "Tibero license not found at " + p.toAbsolutePath() +
-                "\nProvide via -D" + LICENSE_PROP + "=/abs/path or place at " + LICENSE_DEFAULT +
+                "\nSet " + LICENSE_KEY + " in tests/e2e/e2e-test.properties," +
+                " or pass -D" + LICENSE_KEY + "=/abs/path on the command line." +
                 "\nSee tests/e2e/tibero/README.md for the setup SOP.");
         }
         return p;

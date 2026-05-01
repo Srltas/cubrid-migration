@@ -3,6 +3,8 @@ package com.cmt.e2e.framework.db.containers;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import com.cmt.e2e.framework.core.E2eTestProperties;
+
 /**
  * Pre-flight checks for the Tibero scenario. Used as a JUnit 5
  * {@code @EnabledIf} hook so that on a public clone — where the
@@ -48,9 +50,13 @@ public final class TiberoEnvironment {
     }
 
     private static boolean licensePresent() {
-        // Mirrors TiberoContainer.resolveLicensePath() defaults.
-        String override = System.getProperty("e2e.tibero.license");
-        String path = override != null ? override : "tibero/license.xml";
+        // Same resolution path as TiberoContainer.resolveLicensePath() —
+        // system property → e2e-test.properties → default. Keeping these
+        // two checks in sync is critical: if @EnabledIf passes here but
+        // resolveLicensePath() throws there, the test would fail at boot
+        // instead of skipping cleanly.
+        String path = E2eTestProperties.get(
+            TiberoContainer.LICENSE_KEY, TiberoContainer.LICENSE_DEFAULT);
         return Files.exists(Paths.get(path));
     }
 }
