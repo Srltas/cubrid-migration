@@ -87,11 +87,11 @@ The Maven `tibero` profile auto-activates from the jar's presence.
 
 ### Step 5 — Required configuration
 
-Four values are read by
+Three values are read by
 `com.cmt.e2e.framework.core.E2eTestProperties` with precedence
 **system property → `e2e-test.properties` → (no default; missing means "skip")**.
 
-All four are **required**. If any is missing, blank, or its license
+All three are **required**. If any is missing, blank, or its license
 file does not exist on disk, the Tibero `@Test` methods skip via
 `@EnabledIf("...TiberoEnvironment#isAvailable")` and surefire logs the
 specific reason. The rest of the suite (Oracle, CUBRID) is unaffected.
@@ -101,17 +101,21 @@ specific reason. The rest of the suite (Oracle, CUBRID) is unaffected.
 | `e2e.tibero.image` | Docker image tag (built in Step 3) |
 | `e2e.tibero.hostname` | License-bound hostname; matches `<licensee>` in `license.xml` |
 | `e2e.tibero.license` | Host-side path to `license.xml` (relative paths resolve against the e2e module root) |
-| `e2e.tibero.licenseInContainer` | In-container path Tibero reads the license from (Tibero 7 convention: `/opt/tibero7/license/license.xml`) |
+
+The in-container license path is fixed at
+`/opt/tibero7/license/license.xml` (Tibero 7 install convention) and
+lives as a hardcoded constant in `TiberoContainer`. Changing it would
+require a custom dockerfile + listener config edit, so it is not
+configurable here.
 
 **Properties file (preferred for persistent local config)**:
 
 ```bash
 cp tests/e2e/e2e-test.properties.example tests/e2e/e2e-test.properties
-# edit the new file — fill in all four keys:
+# edit the new file — fill in all three keys:
 #   e2e.tibero.image=faketime-tibero:2026-fixed
 #   e2e.tibero.hostname=tibero-3-100
 #   e2e.tibero.license=tibero/license.xml
-#   e2e.tibero.licenseInContainer=/opt/tibero7/license/license.xml
 ```
 
 `tests/e2e/e2e-test.properties` is `.gitignore`d — your edits never
@@ -124,8 +128,7 @@ level, so leaving a key with no value is the same as omitting it.
 mvn test \
   -De2e.tibero.image=faketime-tibero:2026-fixed \
   -De2e.tibero.hostname=tibero-3-100 \
-  -De2e.tibero.license=tibero/license.xml \
-  -De2e.tibero.licenseInContainer=/opt/tibero7/license/license.xml
+  -De2e.tibero.license=tibero/license.xml
 ```
 
 Wins over the file when both are set — handy for CI runs that should
@@ -182,9 +185,12 @@ For a persistent local automation, schedule the script daily and let
 0 10 * * * /Users/cubrid/Devel/cmt-console-e2e/cubrid-migration/tests/e2e/tibero/restart-faketime-tibero.sh --if-due >> /tmp/faketime-tibero-refresh.log 2>&1
 ```
 
-The 10:00 local-time run avoids date-boundary ambiguity when the host and
-container time zones differ. If the machine must use a specific date basis,
-set `TZ=Asia/Seoul` in the cron line rather than adding another script option.
+The script uses the server's local date. If the machine must use a specific
+date basis, set `TZ` in the cron line rather than adding another script option:
+
+```cron
+0 10 * * * TZ=Asia/Seoul /Users/cubrid/Devel/cmt-console-e2e/cubrid-migration/tests/e2e/tibero/restart-faketime-tibero.sh --if-due >> /tmp/faketime-tibero-refresh.log 2>&1
+```
 
 Useful overrides:
 

@@ -13,17 +13,21 @@ import org.slf4j.LoggerFactory;
  * Single source of truth for Tibero scenario configuration.
  *
  * <h3>Why this class owns all access</h3>
- * Tibero requires four environment-specific values that {@link
+ * Tibero requires three environment-specific values that {@link
  * TiberoContainer} cannot guess at — Docker image, license-bound
- * hostname, host-side path to {@code license.xml}, and the in-container
- * path Tibero expects the file at. None of these have a meaningful
- * default outside of one specific developer's setup, so the suite
- * treats them as <b>required</b>: if any is missing, the Tibero
- * {@code @Test} methods skip via {@link #isAvailable()} (used as a
- * JUnit 5 {@code @EnabledIf} hook). The rest of the suite (Oracle,
+ * hostname, and host-side path to {@code license.xml}. None of these
+ * have a meaningful default outside of one specific developer's setup,
+ * so the suite treats them as <b>required</b>: if any is missing, the
+ * Tibero {@code @Test} methods skip via {@link #isAvailable()} (used as
+ * a JUnit 5 {@code @EnabledIf} hook). The rest of the suite (Oracle,
  * CUBRID) runs unchanged.
  *
- * <p>Keeping all four lookups in one class — rather than scattering
+ * <p>The fourth value — the in-container path Tibero reads
+ * {@code license.xml} from — is fixed by the bundled image (Tibero 7
+ * install convention {@code /opt/tibero7/license/license.xml}) and so
+ * lives as a hardcoded constant in {@link TiberoContainer}, not here.
+ *
+ * <p>Keeping all three lookups in one class — rather than scattering
  * {@code System.getProperty} calls across {@code TiberoContainer} +
  * {@code TiberoEnvironment} — means the {@code @EnabledIf} check and
  * the actual container construction can never disagree about which
@@ -51,11 +55,10 @@ public final class TiberoEnvironment {
 
     private static final Logger log = LoggerFactory.getLogger(TiberoEnvironment.class);
 
-    /** Required config keys — all four must be set for the scenario to run. */
-    public static final String IMAGE_KEY                = "e2e.tibero.image";
-    public static final String HOSTNAME_KEY             = "e2e.tibero.hostname";
-    public static final String LICENSE_KEY              = "e2e.tibero.license";
-    public static final String LICENSE_IN_CONTAINER_KEY = "e2e.tibero.licenseInContainer";
+    /** Required config keys — all three must be set for the scenario to run. */
+    public static final String IMAGE_KEY    = "e2e.tibero.image";
+    public static final String HOSTNAME_KEY = "e2e.tibero.hostname";
+    public static final String LICENSE_KEY  = "e2e.tibero.license";
 
     private TiberoEnvironment() {}
 
@@ -111,14 +114,6 @@ public final class TiberoEnvironment {
         return Paths.get(required(LICENSE_KEY));
     }
 
-    /** Path inside the Tibero container where the listener looks for
-     *  {@code license.xml}. Tibero 7 install convention is
-     *  {@code /opt/tibero7/license/license.xml} but is left as a
-     *  required key (no default) so the contract is explicit. */
-    public static String licenseInContainer() {
-        return required(LICENSE_IN_CONTAINER_KEY);
-    }
-
     // -------------------------------------------------------------------------
     // helpers
     // -------------------------------------------------------------------------
@@ -133,10 +128,9 @@ public final class TiberoEnvironment {
     }
 
     /** Returns the first required key that has no usable value, or
-     *  {@code null} if all four are set. */
+     *  {@code null} if all three are set. */
     private static String firstMissingRequiredKey() {
-        for (String key : new String[] {
-                IMAGE_KEY, HOSTNAME_KEY, LICENSE_KEY, LICENSE_IN_CONTAINER_KEY}) {
+        for (String key : new String[] {IMAGE_KEY, HOSTNAME_KEY, LICENSE_KEY}) {
             if (rawValue(key) == null) return key;
         }
         return null;

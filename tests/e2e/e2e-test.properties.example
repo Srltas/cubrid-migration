@@ -27,9 +27,14 @@ cmt.console.home=
 # -------------------------------------------------------------
 # Tibero source-DB scenario  (see tests/e2e/tibero/README.md)
 # -------------------------------------------------------------
-# All four keys are REQUIRED. If any is missing the Tibero @Test
+# All three keys are REQUIRED. If any is missing the Tibero @Test
 # methods skip via @EnabledIf — by design. The other source-DB
 # scenarios (Oracle, CUBRID) are unaffected.
+#
+# The in-container license path is fixed at
+# /opt/tibero7/license/license.xml (Tibero 7 install convention) and
+# lives as a hardcoded constant in TiberoContainer — not configurable
+# here.
 #
 # Example values (matching the standard internal-dev setup) are
 # shown in comments. Uncomment and adjust for your environment.
@@ -48,10 +53,3 @@ e2e.tibero.hostname=
 # e2e module root (= the working directory during `mvn test`).
 #   Example: e2e.tibero.license=tibero/license.xml
 e2e.tibero.license=
-
-# Path inside the container where the Tibero listener looks for
-# license.xml. Tibero 7's standard install convention is
-# /opt/tibero7/license/license.xml; override only if your custom image
-# changed it.
-#   Example: e2e.tibero.licenseInContainer=/opt/tibero7/license/license.xml
-e2e.tibero.licenseInContainer=
