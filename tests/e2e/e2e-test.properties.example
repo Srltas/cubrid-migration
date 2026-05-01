@@ -3,14 +3,15 @@
 # =============================================================
 #
 # Copy this file to e2e-test.properties (no .example suffix) and fill
-# in any values you want to override. The real file is gitignored —
+# in the values your machine needs. The real file is gitignored —
 # put machine-specific paths, internal image registries, license
 # locations there without leaking them into the repo.
 #
 # Resolution order (per com.cmt.e2e.framework.core.E2eTestProperties):
 #   1. -Dkey=value command-line system property (CI / one-off override)
 #   2. This file
-#   3. Hardcoded default in the consuming class
+#   3. Hardcoded fallback in the consuming class — see per-key notes
+#      below; some keys have no fallback and must be set here.
 #
 # Empty / blank values fall through to the next level — leaving a key
 # with no value is the same as omitting the key.
@@ -24,20 +25,33 @@
 cmt.console.home=
 
 # -------------------------------------------------------------
-# Tibero source-DB scenario (dev-private; see tests/e2e/tibero/README.md)
+# Tibero source-DB scenario  (see tests/e2e/tibero/README.md)
 # -------------------------------------------------------------
-# All three values have working defaults. Override only when your local
-# environment differs (different image registry / hostname / license path).
+# All four keys are REQUIRED. If any is missing the Tibero @Test
+# methods skip via @EnabledIf — by design. The other source-DB
+# scenarios (Oracle, CUBRID) are unaffected.
+#
+# Example values (matching the standard internal-dev setup) are
+# shown in comments. Uncomment and adjust for your environment.
 
-# Custom Tibero Docker image. Default: faketime-tibero:2026-fixed
-# (built from tests/e2e/tibero/dockerfile).
+# Tibero Docker image. Built from tests/e2e/tibero/dockerfile.
+#   Example: e2e.tibero.image=faketime-tibero:2026-fixed
 e2e.tibero.image=
 
 # License-bound hostname — must equal the licensee suffix in license.xml.
-# Default: tibero-3-100
+# The container's internal hostname is forced to this value via
+# Testcontainers withHostName(...).
+#   Example: e2e.tibero.hostname=tibero-3-100
 e2e.tibero.hostname=
 
-# Path to license.xml on the host. Relative paths resolve against the
+# Host-side path to license.xml. Relative paths resolve against the
 # e2e module root (= the working directory during `mvn test`).
-# Default: tibero/license.xml
+#   Example: e2e.tibero.license=tibero/license.xml
 e2e.tibero.license=
+
+# Path inside the container where the Tibero listener looks for
+# license.xml. Tibero 7's standard install convention is
+# /opt/tibero7/license/license.xml; override only if your custom image
+# changed it.
+#   Example: e2e.tibero.licenseInContainer=/opt/tibero7/license/license.xml
+e2e.tibero.licenseInContainer=

@@ -1,44 +1,127 @@
 package com.cmt.e2e.framework.db.containers;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.cmt.e2e.framework.core.E2eTestProperties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Pre-flight checks for the Tibero scenario. Used as a JUnit 5
- * {@code @EnabledIf} hook so that on a public clone — where the
- * proprietary TmaxSoft JDBC jar and the hostname-bound license file
- * are absent — the Tibero {@code @Test} methods skip gracefully and
- * the rest of the suite runs unchanged.
+ * Single source of truth for Tibero scenario configuration.
  *
- * <p>Internal developers: see {@code tests/e2e/tibero/README.md} for
- * how to provision the dev-private assets so {@link #isAvailable()}
- * returns {@code true} and the Tibero scenario actually executes.
+ * <h3>Why this class owns all access</h3>
+ * Tibero requires four environment-specific values that {@link
+ * TiberoContainer} cannot guess at — Docker image, license-bound
+ * hostname, host-side path to {@code license.xml}, and the in-container
+ * path Tibero expects the file at. None of these have a meaningful
+ * default outside of one specific developer's setup, so the suite
+ * treats them as <b>required</b>: if any is missing, the Tibero
+ * {@code @Test} methods skip via {@link #isAvailable()} (used as a
+ * JUnit 5 {@code @EnabledIf} hook). The rest of the suite (Oracle,
+ * CUBRID) runs unchanged.
  *
- * <p><b>What this method does NOT verify</b>:
+ * <p>Keeping all four lookups in one class — rather than scattering
+ * {@code System.getProperty} calls across {@code TiberoContainer} +
+ * {@code TiberoEnvironment} — means the {@code @EnabledIf} check and
+ * the actual container construction can never disagree about which
+ * config the test is using. Drift between them would manifest as
+ * "skip says ready, boot says not ready" (or vice versa) — silent.
+ *
+ * <h3>Configuration source</h3>
+ * Each key is resolved by {@link E2eTestProperties}: command-line
+ * {@code -Dkey=value} → {@code tests/e2e/e2e-test.properties} →
+ * (no default; missing means "skip"). See
+ * {@code tests/e2e/e2e-test.properties.example} for the full key list
+ * and {@code tests/e2e/tibero/README.md} for the setup SOP.
+ *
+ * <h3>What this class does NOT verify</h3>
  * <ul>
- *   <li>That the Docker image (default {@code faketime-tibero:2026-fixed},
- *       overridable via {@code -De2e.tibero.image=...}) actually exists in
- *       the local Docker daemon. We don't probe Docker here because
- *       Testcontainers will surface a clear pull/run error early in the
- *       test if the image is missing.</li>
+ *   <li>That the configured Docker image actually exists in the local
+ *       Docker daemon. Testcontainers will surface a clear pull/run
+ *       error early in the test if it doesn't.</li>
  *   <li>That the license file is valid (un-expired, hostname matches).
  *       Tibero's listener fails to start with a license error in that
  *       case; the test then fails at boot rather than skipping.</li>
  * </ul>
- * The two cheap checks here ({@link #driverOnClasspath()} and
- * {@link #licensePresent()}) catch the public-clone case fully —
- * which is the only scenario that needs silent skipping.
  */
 public final class TiberoEnvironment {
 
+    private static final Logger log = LoggerFactory.getLogger(TiberoEnvironment.class);
+
+    /** Required config keys — all four must be set for the scenario to run. */
+    public static final String IMAGE_KEY                = "e2e.tibero.image";
+    public static final String HOSTNAME_KEY             = "e2e.tibero.hostname";
+    public static final String LICENSE_KEY              = "e2e.tibero.license";
+    public static final String LICENSE_IN_CONTAINER_KEY = "e2e.tibero.licenseInContainer";
+
     private TiberoEnvironment() {}
 
-    /** {@code @EnabledIf} hook — true when Tibero is provisioned to run. */
+    // -------------------------------------------------------------------------
+    // @EnabledIf hook
+    // -------------------------------------------------------------------------
+
+    /**
+     * True when Tibero is fully provisioned and tests should run.
+     * Logs a one-line skip reason at INFO when it returns false so the
+     * surefire output explains <i>why</i> the Tibero TC was skipped
+     * (driver missing? config missing? which key? license file gone?).
+     */
     public static boolean isAvailable() {
-        return driverOnClasspath() && licensePresent();
+        if (!driverOnClasspath()) {
+            log.info("[Tibero] skipping — JDBC driver com.tmax.tibero.jdbc.TbDriver "
+                + "not on classpath. See tests/e2e/lib/README.md.");
+            return false;
+        }
+        String missing = firstMissingRequiredKey();
+        if (missing != null) {
+            log.info("[Tibero] skipping — required config '{}' not set. "
+                + "Set it in tests/e2e/e2e-test.properties or pass -D{}=value. "
+                + "See tests/e2e/tibero/README.md.", missing, missing);
+            return false;
+        }
+        Path lic = licensePath();
+        if (!Files.exists(lic)) {
+            log.info("[Tibero] skipping — license file not found at {} "
+                + "(from key '{}').", lic.toAbsolutePath(), LICENSE_KEY);
+            return false;
+        }
+        return true;
     }
+
+    // -------------------------------------------------------------------------
+    // Required config getters — call only after isAvailable() returned true
+    // -------------------------------------------------------------------------
+
+    /** Docker image tag, e.g. {@code "faketime-tibero:2026-fixed"}. */
+    public static String image() {
+        return required(IMAGE_KEY);
+    }
+
+    /** License-bound hostname (matches the licensee suffix in license.xml). */
+    public static String hostname() {
+        return required(HOSTNAME_KEY);
+    }
+
+    /** Host-side path to {@code license.xml}. Relative paths resolve
+     *  against the e2e module root (= {@code mvn test} cwd). */
+    public static Path licensePath() {
+        return Paths.get(required(LICENSE_KEY));
+    }
+
+    /** Path inside the Tibero container where the listener looks for
+     *  {@code license.xml}. Tibero 7 install convention is
+     *  {@code /opt/tibero7/license/license.xml} but is left as a
+     *  required key (no default) so the contract is explicit. */
+    public static String licenseInContainer() {
+        return required(LICENSE_IN_CONTAINER_KEY);
+    }
+
+    // -------------------------------------------------------------------------
+    // helpers
+    // -------------------------------------------------------------------------
 
     private static boolean driverOnClasspath() {
         try {
@@ -49,14 +132,31 @@ public final class TiberoEnvironment {
         }
     }
 
-    private static boolean licensePresent() {
-        // Same resolution path as TiberoContainer.resolveLicensePath() —
-        // system property → e2e-test.properties → default. Keeping these
-        // two checks in sync is critical: if @EnabledIf passes here but
-        // resolveLicensePath() throws there, the test would fail at boot
-        // instead of skipping cleanly.
-        String path = E2eTestProperties.get(
-            TiberoContainer.LICENSE_KEY, TiberoContainer.LICENSE_DEFAULT);
-        return Files.exists(Paths.get(path));
+    /** Returns the first required key that has no usable value, or
+     *  {@code null} if all four are set. */
+    private static String firstMissingRequiredKey() {
+        for (String key : new String[] {
+                IMAGE_KEY, HOSTNAME_KEY, LICENSE_KEY, LICENSE_IN_CONTAINER_KEY}) {
+            if (rawValue(key) == null) return key;
+        }
+        return null;
+    }
+
+    private static String rawValue(String key) {
+        String v = E2eTestProperties.get(key);
+        return (v == null || v.isBlank()) ? null : v;
+    }
+
+    private static String required(String key) {
+        String v = rawValue(key);
+        if (v == null) {
+            // Should never reach here via the normal test entry point —
+            // @EnabledIf("...isAvailable") filters first.
+            throw new IllegalStateException(
+                "Tibero config key '" + key + "' is not set. "
+                + "Set it in tests/e2e/e2e-test.properties or pass -D" + key + "=value. "
+                + "See tests/e2e/tibero/README.md.");
+        }
+        return v;
     }
 }

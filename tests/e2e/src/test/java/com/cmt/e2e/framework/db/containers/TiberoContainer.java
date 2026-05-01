@@ -1,11 +1,8 @@
 package com.cmt.e2e.framework.db.containers;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 
-import com.cmt.e2e.framework.core.E2eTestProperties;
 import com.cmt.e2e.framework.db.JdbcDriverJars.DB;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -13,50 +10,35 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 /**
- * Tibero 7.2.4 Testcontainer.
+ * Tibero 7 Testcontainer.
  *
- * <h3>Dev-private prerequisites (TmaxSoft license, not on public registries)</h3>
- * Three things are not in the public repo:
- * <ul>
- *   <li><b>Custom Docker image</b> — default
- *       {@code faketime-tibero:2026-fixed}, built locally from
- *       {@code tests/e2e/tibero/dockerfile}.</li>
- *   <li><b>JDBC driver</b> ({@code com.tmax.tibero.jdbc.TbDriver}) — not on
- *       Maven Central; place at {@code tests/e2e/lib/tibero7-jdbc-17.jar}.
- *       The {@code tibero} Maven profile auto-activates on the jar's
- *       presence and registers a system-scope dep.</li>
- *   <li><b>License file</b> — TmaxSoft 30-day trial, hostname-bound;
- *       default location {@code tests/e2e/tibero/license.xml}.</li>
- * </ul>
+ * <h3>What this class does NOT decide</h3>
+ * Image, hostname, license host path, and license container path all
+ * come from {@link TiberoEnvironment} — there are no hardcoded
+ * defaults. Setting them is the dev's responsibility (see
+ * {@code tests/e2e/tibero/README.md} for the setup SOP); when any is
+ * missing, {@code TiberoEnvironment#isAvailable()} returns false and
+ * the {@code @EnabledIf} on the Tibero {@code @Test} classes skips the
+ * whole scenario.
  *
- * <h3>Configuration overrides</h3>
- * Three keys are read via {@link E2eTestProperties} (system property →
- * {@code e2e-test.properties} file → hardcoded default):
+ * <h3>What stays hardcoded</h3>
+ * Values that are part of the test framework's contract rather than
+ * the host environment:
  * <ul>
- *   <li>{@code e2e.tibero.image} — Docker image tag. Default
- *       {@value #IMAGE_DEFAULT}.</li>
- *   <li>{@code e2e.tibero.hostname} — license-bound hostname. Default
- *       {@value #HOSTNAME_DEFAULT}.</li>
- *   <li>{@code e2e.tibero.license} — license file path (host-side).
- *       Default {@value #LICENSE_DEFAULT} (relative to the e2e module
- *       root, which is the cwd during {@code mvn test}).</li>
+ *   <li>Tibero listener port {@value #TIBERO_PORT} — bundled image
+ *       convention.</li>
+ *   <li>Service ID {@code "tibero"} — bundled image convention.</li>
+ *   <li>DBA credentials ({@code sys}/{@value #DBA_PASSWORD}) — set by
+ *       passing {@code TB_ROOT_PASSWORD} to the container at start.</li>
+ *   <li>Test schema users (MAIN_SCHEMA, REF_SCHEMA) and their
+ *       passwords — created by {@code db/tibero/init/} during seed
+ *       application; the test framework owns these names.</li>
  * </ul>
- * If any of the three prerequisites is missing the Tibero {@code @Test}
- * methods skip via {@code @EnabledIf("...TiberoEnvironment#isAvailable")};
- * the rest of the suite runs unchanged. See
- * {@code tests/e2e/tibero/README.md} for the full setup SOP.
+ * If a developer customizes the Tibero image to use different values
+ * for the first three, they would also need to mirror those changes in
+ * the seed scripts and the dockerfile — out of scope for this class.
  */
 public final class TiberoContainer implements DatabaseContainer {
-
-    /** Configuration keys read via {@link E2eTestProperties}. Public
-     *  constants so {@link TiberoEnvironment} can use the same names. */
-    public static final String IMAGE_KEY    = "e2e.tibero.image";
-    public static final String HOSTNAME_KEY = "e2e.tibero.hostname";
-    public static final String LICENSE_KEY  = "e2e.tibero.license";
-
-    static final String IMAGE_DEFAULT    = "faketime-tibero:2026-fixed";
-    static final String HOSTNAME_DEFAULT = "tibero-3-100";
-    static final String LICENSE_DEFAULT  = "tibero/license.xml";  // relative to e2e module root
 
     private static final int    TIBERO_PORT    = 8629;
     private static final String SID            = "tibero";
@@ -67,15 +49,18 @@ public final class TiberoContainer implements DatabaseContainer {
     private static final String REF_USER       = "REF_SCHEMA";
     private static final String REF_PASSWORD   = "cmt";
 
-    private static final String LICENSE_CONTAINER = "/opt/tibero7/license/license.xml";
-
     private final GenericContainer<?> container;
 
     private TiberoContainer() {
-        Path licensePath = resolveLicensePath();
-        DockerImageName image = DockerImageName.parse(
-            E2eTestProperties.get(IMAGE_KEY, IMAGE_DEFAULT));
-        String hostname = E2eTestProperties.get(HOSTNAME_KEY, HOSTNAME_DEFAULT);
+        // All four environment-specific values come from TiberoEnvironment.
+        // The @EnabledIf("...isAvailable") guard upstream guarantees these
+        // calls succeed; if they don't, the test was wired wrong and the
+        // IllegalStateException from required() makes that loud.
+        DockerImageName image       = DockerImageName.parse(TiberoEnvironment.image());
+        String hostname             = TiberoEnvironment.hostname();
+        Path   licenseHostPath      = TiberoEnvironment.licensePath();
+        String licenseContainerPath = TiberoEnvironment.licenseInContainer();
+
         this.container = new GenericContainer<>(image)
             // Force hostname (license binding) + amd64 platform (image is x86_64-only).
             .withCreateContainerCmdModifier(cmd -> {
@@ -85,8 +70,8 @@ public final class TiberoContainer implements DatabaseContainer {
             .withExposedPorts(TIBERO_PORT)
             .withEnv("TB_ROOT_PASSWORD", DBA_PASSWORD)
             .withCopyFileToContainer(
-                MountableFile.forHostPath(licensePath.toAbsolutePath().toString()),
-                LICENSE_CONTAINER)
+                MountableFile.forHostPath(licenseHostPath.toAbsolutePath().toString()),
+                licenseContainerPath)
             .withSharedMemorySize(1024L * 1024 * 1024)  // 1 GB shm — Tibero needs it
             // Tibero boot marker — verified empirically by booting the image
             // and tailing logs. The line "Tibero is Ready To Use!" prints
@@ -101,20 +86,6 @@ public final class TiberoContainer implements DatabaseContainer {
 
     /** Single factory — keeps construction discoverable. */
     public static TiberoContainer create() { return new TiberoContainer(); }
-
-    private static Path resolveLicensePath() {
-        Path p = Paths.get(E2eTestProperties.get(LICENSE_KEY, LICENSE_DEFAULT));
-        if (!Files.exists(p)) {
-            // Reaching this branch means @EnabledIf("...TiberoEnvironment#isAvailable")
-            // was bypassed — should never happen via the normal test entry point.
-            throw new IllegalStateException(
-                "Tibero license not found at " + p.toAbsolutePath() +
-                "\nSet " + LICENSE_KEY + " in tests/e2e/e2e-test.properties," +
-                " or pass -D" + LICENSE_KEY + "=/abs/path on the command line." +
-                "\nSee tests/e2e/tibero/README.md for the setup SOP.");
-        }
-        return p;
-    }
 
     // -------------------------------------------------------------------------
     // Startable / DatabaseContainer
