@@ -27,8 +27,8 @@ cmt.console.home=
 # -------------------------------------------------------------
 # Tibero source-DB scenario  (see tests/e2e/tibero/README.md)
 # -------------------------------------------------------------
-# All three keys are REQUIRED. If any is missing the Tibero @Test
-# methods skip via @EnabledIf — by design. The other source-DB
+# All four keys are REQUIRED. If any is missing or invalid the Tibero
+# @Test methods skip via @EnabledIf — by design. The other source-DB
 # scenarios (Oracle, CUBRID) are unaffected.
 #
 # The in-container license path is fixed at
@@ -40,7 +40,7 @@ cmt.console.home=
 # shown in comments. Uncomment and adjust for your environment.
 
 # Tibero Docker image. Built from tests/e2e/tibero/dockerfile.
-#   Example: e2e.tibero.image=faketime-tibero:2026-fixed
+#   Example: e2e.tibero.image=faketime-tibero:260501
 e2e.tibero.image=
 
 # License-bound hostname — must equal the licensee suffix in license.xml.
@@ -54,3 +54,11 @@ e2e.tibero.hostname=
 # regardless of where you launched `mvn test` from.
 #   Example: e2e.tibero.license=/Users/you/Devel/cmt-console-e2e/cubrid-migration/tests/e2e/tibero/license.xml
 e2e.tibero.license=
+
+# libfaketime offset, expressed as a positive integer = days back from
+# now. The container env is set to FAKETIME=-Nd. Pick N so that
+# (today - N days) lands inside the license validity window
+# (<start_date>..<end_date> in license.xml). Same convention as the
+# local-smoke helper restart-faketime-tibero.sh.
+#   Example: e2e.tibero.faketime=100   (FAKETIME=-100d)
+e2e.tibero.faketime=
