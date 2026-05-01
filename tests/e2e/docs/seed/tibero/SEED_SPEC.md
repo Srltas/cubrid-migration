@@ -244,6 +244,15 @@ WHERE src.customer_id = 1;
 SQL (`db/tibero/main_schema/V3__schema_type_test_tables.sql`) 에서도 컬럼 자체를
 삭제했다.
 
+`rowid_col` 은 Phase 13.4 에서 **rowid 값을 NULL 로 둔다** (Tibero ROWID 가
+컨테이너의 block/slot allocation 에 따라 매 부팅마다 달라져 dump snapshot
+비교가 매번 fail). Oracle XE 는 storage 결정성 덕에 같은 ROWID 가 반복적으로
+생성되는데, Tibero 는 그렇지 않다. ROWID 컬럼의 type round-trip
+(`ROWID` → CUBRID `STRING`) 자체는 columns.txt snapshot 에서 검증됨.
+실제 ROWID 값을 유지한 채 비교하려면 framework 에 ROWID 패턴 sanitizer
+(예: `'A...A'` 18자리 base32-ish 패턴 → placeholder 정규화) 추가가 필요 —
+후속 phase 분리.
+
 ### 5.6 `MAIN_SCHEMA.e2e_tibero_semi_structured_types` (Tibero 고유 extension)
 
 Tibero 7 은 native `JSON` 과 `XMLTYPE` 을 지원한다. CMT type-map

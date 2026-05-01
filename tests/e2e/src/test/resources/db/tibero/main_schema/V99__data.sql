@@ -205,14 +205,18 @@ VALUES (5, HEXTORAW('CAFEBABE'), TO_BLOB(HEXTORAW('CAFEBABE')));
 
 -- =====================================================================
 -- §5.5 e2e_oracle_locator_types  (Oracle extension reused)
--- ROWID literals cannot be hardcoded; pull a real ROWID from the
--- already-inserted e2e_customer row (customer_id=1).
--- UROWID 컬럼은 Tibero 7 parser 가 거부해서 V3 schema 에서 제거됨
--- (anti-coverage, Phase 13.1 1차 실행 결과). ROWID 만 INSERT.
+-- Tibero 의 ROWID 는 컨테이너의 block/slot allocation 에 따라 매 부팅
+-- 마다 달라지는 비결정 값이라 (Oracle XE 와 달리) snapshot 비교에
+-- 부적합. dump_tree_matches_snapshot 이 매번 첫 글자 1~2 자가 다른
+-- ROWID 로 fail. 본 phase 에서는 row 자체는 INSERT 하되 rowid_col 은
+-- NULL 로 두어 deterministic dump 를 보장한다.
+--
+-- ROWID 컬럼 type round-trip (=> CUBRID STRING) 자체는
+-- snapshots/.../columns.txt 에서 이미 검증됨. 후속 phase 에서 ROWID
+-- 패턴 sanitizer 를 framework 에 추가하면 실제 ROWID 값을 유지한 채
+-- 비교 가능 — 그 시점에 SELECT src.ROWID 형태로 복구.
 -- =====================================================================
 INSERT INTO e2e_oracle_locator_types (id, rowid_col)
-SELECT 1, src.ROWID
-  FROM e2e_customer src
- WHERE src.customer_id = 1;
+VALUES (1, NULL);
 
 COMMIT;
