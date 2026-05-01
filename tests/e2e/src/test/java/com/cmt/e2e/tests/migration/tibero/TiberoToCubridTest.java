@@ -8,6 +8,7 @@ import com.cmt.e2e.framework.target.Target;
 import com.cmt.e2e.framework.target.Targets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 
 /**
  * Tibero 7 e2e dataset → CUBRID online migration.
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
  */
 @MigrationE2E(name = "tibero_to_cubrid")
 @DisplayName("TIB-ON: Tibero e2e dataset → CUBRID online migration")
+@EnabledIf("com.cmt.e2e.framework.db.containers.TiberoEnvironment#isAvailable")
 class TiberoToCubridTest extends AbstractMigrationE2E {
 
     @Override protected Source source() { return Sources.tiberoE2eSeed(); }

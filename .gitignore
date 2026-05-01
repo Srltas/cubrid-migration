@@ -38,5 +38,15 @@ tests/unit-test/logs/
 tests/e2e/target/
 tests/e2e/e2e-test.properties
 
+## Tibero proprietary assets — TmaxSoft license restricts redistribution.
+##   - tibero7-jdbc-*.jar : TmaxSoft JDBC driver (not on Maven Central)
+##   - license.xml        : 30-day trial license, hostname-bound
+## Both are dev-private. Internal devs place these locally per
+## tests/e2e/tibero/README.md; the Tibero Maven profile auto-activates
+## when the jar is present, and Tibero @Test methods auto-skip via
+## @EnabledIf("...TiberoEnvironment#isAvailable") when either is missing.
+tests/e2e/lib/tibero7-jdbc-*.jar
+tests/e2e/tibero/license.xml
+
 ## Mac
 .DS_Store

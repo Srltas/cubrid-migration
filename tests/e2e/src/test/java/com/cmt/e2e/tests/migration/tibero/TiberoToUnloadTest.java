@@ -9,6 +9,7 @@ import com.cmt.e2e.framework.target.Targets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 
 /**
  * Tibero 7 e2e dataset → CMT {@code unload} (CUBRID LoadDB) dump.
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
  * {@code @MigrationE2E.options}.
  */
 @DisplayName("TIB-UN: Tibero e2e dataset → CMT unload (LoadDB) dump")
+@EnabledIf("com.cmt.e2e.framework.db.containers.TiberoEnvironment#isAvailable")
 class TiberoToUnloadTest {
 
     /**

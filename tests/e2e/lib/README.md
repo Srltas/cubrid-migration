@@ -1,42 +1,61 @@
 # `tests/e2e/lib/`
 
-Restricted-license JDBC drivers that are **not on Maven Central** and are
-committed to the repository as a pragmatic compromise. The alternative
-(per-machine `mvn install:install-file`) imposes setup friction every
-developer machine + CI; for a single jar this trade-off is acceptable.
+Local-only directory for **dev-private** JDBC drivers that cannot be
+fetched from Maven Central. Drivers placed here are **not committed**
+(see project `.gitignore`).
 
-| File | Source | Used by |
-|------|--------|---------|
-| `tibero7-jdbc-17.jar` | TmaxSoft (license-restricted; bundled in `tiberoofficial/tibero` Docker image at `/opt/tibero7/client/lib/tibero7-jdbc.jar`) | `TiberoContainer` + `TiberoSource` |
+## What goes here
 
-## How the jar is wired
+| File | Required for | License |
+|------|--------------|---------|
+| `tibero7-jdbc-17.jar` | Tibero source DB scenario | TmaxSoft proprietary — redistribution restricted |
 
-- `pom.xml` declares it as a `system`-scope dependency:
-  ```xml
-  <dependency>
-    <groupId>com.tmax.tibero</groupId>
-    <artifactId>tibero7-jdbc</artifactId>
-    <version>17</version>
-    <scope>system</scope>
-    <systemPath>${project.basedir}/lib/tibero7-jdbc-17.jar</systemPath>
-  </dependency>
-  ```
-  Maven warns that system-scope paths inside the project are non-portable;
-  for our test-only module that's the intended trade-off (see
-  `pom.xml` comment near the dep for the rationale).
+If the directory is empty, the build still works — the Tibero scenario
+just skips at test time via `@EnabledIf` (see
+`framework/db/containers/TiberoEnvironment`). All non-Tibero scenarios
+(Oracle, CUBRID) are unaffected.
 
-- `maven-resources-plugin` copies the jar to
-  `target/test-classes/driver/tibero7-jdbc-17.jar` during
-  `generate-test-resources`, so `JdbcDriverJars.latest(DB.TIBERO)`
-  finds it next to Maven-Central drivers without special-casing.
+## Why a project-local directory instead of Maven Central or `~/.m2`
 
-## Refreshing the jar
+The TmaxSoft Tibero JDBC driver is not on Maven Central (license
+restrictions). Two alternatives were considered and rejected:
 
-When TmaxSoft publishes a new patch:
+1. **`mvn install:install-file` per dev machine** — works but every
+   developer + CI runner has to repeat the install before the project
+   builds. A small one-time barrier multiplied by everyone.
+2. **Project-local Maven repo** (`lib-repo/com/tmax/...`) — committed
+   POM stub + jar arrangement that Maven can pull from a `file://`
+   repository. Works but commits the proprietary jar to the repo,
+   which we want to avoid.
 
-1. Replace `tibero7-jdbc-17.jar` (keep the `-17` suffix — encodes JDK 17
-   build target; matches our test JVM).
-2. Run `mvn -q clean test-compile` to verify nothing else broke.
-3. The variant suffix glob in `JdbcDriverJars.PATTERNS[DB.TIBERO]`
-   accepts other `tibero7-jdbc-*.jar` filenames if you ever need to
-   commit a different build target.
+This directory is the smallest workable middle ground: each developer
+places the jar locally, Maven's `tibero` profile auto-activates on
+its presence, and the public clone has none of TmaxSoft's IP.
+
+## How to obtain `tibero7-jdbc-17.jar`
+
+The jar ships inside the Tibero container image at
+`/opt/tibero7/client/lib/tibero7-jdbc.jar` (or one of the JDK-target
+variants like `tibero7-jdbc-17.jar`). Internal devs can:
+
+```bash
+docker create --name tibero-jdbc-extract <internal-tibero-image>
+docker cp tibero-jdbc-extract:/opt/tibero7/client/lib/tibero7-jdbc-17.jar \
+          tests/e2e/lib/
+docker rm tibero-jdbc-extract
+```
+
+Or download from TmaxSoft TechNet if you have an account.
+
+## How the jar is wired (when present)
+
+- `tests/e2e/pom.xml` declares the dependency inside a `<profile id="tibero">`
+  that activates only when the jar exists at this path. Without the
+  jar, the dep is not declared and the build proceeds without Tibero.
+- The same profile copies the jar to `target/test-classes/driver/` so
+  `JdbcDriverJars.latest(DB.TIBERO)` finds it next to the
+  Maven-Central drivers.
+- `TiberoEnvironment.isAvailable()` checks both
+  `Class.forName("com.tmax.tibero.jdbc.TbDriver")` (driver on
+  classpath) and the license file's existence; Tibero `@Test` methods
+  are gated on this via `@EnabledIf`.

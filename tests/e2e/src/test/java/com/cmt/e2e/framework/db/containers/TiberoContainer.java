@@ -12,40 +12,40 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 /**
- * Tibero 7.2.4 Testcontainer (custom image: {@code faketime-tibero:2026-fixed}).
+ * Tibero 7.2.4 Testcontainer.
  *
- * <h3>Why a custom image is required</h3>
+ * <h3>Dev-private prerequisites (TmaxSoft license, not on public registries)</h3>
+ * Three things are not in the public repo:
  * <ul>
- *   <li>Tibero JDBC driver is not on Maven Central — license-restricted.
- *       The jar is committed to {@code tests/e2e/lib/} (system-scope dep).</li>
- *   <li>Tibero license file is hostname-bound:
- *       {@code <licensee>Demo_Trial_tibero-3-100</licensee>} in
- *       {@code tests/e2e/tibero/license.xml}. The container hostname must
- *       match exactly or boot fails. Forced via
- *       {@code withCreateContainerCmdModifier(cmd -> cmd.withHostName(...))}.</li>
- *   <li>Trial license is 30-day. The image bakes {@code libfaketime} via
- *       {@code LD_PRELOAD} ({@code FAKETIME=-99d}) so the in-container clock
- *       stays inside the validity window. Means at most one Tibero container
- *       can run on a host at a time — sufficient for our PER_CLASS lifecycle
- *       since we never parallelize TC classes.</li>
+ *   <li><b>Custom Docker image</b> — defaults to
+ *       {@code faketime-tibero:2026-fixed}, built locally from
+ *       {@code tests/e2e/tibero/dockerfile} on top of
+ *       {@code tiberoofficial/tibero:7.2.4} + {@code libfaketime}. Override
+ *       with {@code -De2e.tibero.image=<image:tag>}.</li>
+ *   <li><b>JDBC driver</b> ({@code com.tmax.tibero.jdbc.TbDriver}) — not on
+ *       Maven Central; place at {@code tests/e2e/lib/tibero7-jdbc-17.jar}.
+ *       The {@code tibero} Maven profile auto-activates on the jar's
+ *       presence and registers a system-scope dep.</li>
+ *   <li><b>License file</b> — TmaxSoft 30-day trial, hostname-bound.
+ *       Default location {@code tests/e2e/tibero/license.xml}; override with
+ *       {@code -De2e.tibero.license=/abs/path}. Container hostname must
+ *       match the licensee string or boot fails — default
+ *       {@code tibero-3-100}, override with
+ *       {@code -De2e.tibero.hostname=<hostname>}.</li>
  * </ul>
  *
- * <h3>License path</h3>
- * Default: {@code tests/e2e/tibero/license.xml} (relative to the e2e module
- * root, which is the working dir during {@code mvn test}). Override with
- * {@code -De2e.tibero.license=/abs/path/to/license.xml}.
+ * <p>If any of these is missing, Tibero {@code @Test} methods skip via
+ * {@code @EnabledIf("...TiberoEnvironment#isAvailable")}; the rest of the
+ * suite runs unchanged. See {@code tests/e2e/tibero/README.md} for the
+ * full setup SOP.
  */
 public final class TiberoContainer implements DatabaseContainer {
 
-    /** {@code faketime-tibero:2026-fixed} — built locally from
-     *  {@code tests/e2e/tibero/dockerfile} on top of {@code tiberoofficial/tibero:7.2.4}.
-     *  Not on a registry; the image must be built on each developer machine. */
-    private static final DockerImageName IMAGE =
-        DockerImageName.parse("faketime-tibero:2026-fixed");
+    private static final String IMAGE_PROP    = "e2e.tibero.image";
+    private static final String IMAGE_DEFAULT = "faketime-tibero:2026-fixed";
 
-    /** License-bound hostname. Must equal the {@code licensee} suffix in
-     *  {@code tests/e2e/tibero/license.xml}. */
-    private static final String FIXED_HOSTNAME = "tibero-3-100";
+    private static final String HOSTNAME_PROP    = "e2e.tibero.hostname";
+    private static final String HOSTNAME_DEFAULT = "tibero-3-100";
 
     private static final int    TIBERO_PORT    = 8629;
     private static final String SID            = "tibero";
@@ -64,10 +64,13 @@ public final class TiberoContainer implements DatabaseContainer {
 
     private TiberoContainer() {
         Path licensePath = resolveLicensePath();
-        this.container = new GenericContainer<>(IMAGE)
+        DockerImageName image = DockerImageName.parse(
+            System.getProperty(IMAGE_PROP, IMAGE_DEFAULT));
+        String hostname = System.getProperty(HOSTNAME_PROP, HOSTNAME_DEFAULT);
+        this.container = new GenericContainer<>(image)
             // Force hostname (license binding) + amd64 platform (image is x86_64-only).
             .withCreateContainerCmdModifier(cmd -> {
-                cmd.withHostName(FIXED_HOSTNAME);
+                cmd.withHostName(hostname);
                 cmd.withPlatform("linux/amd64");
             })
             .withExposedPorts(TIBERO_PORT)
@@ -94,9 +97,12 @@ public final class TiberoContainer implements DatabaseContainer {
         String override = System.getProperty(LICENSE_PROP);
         Path p = override != null ? Paths.get(override) : Paths.get(LICENSE_DEFAULT);
         if (!Files.exists(p)) {
+            // Reaching this branch means @EnabledIf("...TiberoEnvironment#isAvailable")
+            // was bypassed — should never happen via the normal test entry point.
             throw new IllegalStateException(
                 "Tibero license not found at " + p.toAbsolutePath() +
-                "\nProvide via -D" + LICENSE_PROP + "=/abs/path or place at " + LICENSE_DEFAULT);
+                "\nProvide via -D" + LICENSE_PROP + "=/abs/path or place at " + LICENSE_DEFAULT +
+                "\nSee tests/e2e/tibero/README.md for the setup SOP.");
         }
         return p;
     }

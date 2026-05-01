@@ -1,40 +1,66 @@
 # `tests/e2e/tibero/` — Tibero source-DB scaffolding
 
-Custom Docker image + license file that make Tibero usable as an E2E
-source database in our suite. Read this before touching anything in here.
-
-## Why Tibero needs special handling
-
 Tibero is the only source DB in our suite that requires *human-driven
-infrastructure setup* before any test can run. Both blockers are
-non-code:
+infrastructure setup* before any test can run. The setup needs three
+**dev-private** assets that cannot live in this repo:
 
-1. **Hostname-bound license file.** Tibero refuses to boot unless the
-   container's hostname matches the licensee string in `license.xml`.
-   Our license is bound to `tibero-3-100`; `TiberoContainer` forces this
-   hostname via `withCreateContainerCmdModifier(cmd.withHostName(...))`.
-2. **JDBC driver not on Maven Central.** `tibero7-jdbc-17.jar` is
-   committed to `tests/e2e/lib/` (system-scope dep) — see
-   `tests/e2e/lib/README.md` for provenance.
+1. A **TmaxSoft trial / commercial license** (hostname-bound).
+2. The **TmaxSoft JDBC driver jar** (not on Maven Central).
+3. A **custom Docker image** built from `tiberoofficial/tibero` +
+   `libfaketime` so the in-container clock stays inside the trial
+   license validity window.
 
-The custom `faketime-tibero:2026-fixed` image addresses a third issue —
-the trial license is 30-day. The image bakes `libfaketime` via
-`LD_PRELOAD` (`FAKETIME=-99d`) so the in-container clock stays inside
-the validity window indefinitely *as long as host-time minus 99 days
-is still inside the license validity*.
+Without all three, the Tibero `@Test` methods skip via
+`@EnabledIf("...TiberoEnvironment#isAvailable")` and the rest of the
+suite (Oracle, CUBRID) runs unchanged. The public clone is intended to
+work in this skipped state.
 
-## Files in this directory
+## What's in this directory
 
-| File | Purpose | Refresh trigger |
-|------|---------|-----------------|
-| `dockerfile` | Builds `faketime-tibero:2026-fixed` from `tiberoofficial/tibero:7.2.4` + `libfaketime` | Tibero base image bump or libfaketime bug |
-| `license.xml` | Trial license for hostname `tibero-3-100`; valid 2026-01-21 → 2026-02-19 | License renewal (see SOP below) |
+| File | In repo? | Purpose | Refresh trigger |
+|------|---------|---------|-----------------|
+| `dockerfile` | ✓ | Recipe to rebuild the custom Tibero image. Just `FROM tiberoofficial/tibero:7.2.4` + libfaketime install — no secrets. Anyone with TmaxSoft Docker Hub access can rebuild. | Tibero base bump or libfaketime issue |
+| `license.xml` | ✗ (`.gitignore`) | TmaxSoft trial license, hostname-bound. Place here on internal dev machines. | License renewal (see SOP below) |
+| `README.md` | ✓ | This file. | Process change |
 
-The `license.xml` is committed because losing it means the entire
-Tibero scenario is unbootable until somebody re-requests one from
-TmaxSoft TechNet. It is *trial-only* and not a production secret.
+## What's elsewhere
 
-## Building the image
+| Path | Purpose |
+|------|---------|
+| `../lib/tibero7-jdbc-17.jar` | TmaxSoft JDBC driver jar — `.gitignore`d. See `../lib/README.md`. |
+| `../src/test/java/com/cmt/e2e/framework/db/containers/TiberoContainer.java` | Testcontainers wrapper |
+| `../src/test/java/com/cmt/e2e/framework/db/containers/TiberoEnvironment.java` | `@EnabledIf` pre-flight check |
+| `../src/test/java/com/cmt/e2e/framework/source/TiberoSource.java` | `Source` impl + lifecycle |
+| `../src/test/java/com/cmt/e2e/framework/db/init/TiberoDatabaseInitializer.java` | Raw-JDBC seed runner |
+| `../src/test/java/com/cmt/e2e/tests/migration/tibero/` | Migration TCs |
+| `../src/test/resources/db/tibero/` | Seed SQL (`init/`, `ref_schema/`, `main_schema/`) |
+| `../src/test/resources/snapshots/tibero_to_*/` | Captured golden snapshots |
+
+## Internal dev setup (one-time per machine)
+
+### Step 1 — Obtain the JDBC jar
+
+Place at `tests/e2e/lib/tibero7-jdbc-17.jar`. Two paths:
+
+- **From a running Tibero container**:
+  ```bash
+  docker create --name tibero-jdbc-extract <your-internal-tibero-image>
+  docker cp tibero-jdbc-extract:/opt/tibero7/client/lib/tibero7-jdbc-17.jar \
+            tests/e2e/lib/
+  docker rm tibero-jdbc-extract
+  ```
+- **TmaxSoft TechNet**: download from the JDBC bundle for Tibero 7 if
+  you have an account.
+
+### Step 2 — Obtain a license
+
+Request a 30-day trial at <https://technet.tmaxsoft.com> (Tibero 7).
+
+When asked for hostname, enter exactly the value of
+`e2e.tibero.hostname` (default `tibero-3-100`). Place the resulting
+`license.xml` at `tests/e2e/tibero/license.xml`.
+
+### Step 3 — Build the custom image
 
 ```bash
 cd tests/e2e/tibero
@@ -43,6 +69,27 @@ docker build --platform linux/amd64 -f dockerfile -t faketime-tibero:2026-fixed 
 
 The image is amd64-only; on Apple Silicon hosts everything runs under
 emulation (Tibero boot ~120-150 s).
+
+### Step 4 — Run the suite
+
+Standard:
+```bash
+mvn test -Dtest=TiberoToCubridTest
+```
+
+The Maven `tibero` profile auto-activates from the jar's presence.
+`TiberoEnvironment.isAvailable()` returns true → tests run.
+
+### Step 5 — Optional overrides
+
+If your environment differs from defaults:
+
+```bash
+mvn test \
+  -De2e.tibero.image=my-registry/tibero:custom-tag \
+  -De2e.tibero.hostname=my-license-hostname \
+  -De2e.tibero.license=/abs/path/to/license.xml
+```
 
 ## Manual smoke (matches the Testcontainers config)
 
@@ -55,39 +102,38 @@ docker run --platform linux/amd64 \
 ```
 
 Wait until `docker logs` shows `Tibero is Ready To Use!` (~2 min) and
-connect with `tibero7-jdbc-17.jar` at `jdbc:tibero:thin:@localhost:8629:tibero`
+connect with the JDBC driver at `jdbc:tibero:thin:@localhost:8629:tibero`
 (user `sys`, password `tibero123`).
 
 ## License renewal SOP (recurs every ~3 months)
 
-The current image's `FAKETIME=-99d` keeps in-container time at
-`host_now - 99 days`. License validity is 2026-01-21 → 2026-02-19.
-Therefore the image effectively expires when `host_now - 99 days`
-exceeds 2026-02-19, i.e. around **2026-05-29**. After that, Tibero
-boot fails with a license-expired error.
+The default image's `FAKETIME=-99d` keeps in-container time at
+`host_now - 99 days`. The current example license is valid
+2026-01-21 → 2026-02-19; the image effectively expires when
+`host_now - 99 days` exceeds the license `<end_date>`, i.e. around
+**2026-05-29** for that license. After that, Tibero boot fails.
 
-When that happens (or sooner):
+When the time comes (or sooner):
 
-1. **Request a new trial license** at
-   <https://technet.tmaxsoft.com> → Tibero 7 → 30-day trial.
-2. When asked for hostname, enter exactly `tibero-3-100` (the value
-   the rest of the codebase assumes — see
-   `TiberoContainer.FIXED_HOSTNAME`). Do **not** invent a new hostname
-   without coordinating a code change.
-3. Replace `license.xml` and commit.
-4. Optionally, update the `FAKETIME` offset in `dockerfile` and rebuild
-   the image so the offset still lands inside the new validity window.
-   For a typical 30-day license issued today, `FAKETIME="-1d"` puts the
-   in-container clock 1 day in the past relative to host time —
-   compatible for the next ~29 days.
-5. Verify by re-running `mvn test -Dtest=TiberoToCubridTest` in capture
-   mode and checking `git diff src/test/resources/snapshots/tibero_*`
-   is empty.
+1. Request a new trial license at TmaxSoft TechNet, using the same
+   `e2e.tibero.hostname` value the codebase assumes.
+2. Replace `tibero/license.xml` and **do not** commit (the path is
+   `.gitignore`d for exactly this reason).
+3. If needed, update the `FAKETIME` offset in `dockerfile` and rebuild
+   the image so the in-container clock falls inside the new validity
+   window. For a 30-day license issued today, `FAKETIME="-1d"` keeps
+   the clock 1 day behind real time — comfortable for the next
+   ~29 days.
+4. Verify: `mvn test -Dtest=TiberoToCubridTest` should be green; if
+   capturing fresh snapshots, ensure
+   `git diff src/test/resources/snapshots/tibero_*` is empty after a
+   second non-capture run.
 
-## What's NOT here
+## Troubleshooting
 
-- **Tibero JDBC driver** — `../lib/tibero7-jdbc-17.jar`. Separate so
-  it's discoverable via the standard `JdbcDriverJars` pattern.
-- **Seed SQL** — `../src/test/resources/db/tibero/`. Standard layout.
-- **Container class** — `../src/test/java/com/cmt/e2e/framework/db/containers/TiberoContainer.java`.
-- **Testcase classes** — `../src/test/java/com/cmt/e2e/tests/migration/tibero/`.
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| `Tibero @Test` methods all show "skipped" | `TiberoEnvironment.isAvailable()` returned false | Check the jar exists at `lib/tibero7-jdbc-17.jar` and the license at the configured path |
+| Container boot hangs / fails with "license invalid" | Hostname or license expired | Verify `license.xml` `<licensee>` matches `e2e.tibero.hostname`; check `<end_date>` vs `host_now - 99d` |
+| "No suitable driver found for jdbc:tibero:..." | Maven `tibero` profile not active (jar missing or wrong path) | Confirm `lib/tibero7-jdbc-17.jar` exists; rebuild with `mvn clean test-compile` |
+| Image not found | Custom image not built or wrong tag | Run Step 3 above, or pass `-De2e.tibero.image=<your-tag>` |

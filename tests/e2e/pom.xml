@@ -162,21 +162,12 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Tibero JDBC driver. Class com.tmax.tibero.jdbc.TbDriver.
-             Not on Maven Central — license-restricted by TmaxSoft. The jar is
-             committed to ${project.basedir}/lib/ and referenced via system
-             scope. This is a pragmatic compromise (system scope is deprecated
-             in modern Maven) — the alternatives (mvn install:install-file
-             per-machine, or a local file:// repo) are more trouble than they
-             save for a single restricted-license jar in a test-only module.
-             See tests/e2e/tibero/README.md for jar provenance. -->
-        <dependency>
-            <groupId>com.tmax.tibero</groupId>
-            <artifactId>tibero7-jdbc</artifactId>
-            <version>17</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/tibero7-jdbc-17.jar</systemPath>
-        </dependency>
+        <!-- Tibero JDBC driver lives in the `tibero` profile (below) —
+             not on Maven Central, license-restricted by TmaxSoft, jar is
+             dev-private (see tests/e2e/tibero/README.md). When the jar
+             is present at ${project.basedir}/lib/tibero7-jdbc-17.jar
+             the profile auto-activates; otherwise Tibero @Test methods
+             skip via @EnabledIf and the rest of the build proceeds. -->
 
         <!-- Flyway Informix community plugin: registers the
              DatabaseType for jdbc:informix-sqli: URLs via the
@@ -362,34 +353,11 @@
                 </executions>
             </plugin>
 
-            <!-- Tibero JDBC jar isn't on Maven Central (license-restricted). The
-                 jar lives in ${project.basedir}/lib/ and we copy it to the same
-                 driver directory the dependency-plugin uses for Maven-Central
-                 drivers, so JdbcDriverJars.latest(DB.TIBERO) finds it next to
-                 the others without special-casing. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
-                <executions>
-                    <execution>
-                        <id>copy-tibero-jdbc-driver</id>
-                        <phase>generate-test-resources</phase>
-                        <goals><goal>copy-resources</goal></goals>
-                        <configuration>
-                            <outputDirectory>${project.build.testOutputDirectory}/driver</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/lib</directory>
-                                    <includes>
-                                        <include>tibero7-jdbc-*.jar</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+            <!-- Tibero JDBC jar handling lives in the `tibero` profile below.
+                 Profile auto-activates when the jar is present locally; the
+                 default build (without the jar) compiles fine because Tibero
+                 source files use only java.sql + Class.forName via @EnabledIf,
+                 with no static reference to the proprietary driver class. -->
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -420,4 +388,72 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- =================================================================
+         Profile: tibero
+         Auto-activated when the proprietary TmaxSoft JDBC jar is present
+         at lib/tibero7-jdbc-17.jar. When absent (e.g. public clone), the
+         profile stays inactive: the dependency is not declared, the jar
+         is not copied to driver/, and Tibero @Test methods skip via
+         @EnabledIf("...TiberoEnvironment#isAvailable") at runtime. The
+         non-Tibero build remains green.
+         ================================================================= -->
+    <profiles>
+        <profile>
+            <id>tibero</id>
+            <activation>
+                <file>
+                    <exists>${project.basedir}/lib/tibero7-jdbc-17.jar</exists>
+                </file>
+            </activation>
+
+            <dependencies>
+                <!-- TmaxSoft Tibero JDBC. Class com.tmax.tibero.jdbc.TbDriver.
+                     Not on Maven Central; jar is dev-private — see
+                     tests/e2e/tibero/README.md for setup. system scope is
+                     deprecated in modern Maven but acceptable here because
+                     this profile is gated by the jar's local existence and
+                     the artifact is test-only. -->
+                <dependency>
+                    <groupId>com.tmax.tibero</groupId>
+                    <artifactId>tibero7-jdbc</artifactId>
+                    <version>17</version>
+                    <scope>system</scope>
+                    <systemPath>${project.basedir}/lib/tibero7-jdbc-17.jar</systemPath>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <!-- Copy the local jar into the same driver directory
+                         maven-dependency-plugin uses for Maven-Central drivers,
+                         so JdbcDriverJars.latest(DB.TIBERO) discovers it
+                         without special-casing. -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>copy-tibero-jdbc-driver</id>
+                                <phase>generate-test-resources</phase>
+                                <goals><goal>copy-resources</goal></goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.testOutputDirectory}/driver</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/lib</directory>
+                                            <includes>
+                                                <include>tibero7-jdbc-*.jar</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
