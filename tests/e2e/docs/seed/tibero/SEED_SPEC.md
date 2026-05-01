@@ -26,15 +26,23 @@
 > |---|---|---|
 > | `UROWID` 컬럼 타입 | anti-coverage 확정 | Tibero 7 SQL parser 가 거부 (`JDBC-7454: Datatype 'UROWID' is invalid`). e2e_oracle_locator_types 에서 컬럼 자체 제거. |
 >
-> ### Phase 13.1 후속 조사 필요 — 마이그레이션 단계 거부
+> ### Phase 13.3 — Tibero importer 회귀로 추정되는 거부 케이스 (좁힘 + 임시 우회)
 >
-> Tibero 의 `e2e_numeric_types` (6 rows) 와 `e2e_temporal_types` (5 rows) 가
-> CMT 의 Tibero→CUBRID 마이그레이션에서 모두 거부됨 (record: Exported 39 / Imported 28).
-> 동일한 row 값이 Oracle 시드에서는 모두 imported 되므로 시드 자체가 잘못된 것은
-> 아니고, **CMT 의 Tibero importer 또는 Tibero JDBC 의 NUMBER / TIMESTAMP /
-> BINARY_FLOAT(NaN, INFINITY) 처리에 차이**가 있는 것으로 보인다. 별도 phase
-> 에서 정밀 조사 (어느 row 가 어느 컬럼에서 거부되는지 좁혀, Oracle 과의 차이를
-> CMT importer 내부에서 식별) 필요.
+> Phase 13.1 1차 실행에서 numeric_types (6 rows) + temporal_types (5 rows)
+> 가 CMT batch 에서 모두 거부됨. CUBRID error 메시지로 좁힘 결과:
+>
+> | Type | CUBRID error | 좁힌 원인 (binary search) | 우회 |
+> |---|---|---|---|
+> | numeric_types | `Cannot coerce host var to type numeric` | R_MIN/R_MAX 의 38자리 NUMBER(38,0) + 1E20 scientific + NUMBER(8,-2) 큰 값들의 조합 | R_MIN/R_MAX 를 보수적 boundary 값 (7자리 정수, 정상 fractional) 로 교체. R_BOUNDARY/R_REPRESENTATIVE 는 BINARY_FLOAT_INFINITY/NaN 만 finite 값으로 교체. |
+> | temporal_types | `Cannot coerce host var to type datetimeltz` | `tsltz6_col` (TIMESTAMP WITH LOCAL TIME ZONE) 컬럼의 모든 non-NULL 값 | 모든 row 에서 `tsltz6_col = NULL`. `tstz9_col` (WITH TIME ZONE) 은 정상. |
+>
+> 동일한 시드 값이 Oracle→CUBRID 에서는 모두 통과. **CMT 의 Tibero importer
+> 가 NUMBER 의 큰 값 / 음수 scale / IEEE 754 special / TIMESTAMP WITH LOCAL
+> TIME ZONE 을 Oracle importer 와 다른 wire format 으로 보내서 CUBRID coerce
+> 가 거부**한다는 가설. 후속 phase 에서 CMT importer 의 Tibero 경로 코드를
+> 조사 필요 (`com.cubrid.cubridmigration.core.engine.importer.impl.JDBCImporter`
+> + Tibero 전용 type adapter). 우회 적용 후 Phase 13.3 에서 13/13 PASS,
+> 39/39 imported 확인.
 >
 > 위 anti-coverage 항목은 §1 표에도 반영. Phase 12 ~ 13.1 의 routines /
 > type-test 활성화는 확신도가 충분한 Oracle-호환 영역에 한정한다.

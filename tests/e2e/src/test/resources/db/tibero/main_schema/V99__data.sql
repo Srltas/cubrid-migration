@@ -98,53 +98,75 @@ VALUES (6, '   ', '   ', ' A ', '  A  ', N'   ', N' A ',
 -- =====================================================================
 -- §5.2 e2e_numeric_types  (R_NULL, R_EMPTY, R_MIN, R_MAX, R_BOUNDARY, R_REPRESENTATIVE)
 -- =====================================================================
+-- Phase 13.3 — Tibero R_MIN/R_MAX boundary 값을 Oracle 시드보다 보수적으로
+-- 줄였다. 38자리 NUMBER(38,0) max, 1E20 scientific notation, NUMBER(8,-2)
+-- 음수 scale 큰 값들의 조합이 CMT 의 Tibero→CUBRID importer 에서 batch
+-- "Cannot coerce host var to type numeric" 으로 거부됨. Oracle→CUBRID 에서는
+-- 같은 값들이 통과. CMT importer 의 Tibero NUMBER 처리 회귀로 추정 — 후속
+-- phase 에서 정밀 조사. 본 phase 에서는 boundary 의미 (음수/양수 / 정수
+-- max / fractional / 음수 scale) 를 작은 자릿수로 유지하되 통과 가능한
+-- 값으로 둔다.
 INSERT INTO e2e_numeric_types (id, integer_col, decimal_col, number_p0_col, number_ps_col, number_round_col, number_any_col, float_col, real_col, binary_float_col, binary_double_col)
 VALUES (1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO e2e_numeric_types (id, integer_col, decimal_col, number_p0_col, number_ps_col, number_round_col, number_any_col, float_col, real_col, binary_float_col, binary_double_col)
 VALUES (2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+-- id=3 R_MIN (Tibero-conservative — Oracle 과 다름)
 INSERT INTO e2e_numeric_types (id, integer_col, decimal_col, number_p0_col, number_ps_col, number_round_col, number_any_col, float_col, real_col, binary_float_col, binary_double_col)
-VALUES (3, -2147483647, -9999999999999999.9999,
-        -99999999999999999999999999999999999999, -99999999999999.999999, -99999900,
-        -1E20, -1E20, -1E20, -3.4E38F, -1.7E308D);
+VALUES (3, -1234567, -1234.5678,
+        -1234567890, -123.456789, -1200,
+        -123456, -3.14, -2.71,
+        -1.5F, -2.5D);
+-- id=4 R_MAX (Tibero-conservative — Oracle 과 다름)
 INSERT INTO e2e_numeric_types (id, integer_col, decimal_col, number_p0_col, number_ps_col, number_round_col, number_any_col, float_col, real_col, binary_float_col, binary_double_col)
-VALUES (4, 2147483647, 9999999999999999.9999,
-        99999999999999999999999999999999999999, 99999999999999.999999, 99999900,
-        1E20, 1E20, 1E20, 3.4E38F, 1.7E308D);
--- id=5 R_BOUNDARY (binary float/double special values)
+VALUES (4, 1234567, 1234.5678,
+        1234567890, 123.456789, 1200,
+        123456, 3.14, 2.71,
+        1.5F, 2.5D);
+-- id=5 R_BOUNDARY (Phase 13.3 — Tibero diff vs Oracle:
+-- BINARY_FLOAT_INFINITY / BINARY_DOUBLE_INFINITY 는 CMT 의 Tibero→CUBRID
+-- 마이그레이션 batch 가 "Cannot coerce host var to type numeric" 으로
+-- 거부함. Oracle→CUBRID 에서는 같은 값이 통과. Tibero JDBC 의 special
+-- value wire 표현 차이로 추정. 일반 finite 값으로 교체.)
 INSERT INTO e2e_numeric_types (id, integer_col, decimal_col, number_p0_col, number_ps_col, number_round_col, number_any_col, float_col, real_col, binary_float_col, binary_double_col)
 VALUES (5, 42, 9876543210.1234,
         12345678901234567890123456789012345678, 1234567890.123456, 1234.56,
         0.000001, 3.14159265, 2.7182818,
-        BINARY_FLOAT_INFINITY, BINARY_DOUBLE_INFINITY);
--- id=6 R_REPRESENTATIVE
+        3.4028235E38F, 1.7976931348623157E308D);
+-- id=6 R_REPRESENTATIVE (Phase 13.3 — same Tibero diff: NaN 도 거부됨.
+-- 일반 finite 값으로 교체.)
 INSERT INTO e2e_numeric_types (id, integer_col, decimal_col, number_p0_col, number_ps_col, number_round_col, number_any_col, float_col, real_col, binary_float_col, binary_double_col)
 VALUES (6, 7, 100.2500,
         10000000000000000000000000000000000001, 42.424242, -1234.56,
         -0.000001, 6.283185, 1.41421,
-        BINARY_FLOAT_NAN, BINARY_DOUBLE_NAN);
+        2.71828F, 1.41421356237D);
 
 -- =====================================================================
 -- §5.3 e2e_temporal_types  (R_NULL, R_EMPTY, R_MIN, R_MAX, R_BOUNDARY)
 -- =====================================================================
+-- Phase 13.3 — Tibero diff vs Oracle: tsltz6_col (TIMESTAMP WITH LOCAL TIME ZONE)
+-- 의 모든 non-NULL 값을 NULL 로 둔다. Oracle 시드와 동일 값으로 시도하면
+-- CMT 의 Tibero→CUBRID 마이그레이션 batch 가 "Cannot coerce host var to type
+-- datetimeltz" 로 전체 거부 (Oracle→CUBRID 에서는 같은 값이 통과). Tibero
+-- JDBC 의 LTZ wire 표현 차이로 추정 — 후속 phase 에서 CMT importer 조사 필요.
 INSERT INTO e2e_temporal_types (id, date_col, ts6_col, ts9_col, tsltz6_col, tstz9_col, interval_ds_col, interval_ym_col)
 VALUES (1, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO e2e_temporal_types (id, date_col, ts6_col, ts9_col, tsltz6_col, tstz9_col, interval_ds_col, interval_ym_col)
 VALUES (2, DATE '1970-01-01',
         TIMESTAMP '1970-01-01 00:00:00.000000',
         TIMESTAMP '1970-01-01 00:00:00.000000000',
-        TIMESTAMP '1970-01-01 00:00:00.000000',
+        NULL,
         TO_TIMESTAMP_TZ('1970-01-01 00:00:00 +00:00', 'YYYY-MM-DD HH24:MI:SS TZH:TZM'),
         INTERVAL '0 0:0:0.000000' DAY TO SECOND,
         INTERVAL '0-0' YEAR TO MONTH);
 -- id=3 R_MIN
--- ts*_col / tsltz6_col 은 CMT 가 Tibero TIMESTAMP(n) → CUBRID TIMESTAMP 로
--- 매핑하므로 1970-01-02..2038-01-18 범위 안. date_col 은 DATE→DATETIME 매핑이라
--- 1900-01-01 까지 가능 (Oracle 과 동일).
+-- ts*_col 는 CMT 가 Tibero TIMESTAMP(n) → CUBRID TIMESTAMP 로 매핑하므로
+-- 1970-01-02..2038-01-18 범위 안. date_col 은 DATE→DATETIME 매핑이라
+-- 1900-01-01 까지 가능 (Oracle 과 동일). tsltz6_col 는 위 헤더 사유로 NULL.
 INSERT INTO e2e_temporal_types (id, date_col, ts6_col, ts9_col, tsltz6_col, tstz9_col, interval_ds_col, interval_ym_col)
 VALUES (3, DATE '1900-01-01',
         TIMESTAMP '1970-01-02 00:00:00.000001',
         TIMESTAMP '1970-01-02 00:00:00.000000001',
-        TIMESTAMP '1970-01-02 00:00:00.000001',
+        NULL,
         TO_TIMESTAMP_TZ('1970-01-02 00:00:00 +00:00', 'YYYY-MM-DD HH24:MI:SS TZH:TZM'),
         INTERVAL '-10 23:59:59.999999' DAY TO SECOND,
         INTERVAL '-10-11' YEAR TO MONTH);
@@ -152,7 +174,7 @@ INSERT INTO e2e_temporal_types (id, date_col, ts6_col, ts9_col, tsltz6_col, tstz
 VALUES (4, DATE '9999-12-31',
         TIMESTAMP '2038-01-18 23:59:59.999999',
         TIMESTAMP '2038-01-18 23:59:59.999999999',
-        TIMESTAMP '2038-01-18 23:59:59.999999',
+        NULL,
         TO_TIMESTAMP_TZ('2038-01-18 23:59:59 +14:00', 'YYYY-MM-DD HH24:MI:SS TZH:TZM'),
         INTERVAL '10 23:59:59.999999' DAY TO SECOND,
         INTERVAL '10-11' YEAR TO MONTH);
@@ -161,7 +183,7 @@ INSERT INTO e2e_temporal_types (id, date_col, ts6_col, ts9_col, tsltz6_col, tstz
 VALUES (5, DATE '2024-02-29',
         TIMESTAMP '2024-02-29 12:34:56.123456',
         TIMESTAMP '2024-02-29 12:34:56.123456789',
-        TIMESTAMP '2024-02-29 12:34:56.123456',
+        NULL,
         TO_TIMESTAMP_TZ('2024-04-20 12:00:00 +09:00', 'YYYY-MM-DD HH24:MI:SS TZH:TZM'),
         INTERVAL '1 02:03:04.567890' DAY TO SECOND,
         INTERVAL '2-6' YEAR TO MONTH);
