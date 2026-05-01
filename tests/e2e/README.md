@@ -14,9 +14,11 @@ or dump file) round-trip verification.
 | ID | Source | Target | Class |
 |----|--------|--------|-------|
 | `oracle_to_cubrid` | Oracle 11g XE | CUBRID 11.4 (online) | `OracleToCubridTest` |
-| `oracle_to_dump` | Oracle 11g XE | dump file | `OracleToDumpTest` |
+| `oracle_to_unload__split_per_table` | Oracle 11g XE | CUBRID LoadDB dump (`DEST_DB_UNLOAD`) | `OracleToUnloadTest.SplitPerTable` (`@Nested`) |
 | `cubrid_to_cubrid` | CUBRID 11.4 | CUBRID 11.4 (online) | `CubridToCubridTest` |
-| `cubrid_to_dump` | CUBRID 11.4 | dump file | `CubridToDumpTest` |
+| `cubrid_to_unload__split_per_table` | CUBRID 11.4 | CUBRID LoadDB dump (`DEST_DB_UNLOAD`) | `CubridToUnloadTest.SplitPerTable` (`@Nested`) |
+| `tibero_to_cubrid` | Tibero 7.2.4 (custom `faketime-tibero` image) | CUBRID 11.4 (online) | `TiberoToCubridTest` |
+| `tibero_to_unload__split_per_table` | Tibero 7.2.4 | CUBRID LoadDB dump (`DEST_DB_UNLOAD`) | `TiberoToUnloadTest.SplitPerTable` (`@Nested`) |
 
 Plus `CliTest` (8 `@Test`) — `migration.sh` dispatch / first-run
 filesystem contracts (no DB).
@@ -122,6 +124,7 @@ See `docs/ARCHITECTURE.md` §9 ADR D6 / D7 / D8 / D9.
 tests/e2e/
 ├── docs/
 │   ├── ARCHITECTURE.md                  ← v2 design + ADR (incl. §12 naming)
+│   ├── COVERAGE_RESEARCH.md             ← Coverage Matrix starter pack (deferred, ADR D15)
 │   ├── SEED_DATA_GUIDE.md
 │   └── seed/
 │       ├── COMMON_SEED_CONTRACT.md
@@ -152,7 +155,10 @@ Full grammar: `docs/ARCHITECTURE.md` §12. Quick form:
 
 ```
 scenario id  : <source>_to_<target>[__<discriminator>]
-class name   : <Source>To<Target>[<Discriminator>]Test     (no underscores)
+class layout :
+   - no variants  → flat class:   <Source>To<Target>Test
+   - 1+ variants  → outer + @Nested per variant:
+                    <Source>To<Target>Test.<VariantName>
 DisplayName  : <SRC>-<TGT>[-<DISCRIMINATOR>] [<purpose>]: <description>
 ```
 
@@ -162,11 +168,11 @@ explicitly declares the CMT options that affect its verification in
 releases — leaning on them silently shifts a test's meaning. So every
 peer migration TC names its observable behaviour and lists its options.
 
-| Kind | Scenario id | Class | Location |
-|------|-------------|-------|----------|
-| migration TC | `oracle_to_cubrid` | `OracleToCubridTest` | `migration/oracle/` |
-| migration TC (sibling) | `oracle_to_dump__flat` | `OracleToDumpFlatTest` | `migration/oracle/` |
-| regression | `oracle_to_cubrid__bug_cmt_1234` | `OracleToCubridBugCmt1234Test` | `migration/oracle/regression/` |
+| Kind | Scenario id | Class |
+|------|-------------|-------|
+| flat (no variants) | `oracle_to_cubrid` | `OracleToCubridTest` |
+| `@Nested` variant | `oracle_to_unload__split_per_table` | `OracleToUnloadTest.SplitPerTable` |
+| regression | `oracle_to_cubrid__bug_cmt_1234` | `OracleToCubridBugCmt1234Test` (in `regression/`) |
 
 Discriminator is a **behaviour name** (`flat`, `per_table`, …), not a
 flag value (`split_off`, `_yes/_no`, `_true/_false`). Bug regressions
