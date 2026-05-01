@@ -21,11 +21,18 @@ services:
       # timezone as a region name during authentication, ORA-01882 is raised.
       # Set this to false so the driver sends a UTC offset (+09:00) instead.
       - JAVA_TOOL_OPTIONS=-Doracle.jdbc.timezoneAsRegion=false
+    # The Tibero scenario reads e2e.tibero.license from e2e-test.properties.
+    # That file is shared with host-side `mvn test` runs (where it holds a macOS
+    # absolute path), so we override it here with the container-side path —
+    # system property wins over file (E2eTestProperties precedence). Without
+    # this override, Files.exists() in TiberoEnvironment.isAvailable() fails
+    # and the whole Tibero scenario skips.
     command: >
       mvn clean test
       -Dmaven.test.failure.ignore=true
       -Dpicocli.ansi=false
       -Dorg.fusesource.jansi.Ansi.disable=true
+      -De2e.tibero.license=/app/tibero/license.xml
 
 volumes:
   maven-cache:
