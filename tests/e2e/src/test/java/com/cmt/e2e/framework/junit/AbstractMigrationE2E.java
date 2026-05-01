@@ -17,53 +17,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Base class for migration E2E tests. Owns the Source/Target lifecycle
- * with class-level scope (PER_CLASS) and runs the migration once in
- * {@link #e2eStartup()}, caching the outcome so that every {@code @Test}
- * verifies a single fact against the same migration result.
- *
- * <p>Subclass contract:
- * <ul>
- *   <li>Annotate with {@link MigrationE2E} to bind a scenario name.</li>
- *   <li>Implement {@link #source()} and {@link #target()} returning
- *       freshly-constructed (not yet started) instances.</li>
- *   <li>Use {@link #run()} inside test methods to access the cached
- *       {@link MigrationOutcome}.</li>
- * </ul>
- *
- * <p>Lifecycle:
- * <ol>
- *   <li>{@code @BeforeAll}: source.start() → target.start() → migration.run()
- *       → cache outcome.</li>
- *   <li>each {@code @Test}: read cached outcome, assert one fact.</li>
- *   <li>{@code @AfterAll}: target.close() → source.close().</li>
- * </ol>
+ * Base class for migration E2E tests. Runs source/target/migration once
+ * in {@code @BeforeAll} and caches the outcome so each {@code @Test}
+ * verifies one fact against the same result.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractMigrationE2E {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractMigrationE2E.class);
 
-    /** Working dir root for v2 runner output (script.xml, raw CMT XML). */
     private static final Path WORK_ROOT = Paths.get("target", "e2e-v2");
 
     private Source source;
     private Target target;
     private MigrationOutcome cachedOutcome;
 
-    /** Subclass returns a freshly-constructed source. Called once per class. */
     protected abstract Source source();
-
-    /** Subclass returns a freshly-constructed target. Called once per class. */
     protected abstract Target target();
 
     @BeforeAll
     final void e2eStartup() throws Exception {
-        // Clean leftover output from any previous CMT run.
-        // CMT 's function/procedure dump files are append-mode within an
-        // output directory; without this, a second run on the same
-        // CMT_CONSOLE_HOME yields doubled snapshot content (catalog
-        // metadata is unaffected; this only matters for dump-file targets).
+        // CMT appends to function/procedure dump files within an output
+        // directory; reusing CMT_CONSOLE_HOME without this clean yields
+        // doubled dump content.
         new WorkspaceCleaner(CmtConsoleEnv.resolve().toFile()).cleanupOutput();
 
         this.source = source();
@@ -88,10 +64,6 @@ public abstract class AbstractMigrationE2E {
         }
     }
 
-    /**
-     * Cached migration outcome. Available from every {@code @Test} method;
-     * the actual migration ran once in {@code @BeforeAll}.
-     */
     protected final MigrationOutcome run() {
         if (cachedOutcome == null) {
             throw new IllegalStateException(
@@ -100,10 +72,6 @@ public abstract class AbstractMigrationE2E {
         return cachedOutcome;
     }
 
-    /**
-     * Scenario id from {@link MigrationE2E}. Used by the verify layer to
-     * resolve {@code snapshots/<name>/} and {@code queries/<name>.sql}.
-     */
     protected final String scenarioName() {
         MigrationE2E ann = getClass().getAnnotation(MigrationE2E.class);
         if (ann == null) {
@@ -114,9 +82,6 @@ public abstract class AbstractMigrationE2E {
         return ann.name();
     }
 
-    /** Verify-layer access. Tests should prefer the fluent {@link #run()} API. */
     protected final Source sourceInstance() { return source; }
-
-    /** Verify-layer access. Tests should prefer the fluent {@link #run()} API. */
     protected final Target targetInstance() { return target; }
 }

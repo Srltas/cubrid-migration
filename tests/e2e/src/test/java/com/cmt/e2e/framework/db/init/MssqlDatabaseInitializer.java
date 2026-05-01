@@ -7,12 +7,7 @@ import org.flywaydb.core.api.output.MigrateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Flyway-based helper for MSSQL test databases. MSSQL separates database
- * (catalog) and schema (namespace within a database); both roles share
- * the same {@code e2e_db} database and only the connecting user + Flyway
- * {@code defaultSchema} differ.
- */
+/** Flyway-based seed helper for MSSQL (database + schema both apply). */
 public final class MssqlDatabaseInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(MssqlDatabaseInitializer.class);
@@ -101,18 +96,11 @@ public final class MssqlDatabaseInitializer {
         return this;
     }
 
-    // -------------------------------------------------------------------------
-    // private helpers
-    // -------------------------------------------------------------------------
-
     private Flyway buildFlyway(String location, String database, String schema, String user, String password) {
-        // jdbc:sqlserver://...;databaseName=<db>;encrypt=false;trustServerCertificate=true
-        String jdbcUrl = container.getJdbcUrl(database, user);
-
         return Flyway.configure()
-            .dataSource(jdbcUrl, user, password)
+            .dataSource(container.getJdbcUrl(database, user), user, password)
             .driver(MSSQL_DRIVER)
-            .defaultSchema(schema)          // MSSQL: schema is independent of database
+            .defaultSchema(schema)
             .schemas(schema)
             .locations(location)
             .cleanDisabled(true)

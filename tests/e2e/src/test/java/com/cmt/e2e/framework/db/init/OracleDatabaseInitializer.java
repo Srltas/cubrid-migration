@@ -7,11 +7,7 @@ import org.flywaydb.core.api.output.MigrateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Flyway-based helper for Oracle test databases. In Oracle schema == user,
- * so each {@link #migrateAs} call manages its own
- * {@code flyway_schema_history} under the connecting user 's schema.
- */
+/** Flyway-based seed helper for Oracle (schema == user). */
 public final class OracleDatabaseInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(OracleDatabaseInitializer.class);
@@ -30,10 +26,7 @@ public final class OracleDatabaseInitializer {
         return new OracleDatabaseInitializer(container);
     }
 
-    /**
-     * In two-user mode call as {@code REF_SCHEMA → MAIN_SCHEMA} because
-     * {@code MAIN_SCHEMA} synonyms reference {@code REF_SCHEMA} objects.
-     */
+    /** Two-user mode: call REF_SCHEMA before MAIN_SCHEMA — MAIN synonyms point at REF. */
     public OracleDatabaseInitializer migrateAs(String user, String password, String scenarioName) {
         if (user == null || user.isBlank()) {
             throw new IllegalArgumentException("user must not be blank");
@@ -78,7 +71,6 @@ public final class OracleDatabaseInitializer {
         return Flyway.configure()
             .dataSource(container.getJdbcUrl(null, null), user, password)
             .driver(ORACLE_DRIVER)
-            // Oracle: schema == user, so each user gets its own flyway_schema_history.
             .defaultSchema(user)
             .schemas(user)
             .locations(location)

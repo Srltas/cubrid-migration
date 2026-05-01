@@ -16,19 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Generates a CMT {@code script.xml} by invoking
- * {@code migration.sh script -s ... -t ... -o ...} with a supplied
- * {@code db.conf} and then normalises timestamp-bearing attributes so
- * the result is byte-deterministic across runs.
- *
- * <p>Why the normalisation matters: CMT writes
- * {@code <migration name="CUBRID_e2e_db_<14-digit timestamp>"
- * wizard_start_date_time="<14-digit timestamp>">}. The timestamp drifts
- * every run; that drift would propagate into the dump output directory
- * name and into snapshot diffs. Normalising at script-generation time
- * keeps the rest of the pipeline (run + verify + snapshot) stable.
- *
- * <p>Determinism contract — see {@code ARCHITECTURE.md} §7.
+ * Generates a CMT {@code script.xml} via {@code migration.sh script} and
+ * normalizes timestamp + seed-internal noise so the result is byte-
+ * deterministic across runs (see ARCHITECTURE.md §7).
  */
 public final class ScriptXmlBuilder {
 
@@ -36,17 +26,16 @@ public final class ScriptXmlBuilder {
 
     private ScriptXmlBuilder() {}
 
-    /** Result of {@link #generate} — sanitized script path + migration name. */
     public record Result(Path scriptXml, String migrationName) {}
 
     /**
-     * @param consoleHome  path to {@code CMT_CONSOLE_HOME}
+     * @param consoleHome  {@code CMT_CONSOLE_HOME}
      * @param dbConf       full {@code db.conf} text (use {@link DbConfBuilder})
-     * @param outputDir    where to place the sanitized {@code script.xml}.
-     *                     A {@code raw/} subdir holds the unsanitized CMT output.
-     * @return path to the sanitized {@code script.xml} and the deterministic
-     *         {@code <migration name="...">} value (CMT writes dump output
-     *         under {@code $CMT_CONSOLE_HOME/output/<name>/...})
+     * @param outputDir    destination for sanitized {@code script.xml};
+     *                     unsanitized output goes under {@code outputDir/raw/}
+     * @return sanitized script path + the {@code <migration name="...">}
+     *         value (CMT writes dump output under
+     *         {@code $CMT_CONSOLE_HOME/output/<name>/...})
      */
     public static Result generate(Path consoleHome, String dbConf, Path outputDir) throws Exception {
         Files.createDirectories(outputDir);
@@ -86,41 +75,28 @@ public final class ScriptXmlBuilder {
         return m.group(1);
     }
 
-    // -------------------------------------------------------------------------
-    // sanitize — normalise volatile timestamps
-    // -------------------------------------------------------------------------
-
     /**
-     * Two-step normalization for snapshot determinism:
-     *
-     * <ol>
-     *   <li>Strip CMT's wall-clock state from migration metadata
-     *       ({@code <migration name>} timestamp suffix and
-     *       {@code wizard_start_date_time}).</li>
-     *   <li>Drop the Flyway-generated {@code flyway_schema_history}
-     *       table from the migration plan. It is a seed implementation
-     *       detail, not part of the migration contract; its data is also
-     *       wall-clock state which would break dump-file determinism.</li>
-     * </ol>
+     * Strips noise that would defeat snapshot determinism:
+     * (1) the 12-digit wall-clock timestamps CMT puts in {@code <migration name>}
+     *     and {@code wizard_start_date_time}; (2) Flyway's
+     *     {@code flyway_schema_history} table (seed implementation detail);
+     * (3) CUBRID system schemas DBA/PUBLIC (introspected when connecting
+     *     as dba; CMT cannot migrate them); (4) {@code e2e_cubrid_collection_types}
+     *     (CUBRID-only SET/LIST/SEQUENCE — anti-coverage per cubrid SEED_SPEC);
+     * (5) functional indexes on CUBRID source ({@code idxf_*}) — fetcher emits
+     *     no expression, import fails.
      */
     private static String sanitize(String content) {
-        // (1) wall-clock state in <migration ...>
-        // <migration name="CUBRID_e2e_db_202604062341" ...>
-        //                                ^^^^^^^^^^^^^ strip (12 digits)
+        // (1) wall-clock timestamps
         content = content.replaceAll(
             "(<migration\\s+name=\")([^\"]+?)_\\d{12}(\")",
             "$1$2$3");
-        // wizard_start_date_time="202604062341" → "000000000000"
         content = content.replaceAll(
             "(wizard_start_date_time=\")\\d{12}(\")",
             "$1000000000000$2");
 
-        // (2) Flyway metadata removal. CMT references flyway_schema_history
-        // in two element shapes:
-        //   - self-closing tags carrying its name (sourceTable, table, etc.)
-        //   - multi-line <table ...>...</table> blocks with nested
-        //     <columns>/<constraints> on both source-side and target-side
-        // Strip both. (?s) = DOTALL so '.' matches newlines.
+        // (2) flyway_schema_history — both <table>...</table> blocks and
+        // self-closing tags that name it.
         content = content.replaceAll(
             "(?s)\\s*<table\\b[^>]*\\bname=\"flyway_schema_history\"[^>]*>.*?</table>\\s*",
             "\n            ");
@@ -128,23 +104,12 @@ public final class ScriptXmlBuilder {
             "(?m)\\s*<\\w+\\b[^>]*\\bname=\"flyway_schema_history\"[^>]*/>\\s*\\R?",
             "");
 
-        // (3) CUBRID system schemas (DBA, PUBLIC). When CMT introspects a
-        // CUBRID source as 'dba' it also picks up these system namespaces
-        // and emits <schema source="DBA"/> / <schema source="PUBLIC"/>.
-        // Migrating them fails ("system class cannot be created") and
-        // their data rows show up as record import failures. Strip them
-        // so only user schemas (MAIN_SCHEMA, REF_SCHEMA) are migrated.
+        // (3) CUBRID system schemas DBA/PUBLIC.
         content = content.replaceAll(
             "(?m)\\s*<schema\\s+source=\"(?:DBA|PUBLIC)\"[^>]*/>\\s*\\R?",
             "");
 
-        // (4) CMT anti-coverage tables. {@code e2e_cubrid_collection_types}
-        // exercises CUBRID-specific SET / LIST / SEQUENCE column types,
-        // which CMT cannot round-trip cleanly (records fail to import,
-        // breaking MIGRATION RESULT). The table is exercised by the
-        // CUBRID seed for completeness but is excluded from migration
-        // per docs/seed/cubrid/SEED_SPEC.md anti-coverage notes.
-        // No-op for non-CUBRID sources (the table doesn't exist there).
+        // (4) e2e_cubrid_collection_types (CUBRID anti-coverage).
         content = content.replaceAll(
             "(?s)\\s*<table\\b[^>]*\\bname=\"e2e_cubrid_collection_types\"[^>]*>.*?</table>\\s*",
             "\n            ");
@@ -152,25 +117,13 @@ public final class ScriptXmlBuilder {
             "(?m)\\s*<\\w+\\b[^>]*\\bname=\"e2e_cubrid_collection_types\"[^>]*/>\\s*\\R?",
             "");
 
-        // (5) Functional indexes ({@code idxf_*}) on CUBRID source.
-        // CUBRIDSchemaFetcher does not emit the function expression, so
-        // CMT writes {@code fields=""} on the source-side <index> and
-        // a stub {@code <index name="idxf_..." target_name="idxf_..."/>}
-        // on the target side. Without the expression, the import fails.
-        // Strip both so they're absent from the migration plan
-        // entirely — anti-coverage on CUBRID source until the fetcher
-        // gains expression support. No-op for non-CUBRID sources (which
-        // don't use the {@code idxf_} naming convention).
+        // (5) idxf_* on CUBRID source — fetcher does not emit the expression.
         content = content.replaceAll(
             "(?m)\\s*<index\\b[^>]*\\bname=\"idxf_[^\"]*\"[^>]*/>\\s*\\R?",
             "");
 
         return content;
     }
-
-    // -------------------------------------------------------------------------
-    // helpers
-    // -------------------------------------------------------------------------
 
     private static CommandResult runWithTemporaryDbConf(
             Path consoleHome, String dbConfContent, ThrowingSupplier<CommandResult> action)

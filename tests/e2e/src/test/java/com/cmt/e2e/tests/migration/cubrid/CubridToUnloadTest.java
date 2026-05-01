@@ -10,23 +10,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-/**
- * CUBRID e2e dataset → CMT {@code unload} (CUBRID LoadDB) dump.
- *
- * <p>See {@link com.cmt.e2e.tests.migration.oracle.OracleToUnloadTest} for
- * the outer/{@code @Nested} variant pattern rationale.
- */
+/** CUBRID → CMT {@code unload} (CUBRID LoadDB) dump. See
+ *  {@link com.cmt.e2e.tests.migration.oracle.OracleToUnloadTest} for the
+ *  variant grouping pattern. */
 @DisplayName("CUB-UN: CUBRID e2e dataset → CMT unload (LoadDB) dump")
 class CubridToUnloadTest {
 
-    /**
-     * Variant: {@code split_schema=true}, {@code one_table_one_file=true}.
-     *
-     * <p>PoC used {@code one_table_one_file=false} (single combined data
-     * dump), but CMT does not stabilise the table order inside that
-     * combined file — snapshots fail under regression mode. Splitting
-     * per table gives a deterministic file-per-class layout (D10).
-     */
+    // one_table_one_file=true required for snapshot stability — CMT does
+    // not stabilise table order inside the combined data dump (D10).
     @Nested
     @MigrationE2E(
         name = "cubrid_to_unload__split_per_table",

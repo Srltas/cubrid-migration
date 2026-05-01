@@ -2,13 +2,7 @@ package com.cmt.e2e.framework.source;
 
 import com.cmt.e2e.framework.db.JdbcDriverJars.DB;
 
-/**
- * Self-describing JDBC connection identity that CMT and the verify layer
- * need.
- *
- * <p>{@code timezone} may be {@code null} when the engine doesn't expose
- * a meaningful default (most engines other than Oracle).
- */
+/** JDBC connection identity for CMT + verify layer. {@code timezone} may be null. */
 public record ConnectionConfig(
     DB type,
     String host,
@@ -30,17 +24,8 @@ public record ConnectionConfig(
         // timezone may be null
     }
 
-    /**
-     * CUBRID JDBC URL for this connection. Used by the verify layer to
-     * introspect target catalog / row data.
-     *
-     * <p>The CUBRID JDBC driver rejects an empty password slot
-     * ({@code ...:user:::}) as "invalid URL". When {@code password} is
-     * empty we therefore use the slot-less form {@code ...:user::} —
-     * PoC convention.
-     *
-     * @throws IllegalStateException if {@link #type()} is not CUBRID
-     */
+    /** CUBRID JDBC URL — verify layer uses this to introspect the target.
+     *  CUBRID driver rejects empty password slot, so omit it when needed. */
     public String cubridJdbcUrl() {
         if (type != DB.CUBRID) {
             throw new IllegalStateException(

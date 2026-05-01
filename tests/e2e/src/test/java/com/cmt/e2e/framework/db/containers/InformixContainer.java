@@ -10,15 +10,10 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 /**
- * IBM Informix 14.10 Developer Edition Testcontainer (image
- * {@code icr.io/informix/informix-developer-database:14.10.FC7W1DE}).
- *
- * <p>JDBC URL: {@code jdbc:informix-sqli://host:port/dbname:INFORMIXSERVER=informix}
- * — the {@code INFORMIXSERVER=informix} suffix is hardcoded by CMT 's
- * {@code InformixDatabase.makeUrl}, so the env var below must match.
- *
- * <p>Image is amd64-only; on Apple Silicon it runs under emulation
- * (~5 minute startup), hence the 8-minute startup timeout.
+ * IBM Informix 14.10 Developer Edition Testcontainer. JDBC URL ends
+ * with {@code INFORMIXSERVER=informix} — the suffix is hardcoded by
+ * CMT's {@code InformixDatabase.makeUrl}, so the env var must match.
+ * amd64-only; Apple Silicon runs under emulation.
  */
 public class InformixContainer implements DatabaseContainer {
 
@@ -83,11 +78,8 @@ public class InformixContainer implements DatabaseContainer {
         }
     }
 
-    /**
-     * The Developer Edition image runs as the {@code informix} user (UID 1001),
-     * not root, so {@code useradd} is invoked via {@code sudo}. The image
-     * grants informix passwordless sudo (per docker hub README).
-     */
+    /** The image runs as user {@code informix} (UID 1001), not root —
+     *  use sudo (granted passwordless by the image). */
     private void createOsUser(String name, String password) throws Exception {
         Container.ExecResult addRes = container.execInContainer(
             "sudo", "useradd", "-m", "-s", "/bin/false", name);

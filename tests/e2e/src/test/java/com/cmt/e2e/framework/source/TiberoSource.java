@@ -5,20 +5,11 @@ import com.cmt.e2e.framework.db.containers.TiberoContainer;
 import com.cmt.e2e.framework.db.init.TiberoDatabaseInitializer;
 
 /**
- * Tibero 7 source — two-user e2e seed (REF_SCHEMA + MAIN_SCHEMA).
- * Mirrors {@link OracleSource} shape so the migration TC uses the same
- * {@code AbstractMigrationE2E} lifecycle without per-engine plumbing.
- *
- * <p>Differences from {@code OracleSource}:
- * <ul>
- *   <li>Init runs after boot via JDBC ({@link TiberoDatabaseInitializer#initAsSys})
- *       because the Tibero image has no {@code /container-entrypoint-initdb.d/}
- *       hook.</li>
- *   <li>Seed application uses raw JDBC (Flyway has no Tibero plugin).</li>
- *   <li>Order: SYS init → REF_SCHEMA migrate → MAIN_SCHEMA migrate. The
- *       MAIN_SCHEMA synonym (V5) references {@code REF_SCHEMA.e2e_ref_audit}
- *       which is created in REF_SCHEMA V1, so REF must run first.</li>
- * </ul>
+ * Tibero 7 source with two-user seed (REF + MAIN). Init via JDBC after
+ * boot (no entrypoint hook in the Tibero image); seed via raw JDBC
+ * ({@link TiberoDatabaseInitializer}, Flyway has no Tibero plugin).
+ * Order matters: SYS init → REF → MAIN, since MAIN's V5 synonym points
+ * at REF's V1 object.
  */
 final class TiberoSource implements Source {
 

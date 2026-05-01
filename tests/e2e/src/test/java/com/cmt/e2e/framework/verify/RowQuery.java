@@ -11,12 +11,9 @@ import com.cmt.e2e.framework.db.JdbcDriverJars.DB;
 import com.cmt.e2e.framework.source.ConnectionConfig;
 
 /**
- * Single arbitrary SQL query — captures its result as a snapshot, or
- * extracts a scalar for inline assertions (handy for L4 regression tests).
- *
- * <p>Caller is responsible for query determinism: use {@code ORDER BY}
- * when ordering matters, and stay schema-qualified
- * ({@code "OWNER"."TABLE"}) when introspecting as {@code dba}.
+ * Single SQL query — snapshot the full result, or extract a scalar
+ * for inline assertions. Caller owns determinism (ORDER BY) and
+ * schema qualification.
  */
 public final class RowQuery {
 
@@ -37,7 +34,6 @@ public final class RowQuery {
         this.scenarioName = scenarioName;
     }
 
-    /** Snapshot the full result table at {@code snapshots/<scenario>/<name>.txt}. */
     public RowQuery matchesSnapshot(String name) {
         Path snap = CatalogSnapshot.SNAPSHOT_ROOT.resolve(scenarioName).resolve(name + ".txt");
         SnapshotStore.match(snap, runAsTable());

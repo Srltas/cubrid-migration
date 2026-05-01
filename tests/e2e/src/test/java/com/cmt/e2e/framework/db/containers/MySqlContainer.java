@@ -8,11 +8,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
-/**
- * MySQL 8.0 Testcontainer (image {@code mysql:8.0.39}). JDBC URL format:
- * {@code jdbc:mysql://host:port/dbName}. {@code ref_schema} is absent —
- * see SEED_SPEC §1 anti-coverage.
- */
+/** MySQL 8.0 Testcontainer ({@code jdbc:mysql://host:port/dbName}). */
 public class MySqlContainer implements DatabaseContainer {
 
     private static final DockerImageName IMAGE = DockerImageName.parse("mysql:8.0.39");
@@ -35,14 +31,10 @@ public class MySqlContainer implements DatabaseContainer {
         GenericContainer<?> c = new GenericContainer<>(IMAGE)
             .withExposedPorts(MYSQL_PORT)
             .withEnv("MYSQL_ROOT_PASSWORD", ROOT_PASSWORD)
-            // Allow main_user (non-SUPER) to CREATE FUNCTION; without this,
-            // routine seed scripts fail with ER_BINLOG_UNSAFE_ROUTINE (1419).
+            // Required for non-SUPER user to CREATE FUNCTION (else ER_BINLOG_UNSAFE_ROUTINE).
             .withCommand("mysqld", "--log-bin-trust-function-creators=ON")
-            // The mysql:8.0 entrypoint starts mysqld twice. Both phases log
-            // "ready for connections", so we anchor on the "mysqld:" prefix
-            // (excludes "X Plugin") plus a trailing space after 3306
-            // (excludes the 33060 substring match) to wait for the final
-            // TCP listener after init scripts have run.
+            // mysqld starts twice; the trailing space after "3306" excludes
+            // the 33060 X Plugin and matches only the post-init listener.
             .waitingFor(Wait.forLogMessage(".*mysqld: ready for connections.*port: 3306 .*", 1))
             .withStartupTimeout(Duration.ofMinutes(3));
 

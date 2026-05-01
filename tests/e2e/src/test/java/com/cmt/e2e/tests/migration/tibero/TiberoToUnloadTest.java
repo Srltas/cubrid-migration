@@ -11,23 +11,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
-/**
- * Tibero 7 e2e dataset → CMT {@code unload} (CUBRID LoadDB) dump.
- *
- * <p>Outer/{@code @Nested} variant pattern (§12.5) — each option
- * combination is a {@code @Nested} inner class extending
- * {@link AbstractMigrationE2E} with its own
- * {@code @MigrationE2E.options}.
- */
+/** Tibero 7 → CMT {@code unload} (CUBRID LoadDB) dump.
+ *  See {@link com.cmt.e2e.tests.migration.oracle.OracleToUnloadTest} for the
+ *  variant grouping pattern. */
 @DisplayName("TIB-UN: Tibero e2e dataset → CMT unload (LoadDB) dump")
 @EnabledIf("com.cmt.e2e.framework.db.containers.TiberoEnvironment#isAvailable")
 class TiberoToUnloadTest {
 
-    /**
-     * Variant: {@code split_schema=true}, {@code one_table_one_file=true}.
-     * Schema and data go to separate files, and each table gets its own
-     * data file.
-     */
     @Nested
     @MigrationE2E(
         name = "tibero_to_unload__split_per_table",

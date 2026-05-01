@@ -6,12 +6,9 @@ import com.cmt.e2e.framework.db.init.ClasspathSqlRunner;
 import com.cmt.e2e.framework.db.init.CubridDatabaseInitializer;
 
 /**
- * CUBRID source — two-user e2e seed (REF_SCHEMA + MAIN_SCHEMA).
- *
- * <p>Bootstrap order is: dba → CREATE USER (init/), then Flyway as
- * each user. CMT introspects the source as {@code dba} so it can see
- * objects across both schemas (single-user connect would miss
- * {@code REF_SCHEMA.e2e_ref_audit}).
+ * CUBRID source with two-user (REF + MAIN) e2e seed. CMT connects as
+ * {@code dba} so introspection sees both schemas — connecting as a
+ * single user would miss {@code REF_SCHEMA.e2e_ref_audit}.
  */
 final class CubridSource implements Source {
 
@@ -40,7 +37,6 @@ final class CubridSource implements Source {
 
     @Override
     public ConnectionConfig connection() {
-        // dba sees both REF_SCHEMA and MAIN_SCHEMA; needed for CMT introspection.
         return new ConnectionConfig(
             DB.CUBRID,
             container.getHost(),

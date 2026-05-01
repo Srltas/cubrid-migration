@@ -2,14 +2,8 @@ package com.cmt.e2e.framework.target;
 
 import com.cmt.e2e.framework.source.ConnectionConfig;
 
-/**
- * Dump-file target — no container, just settings for CMT {@code unload}.
- *
- * <p>CMT writes its dump output under
- * {@code $CMT_CONSOLE_HOME/output/{migration.name}/{schema}/...}.
- * The verify layer reads files from there directly; this target only
- * carries the config that CMT needs.
- */
+/** Dump-file target — no container; CMT writes to
+ *  {@code $CMT_CONSOLE_HOME/output/<migration.name>/}. */
 final class DumpFileTarget implements Target {
 
     private final DumpfileOptions options;

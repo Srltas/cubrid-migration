@@ -17,30 +17,17 @@ import com.cmt.e2e.framework.verify.RowQueries;
 import com.cmt.e2e.framework.verify.RowQuery;
 
 /**
- * Outcome of one {@link Migration#run(Path)} call. Tests use this to
- * assert behaviour at four layers — see {@code ARCHITECTURE.md} §3:
- *
- * <ul>
- *   <li>L1 smoke: {@link #expectSuccess()}, {@link #expectNoFatalStderr()}
- *       (this phase)</li>
- *   <li>L2 coverage / L3 fidelity: {@code .catalog()},
- *       {@code .rowCounts()}, {@code .query()} (Phase 3)</li>
- *   <li>L4 regression: same fluent surface as L3, scoped per {@code @Test}</li>
- * </ul>
- *
- * <p>The fluent builders return {@code this} so multiple expectations
- * can chain inside one statement, but tests should generally place each
- * assertion in its own {@code @Test} method per the layer contract.
+ * Outcome of one {@link Migration#run(Path)} call. Verification surface
+ * across four layers (see ARCHITECTURE.md §3): L1 smoke
+ * ({@link #expectSuccess()}, {@link #expectNoFatalStderr()}); L2 coverage
+ * + L3 fidelity ({@link #catalog()} / {@link #rowCounts} / {@link #query} /
+ * {@link #dumpfile()}); L4 regression (same surface, scoped per
+ * {@code @Test}).
  */
 public final class MigrationOutcome {
 
-    /** Substring CMT writes to stdout on a successful run. */
     static final String SUCCESS_MARKER = "MIGRATION RESULT: SUCCESS";
 
-    /**
-     * Stderr lines that, when present, indicate a real failure rather
-     * than benign noise. Mirrors the PoC {@code MigrationAsserts} regex.
-     */
     static final Pattern FATAL_STDERR = Pattern.compile(
         "(?m)^(?:ERROR\\b|FATAL\\b|Exception(?:\\s|:)|Caused by:|java\\.lang\\.[A-Za-z]+Exception)");
 
@@ -61,17 +48,7 @@ public final class MigrationOutcome {
         this.scenarioName  = scenarioName;
     }
 
-    // -------------------------------------------------------------------------
-    // L1 — smoke
-    // -------------------------------------------------------------------------
-
-    /**
-     * Asserts the migration ran to completion: not timed out, exit code 0,
-     * and {@code MIGRATION RESULT: SUCCESS} present in stdout.
-     *
-     * @return {@code this} for chaining
-     * @throws AssertionError on any of the above failing
-     */
+    /** Asserts: not timed out, exit 0, "MIGRATION RESULT: SUCCESS" in stdout. */
     public MigrationOutcome expectSuccess() {
         if (result.timedOut()) {
             throw new AssertionError("migration timed out");
@@ -88,11 +65,7 @@ public final class MigrationOutcome {
         return this;
     }
 
-    /**
-     * Asserts CMT did not emit a fatal-looking stderr line. CMT and the JVM
-     * may print harmless lines (e.g. {@code JAVA_TOOL_OPTIONS} echo); this
-     * check looks for the patterns that indicate a real failure.
-     */
+    /** Asserts no fatal-looking line in stderr (benign noise like JAVA_TOOL_OPTIONS is OK). */
     public MigrationOutcome expectNoFatalStderr() {
         Matcher m = FATAL_STDERR.matcher(result.stderr());
         if (m.find()) {
@@ -109,50 +82,30 @@ public final class MigrationOutcome {
         return text.substring(start, end);
     }
 
-    // -------------------------------------------------------------------------
-    // L2 / L3 — verify entry points
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns a CUBRID catalog snapshot helper for this migration's target.
-     * Online-target only; throws on dump-file targets.
-     */
+    /** Online-target catalog snapshot helper. Throws on dump-file targets. */
     public CatalogSnapshot catalog() {
         requireOnlineTarget("catalog()");
         return new CatalogSnapshot(target.connection(), scenarioName);
     }
 
-    /**
-     * Returns a row-count snapshot helper. With no arguments, all user
-     * tables (owner not in DBA/PUBLIC) are counted. Pass owner names to
-     * restrict (e.g. {@code rowCounts("MAIN_SCHEMA")}).
-     */
+    /** Online-target row-count snapshot. No args = all user tables; pass owners to restrict. */
     public RowCounts rowCounts(String... ownerSchemas) {
         requireOnlineTarget("rowCounts()");
         return new RowCounts(target.connection(), scenarioName, List.of(ownerSchemas));
     }
 
-    /** Single arbitrary SQL query against the target. */
     public RowQuery query(String sql) {
         requireOnlineTarget("query()");
         return new RowQuery(sql, target.connection(), scenarioName);
     }
 
-    /**
-     * Run all queries from a labelled SQL file
-     * ({@code src/test/resources/queries/<scenario>.sql} by convention)
-     * and snapshot the concatenated output.
-     */
+    /** Run all labelled queries from {@code queries/<scenario>.sql} and snapshot the output. */
     public RowQueries queries(java.nio.file.Path sqlFile) {
         requireOnlineTarget("queries()");
         return new RowQueries(sqlFile, target.connection(), scenarioName);
     }
 
-    /**
-     * Returns a dump-file snapshot helper rooted at
-     * {@code $CMT_CONSOLE_HOME/output/<migration-name>/}.
-     * Dump-file target only.
-     */
+    /** Dump-file snapshot helper rooted at {@code $CMT_CONSOLE_HOME/output/<migration-name>/}. */
     public DumpSnapshot dumpfile() {
         if (!target.isDumpfile()) {
             throw new IllegalStateException(
@@ -173,14 +126,7 @@ public final class MigrationOutcome {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // accessors — used by Phase 3 verify entry points and pipeline smoke
-    // -------------------------------------------------------------------------
-
-    /** Full CMT child-process result (stdout, stderr, exit code, timed-out flag). */
     public CommandResult commandResult() { return result; }
-
-    /** Path to the sanitized script.xml that was fed into {@code migration.sh start}. */
     public Path scriptXml() { return scriptXml; }
 
     Source source() { return source; }

@@ -12,36 +12,13 @@ import com.cmt.e2e.framework.db.JdbcDriverJars.DB;
 import com.cmt.e2e.framework.source.ConnectionConfig;
 
 /**
- * Catalog snapshot entry — fluent verification of CUBRID
- * target-side metadata after migration.
- *
- * <p>Usage from a test method:
- * <pre>{@code
- * @Test void allObjectsMigrated() {
- *     var c = run().catalog();
- *     c.matchesSnapshot("classes");
- *     // Indexes split by kind, with key columns inlined per file:
- *     c.matchesSnapshot("pk");
- *     c.matchesSnapshot("fk");
- *     c.matchesSnapshot("unique");
- *     c.matchesSnapshot("indexes");      // plain (non-unique non-FK; carries func expr)
- * }
- * }</pre>
- *
- * <p>Each {@link #matchesSnapshot(String)} call:
- * <ol>
- *   <li>Looks up the SQL by name from {@link CatalogQueries}.</li>
- *   <li>Opens a JDBC connection to the (CUBRID online) target.</li>
- *   <li>Formats the {@link ResultSet} with {@link Tabulator}.</li>
- *   <li>Hands the text to {@link SnapshotStore#match(Path, String)}.</li>
- * </ol>
- *
- * <p>Snapshot path:
- * {@code src/test/resources/snapshots/<scenario>/<name>.txt}.
+ * Fluent CUBRID catalog snapshot. Each {@link #matchesSnapshot(String)}
+ * runs the named query from {@link CatalogQueries}, formats with
+ * {@link Tabulator}, and compares against
+ * {@code snapshots/<scenario>/<name>.txt}.
  */
 public final class CatalogSnapshot {
 
-    /** Resource root — relative because tests run from the e2e module dir. */
     static final Path SNAPSHOT_ROOT =
         Paths.get("src", "test", "resources", "snapshots");
 
@@ -57,10 +34,6 @@ public final class CatalogSnapshot {
         this.scenarioName = scenarioName;
     }
 
-    /**
-     * Run the named catalog query and compare its result against the
-     * checked-in snapshot {@code snapshots/<scenario>/<name>.txt}.
-     */
     public CatalogSnapshot matchesSnapshot(String name) {
         String sql = CatalogQueries.byName(name);
         String actual = runQueryAsTable(sql);
@@ -68,10 +41,6 @@ public final class CatalogSnapshot {
         SnapshotStore.match(snapshotPath, actual);
         return this;
     }
-
-    // -------------------------------------------------------------------------
-    // helpers
-    // -------------------------------------------------------------------------
 
     private String runQueryAsTable(String sql) {
         String url = connection.cubridJdbcUrl();

@@ -13,27 +13,15 @@ import com.cmt.e2e.framework.db.JdbcDriverJars.DB;
 import com.cmt.e2e.framework.source.ConnectionConfig;
 
 /**
- * Row-count snapshot — auto-enumerates user tables in the target and
- * captures their {@code SELECT COUNT(*)} results as a deterministic table.
- *
- * <p>Output shape (per snapshot file):
- * <pre>
- *  OWNER_NAME  | CLASS_NAME      | ROW_COUNT
- * -------------+-----------------+----------
- *  MAIN_SCHEMA | e2e_customer    | 4
- *  MAIN_SCHEMA | e2e_order       | 4
- *  REF_SCHEMA  | e2e_ref_audit   | 1
- * </pre>
- *
- * <p>Tables are filtered by {@code db_class.owner_name NOT IN ('DBA','PUBLIC')}
- * by default. {@link MigrationOutcome#rowCounts(String...)} accepts an
- * explicit owner allow-list when you want to restrict further.
+ * Row-count snapshot — enumerates user tables (DBA/PUBLIC excluded,
+ * Flyway history filtered) and captures {@code SELECT COUNT(*)} as
+ * {@code (owner, class, count)}. Pass owner names to restrict further.
  */
 public final class RowCounts {
 
     private final ConnectionConfig connection;
     private final String scenarioName;
-    private final List<String> ownerAllowList;   // empty = system-exclude only
+    private final List<String> ownerAllowList;   // empty = exclude DBA/PUBLIC only
 
     public RowCounts(ConnectionConfig connection, String scenarioName, List<String> ownerAllowList) {
         if (connection.type() != DB.CUBRID) {
@@ -51,10 +39,6 @@ public final class RowCounts {
         SnapshotStore.match(snap, text);
         return this;
     }
-
-    // -------------------------------------------------------------------------
-    // helpers
-    // -------------------------------------------------------------------------
 
     private String collect() {
         String url = connection.cubridJdbcUrl();
@@ -104,7 +88,6 @@ public final class RowCounts {
     }
 
     private long countRows(Connection conn, String owner, String table) throws SQLException {
-        // CUBRID: schema-qualified table — "owner"."table" is the unambiguous form.
         String qualified = "\"" + owner + "\".\"" + table + "\"";
         try (Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM " + qualified)) {

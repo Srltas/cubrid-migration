@@ -12,34 +12,11 @@ import org.testcontainers.utility.MountableFile;
 /**
  * Tibero 7 Testcontainer.
  *
- * <h3>What this class does NOT decide</h3>
- * Image, hostname, host-side license path, and {@code FAKETIME} day
- * offset are environment-specific — they come from {@link
- * TiberoEnvironment} with no hardcoded defaults. Setting them is the
- * dev's responsibility (see {@code tests/e2e/tibero/README.md} for the
- * setup SOP); when any is missing or invalid, {@code
- * TiberoEnvironment#isAvailable()} returns false and the {@code
- * @EnabledIf} on the Tibero {@code @Test} classes skips the whole
- * scenario.
- *
- * <h3>What stays hardcoded</h3>
- * Values that are part of the bundled image contract rather than the
- * host environment — same image always means same value:
- * <ul>
- *   <li>Tibero listener port {@value #TIBERO_PORT} — image convention.</li>
- *   <li>Service ID {@code "tibero"} — image convention.</li>
- *   <li>In-container license path {@value #LICENSE_IN_CONTAINER} —
- *       Tibero 7 install convention; the listener reads
- *       {@code license.xml} from this exact path. Changing it would
- *       require a custom dockerfile / listener config edit.</li>
- *   <li>DBA credentials ({@code sys}/{@value #DBA_PASSWORD}) — set by
- *       passing {@code TB_ROOT_PASSWORD} to the container at start.</li>
- *   <li>Test schema users (MAIN_SCHEMA, REF_SCHEMA) and their
- *       passwords — created by {@code db/tibero/init/} during seed
- *       application; the test framework owns these names.</li>
- * </ul>
- * Customising any of these means forking the dockerfile + seed scripts
- * together — out of scope for this class.
+ * <p>Image, hostname, license path, and FAKETIME come from {@link
+ * TiberoEnvironment} — see {@code tests/e2e/tibero/README.md} for setup.
+ * Constants below ({@code TIBERO_PORT}, {@code SID},
+ * {@code LICENSE_IN_CONTAINER}, DBA credentials, schema users) are
+ * fixed by the bundled image and seed scripts.
  */
 public final class TiberoContainer implements DatabaseContainer {
 
@@ -56,16 +33,11 @@ public final class TiberoContainer implements DatabaseContainer {
     private final GenericContainer<?> container;
 
     private TiberoContainer() {
-        // The four environment-specific values come from TiberoEnvironment.
-        // The @EnabledIf("...isAvailable") guard upstream guarantees these
-        // calls succeed; if they don't, the test was wired wrong and the
-        // IllegalStateException from required() makes that loud.
         DockerImageName image  = DockerImageName.parse(TiberoEnvironment.image());
         String hostname        = TiberoEnvironment.hostname();
         Path   licenseHostPath = TiberoEnvironment.licensePath();
-        // libfaketime requires a non-empty FAKETIME so the in-container clock
-        // sits inside the trial license window. The bundled image entrypoint
-        // refuses to start without it (see tests/e2e/tibero/README.md).
+        // FAKETIME is required by the bundled image entrypoint — without
+        // it the container refuses to start.
         String faketime        = "-" + TiberoEnvironment.faketimeDaysBack() + "d";
 
         this.container = new GenericContainer<>(image)
@@ -77,29 +49,18 @@ public final class TiberoContainer implements DatabaseContainer {
             .withExposedPorts(TIBERO_PORT)
             .withEnv("TB_ROOT_PASSWORD", DBA_PASSWORD)
             .withEnv("FAKETIME", faketime)
-            // licenseHostPath is guaranteed absolute by TiberoEnvironment.isAvailable() —
-            // pass through directly so `docker inspect` shows exactly the configured path.
             .withCopyFileToContainer(
                 MountableFile.forHostPath(licenseHostPath.toString()),
                 LICENSE_IN_CONTAINER)
-            .withSharedMemorySize(1024L * 1024 * 1024)  // 1 GB shm — Tibero needs it
-            // Tibero boot marker — verified empirically by booting the image
-            // and tailing logs. The line "Tibero is Ready To Use!" prints
-            // after the entrypoint script finishes installing system packages
-            // and creating the SYS user; the listener (port 8629) is already
-            // accepting connections by this point. Boot under amd64 emulation
-            // on Apple Silicon: ~150-180 s wall-clock.
+            .withSharedMemorySize(1024L * 1024 * 1024)  // 1 GB — Tibero requires this
+            // "Tibero is Ready To Use!" prints after SYS init; listener already
+            // accepts connections by then. ~150-180 s under amd64 emulation.
             .waitingFor(
                 Wait.forLogMessage(".*Tibero is Ready To Use.*", 1)
                     .withStartupTimeout(Duration.ofMinutes(8)));
     }
 
-    /** Single factory — keeps construction discoverable. */
     public static TiberoContainer create() { return new TiberoContainer(); }
-
-    // -------------------------------------------------------------------------
-    // Startable / DatabaseContainer
-    // -------------------------------------------------------------------------
 
     @Override public void start() { container.start(); }
     @Override public void stop()  { container.stop(); }
@@ -109,7 +70,6 @@ public final class TiberoContainer implements DatabaseContainer {
     @Override public Integer getDatabasePort() { return container.getMappedPort(TIBERO_PORT); }
     @Override public DB      getDbType()       { return DB.TIBERO; }
 
-    /** {@code jdbc:tibero:thin:@host:mappedPort:tibero}. */
     @Override
     public String getJdbcUrl(String dbName, String user) {
         return String.format("jdbc:tibero:thin:@%s:%d:%s",

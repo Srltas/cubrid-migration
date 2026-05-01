@@ -15,31 +15,11 @@ import com.cmt.e2e.framework.db.JdbcDriverJars.DB;
 import com.cmt.e2e.framework.source.ConnectionConfig;
 
 /**
- * Multi-query snapshot — reads a labelled SQL file, runs each query, and
- * concatenates the formatted results into one snapshot file.
- *
- * <p>SQL file format:
- * <pre>
- * -- @label customer business values
- * SELECT customer_code, customer_name FROM "MAIN_SCHEMA"."e2e_customer"
- * WHERE customer_id = 1;
- *
- * -- @label order-line composite-key
- * SELECT ... FROM ... WHERE ... ;
- * </pre>
- *
- * <p>Rules: each {@code -- @label <text>} introduces the next query;
- * {@code ;} ends it. Other {@code --} lines and blank lines are skipped.
- * Snapshot output is one section per query:
- * <pre>
- * ==> customer business values
- *  CUSTOMER_CODE | CUSTOMER_NAME
- * ---------------+---------------
- *  C001          | ALPHA CUSTOMER
- *
- * ==> order-line composite-key
- * ...
- * </pre>
+ * Multi-query snapshot. Reads a labelled SQL file, runs each query, and
+ * concatenates formatted results into one snapshot file. File format:
+ * each {@code -- @label <text>} introduces a query terminated by
+ * {@code ;}; other comment / blank lines are ignored. Snapshot output
+ * uses {@code ==> <label>} as a section header per query.
  */
 public final class RowQueries {
 
@@ -75,14 +55,8 @@ public final class RowQueries {
         return this;
     }
 
-    // -------------------------------------------------------------------------
-    // parsing — package-private for unit tests
-    // -------------------------------------------------------------------------
-
-    /** One labelled query parsed from the input file. */
     public record LabeledQuery(String label, String sql) {}
 
-    /** Parses the labelled SQL file format. Visible for {@code RowQueriesTest}. */
     static List<LabeledQuery> parse(String content) {
         List<LabeledQuery> out = new ArrayList<>();
         String currentLabel = null;
@@ -124,10 +98,6 @@ public final class RowQueries {
         }
         return out;
     }
-
-    // -------------------------------------------------------------------------
-    // helpers
-    // -------------------------------------------------------------------------
 
     private static String readFile(Path file) {
         try {

@@ -4,27 +4,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * Single source of truth for {@code CMT_CONSOLE_HOME} resolution.
- *
- * <p>Tests and runner code should call {@link #resolve()} once; failure to
- * locate a usable Console install fails fast with an actionable message
- * rather than producing cryptic IO errors deeper in the stack.
- */
+/** Single source for {@code CMT_CONSOLE_HOME} resolution. Fails fast on missing or unusable install. */
 public final class CmtConsoleEnv {
 
-    /** Environment variable name. */
     public static final String ENV_VAR = "CMT_CONSOLE_HOME";
 
     private CmtConsoleEnv() {}
 
-    /**
-     * Resolves {@code CMT_CONSOLE_HOME} to an absolute path and verifies that
-     * a runnable {@code migration.sh} exists inside it.
-     *
-     * @throws IllegalStateException if the env var is unset/blank or
-     *         {@code migration.sh} is missing/non-executable
-     */
+    /** @throws IllegalStateException if the env var is unset/blank or migration.sh is missing/non-executable */
     public static Path resolve() {
         String home = System.getenv(ENV_VAR);
         if (home == null || home.isBlank()) {

@@ -10,12 +10,9 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 /**
- * SQL Server 2022 Developer Edition Testcontainer (image
- * {@code mcr.microsoft.com/mssql/server:2022-latest}).
- *
- * <p>JDBC URL appends {@code encrypt=false;trustServerCertificate=true}
- * because SQL Server 2022 ships a self-signed cert. Image is amd64-only
- * so on Apple Silicon it runs under emulation (~3-5 min startup).
+ * SQL Server 2022 Developer Edition Testcontainer. JDBC URL forces
+ * {@code encrypt=false;trustServerCertificate=true} for the image's
+ * self-signed cert. amd64-only — Apple Silicon runs under emulation.
  */
 public class MsSqlContainer implements DatabaseContainer {
 
@@ -68,16 +65,14 @@ public class MsSqlContainer implements DatabaseContainer {
         container.start();
         if (runInit) {
             try {
-                // Official MSSQL image has no entrypoint init hook (unlike
-                // mysql/mariadb), so we run sqlcmd manually after the server
-                // is ready. sqlcmd handles the GO batch separator natively.
+                // No entrypoint init hook in this image — run sqlcmd manually.
                 Container.ExecResult result = container.execInContainer(
                     "/opt/mssql-tools18/bin/sqlcmd",
                     "-S", "localhost",
                     "-U", SA_USER,
                     "-P", SA_PASSWORD,
-                    "-C",                       // trust self-signed cert
-                    "-b",                       // exit on error
+                    "-C",  // trust self-signed cert
+                    "-b",  // exit on error
                     "-i", INIT_CONTAINER_PATH
                 );
                 if (result.getExitCode() != 0) {

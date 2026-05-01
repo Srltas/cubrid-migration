@@ -10,16 +10,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
-/**
- * Tibero 7 e2e dataset → CUBRID online migration.
- *
- * <p>Phase 3b parity with Oracle's business + view + synonym + ref_schema +
- * grant coverage (no type-test tables yet — those land in a later phase).
- * Each {@code @Test} maps to one verification layer (ARCHITECTURE.md §3).
- *
- * <p>Snapshot files:
- * {@code src/test/resources/snapshots/tibero_to_cubrid/}.
- */
+/** Tibero 7 → CUBRID online migration. Each {@code @Test} maps to one
+ *  verification layer (ARCHITECTURE.md §3). Snapshots:
+ *  {@code snapshots/tibero_to_cubrid/}. */
 @MigrationE2E(name = "tibero_to_cubrid")
 @DisplayName("TIB-ON: Tibero e2e dataset → CUBRID online migration")
 @EnabledIf("com.cmt.e2e.framework.db.containers.TiberoEnvironment#isAvailable")
@@ -28,22 +21,14 @@ class TiberoToCubridTest extends AbstractMigrationE2E {
     @Override protected Source source() { return Sources.tiberoE2eSeed(); }
     @Override protected Target target() { return Targets.cubridOnline(); }
 
-    // L1 — smoke ----------------------------------------------------------
-
+    // L1 smoke
     @Test
     @DisplayName("CMT exits 0 with MIGRATION RESULT: SUCCESS, no fatal stderr")
     void migration_succeeds() {
         run().expectSuccess().expectNoFatalStderr();
     }
 
-    // L2 — coverage (catalog snapshots) -----------------------------------
-    //
-    // Routines (function/procedure) are deferred until V4 lands — Tibero
-    // PL/SQL syntax is Oracle-compatible but ClasspathSqlRunner's naive
-    // semicolon-splitter doesn't understand BEGIN…END blocks, so a
-    // dedicated PL/SQL applier is needed first. Type-test tables (V3) and
-    // representative-rows are deferred to a later batch.
-
+    // L2 coverage
     @Test
     @DisplayName("All target classes (tables/views) match snapshot")
     void classes_match_snapshot() {
@@ -62,8 +47,7 @@ class TiberoToCubridTest extends AbstractMigrationE2E {
         run().catalog().matchesSnapshot("grants");
     }
 
-    // L3 — fidelity (column types, indexes, sequences, row counts) --------
-
+    // L3 fidelity
     @Test
     @DisplayName("Column types preserved through Tibero → CUBRID translation")
     void columns_match_snapshot() {
@@ -91,9 +75,6 @@ class TiberoToCubridTest extends AbstractMigrationE2E {
     @Test
     @DisplayName("Plain indexes preserved (asc/desc, function expressions)")
     void indexes_match_snapshot() {
-        // Plain bucket includes idx_, idxd_ (descending), and idxf_ (functional —
-        // TENTATIVE per tibero/SEED_SPEC.md §1; first-run determines whether
-        // Tibero's fetcher emits the function expression like Oracle's does).
         run().catalog().matchesSnapshot("indexes");
     }
 

@@ -7,67 +7,19 @@ import java.lang.annotation.Target;
 
 /**
  * Marks an E2E migration test class and binds it to a scenario name.
- * The name is the directory under {@code src/test/resources/snapshots/}
- * and {@code src/test/resources/queries/}.
+ * The name resolves to {@code src/test/resources/snapshots/<name>/} and
+ * {@code src/test/resources/queries/<name>.sql}.
  *
- * <p>Used by {@link AbstractMigrationE2E} (via {@link AbstractMigrationE2E#scenarioName()})
- * to resolve snapshot/query paths.
+ * <p>Scenario id grammar (see ARCHITECTURE.md §12):
+ * {@code <source>_to_<target>[__<discriminator>]}.
  *
- * <p><b>Scenario id grammar</b> (ARCHITECTURE.md §12):
- * <pre>
- *   &lt;source&gt;_to_&lt;target&gt;[__&lt;discriminator&gt;]
- * </pre>
- * Examples:
- * <ul>
- *   <li>{@code "oracle_to_cubrid"} — the only Oracle → CUBRID online TC</li>
- *   <li>{@code "oracle_to_unload__split_per_table"} — Oracle → unload
- *       with split_schema=true, one_table_one_file=true (one variant)</li>
- *   <li>{@code "oracle_to_cubrid__bug_cmt_1234"} — regression fixture</li>
- * </ul>
- *
- * <p><b>No "default" TC.</b> Every TC explicitly lists in
- * {@link #options()} the CMT option values that affect its verification.
- * CMT defaults can change between releases — relying on them silently
- * shifts a test's meaning. ARCHITECTURE.md §12.0.
- *
- * <p><b>Variants live as {@code @Nested} inner classes</b> under one
- * outer namespace per source/target shape (§12.5). The annotation goes
- * on the inner class:
- *
- * <pre>{@code
- * class OracleToUnloadTest {
- *     @Nested
- *     @MigrationE2E(
- *         name = "oracle_to_unload__split_per_table",
- *         options = {
- *             "file_prefix=XE",
- *             "split_schema=true",
- *             "one_table_one_file=true",
- *         })
- *     class SplitPerTable extends AbstractMigrationE2E { ... }
- * }
- * }</pre>
+ * <p>{@link #options()} explicitly lists every CMT option whose value
+ * affects this TC's verification — relying on CMT defaults silently
+ * couples the test to a default that can shift between releases.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface MigrationE2E {
-    /** Scenario id, e.g. {@code "oracle_to_cubrid"}. See class javadoc for grammar. */
     String name();
-
-    /**
-     * Declarative list of CMT options that this TC explicitly configures
-     * and whose values affect the verification. Free-form
-     * {@code "key=value"} strings — metadata for reviewers and future
-     * Coverage Matrix tooling. The actual values are still set by
-     * {@link AbstractMigrationE2E#target()} (and where applicable
-     * {@link AbstractMigrationE2E#source()}); this annotation must agree
-     * with them.
-     *
-     * <p>List every option whose value matters to this TC's snapshots
-     * or assertions. Do not list noise. Do not omit an option whose
-     * value the test depends on, even if you happen to want today's
-     * CMT default — that creates a silent dependency on CMT's default
-     * which can shift between releases.
-     */
     String[] options() default {};
 }

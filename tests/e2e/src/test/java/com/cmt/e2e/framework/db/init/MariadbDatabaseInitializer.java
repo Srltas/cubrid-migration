@@ -7,11 +7,7 @@ import org.flywaydb.core.api.output.MigrateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Flyway-based helper for MariaDB test databases. MariaDB "schema" ==
- * database (same as MySQL); each {@link #migrateAs} call connects to one
- * database and Flyway tracks {@code flyway_schema_history} inside it.
- */
+/** Flyway-based seed helper for MariaDB (schema == database). */
 public final class MariadbDatabaseInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(MariadbDatabaseInitializer.class);
@@ -82,14 +78,10 @@ public final class MariadbDatabaseInitializer {
     }
 
     private Flyway buildFlyway(String location, String database, String user, String password) {
-        // jdbc:mariadb://host:port/database — the path component pins the connection
-        // to one database, which Flyway also uses as defaultSchema for history tracking.
-        String jdbcUrl = container.getJdbcUrl(database, user);
-
         return Flyway.configure()
-            .dataSource(jdbcUrl, user, password)
+            .dataSource(container.getJdbcUrl(database, user), user, password)
             .driver(MARIADB_DRIVER)
-            .defaultSchema(database)        // MariaDB: schema == database
+            .defaultSchema(database)
             .schemas(database)
             .locations(location)
             .cleanDisabled(true)

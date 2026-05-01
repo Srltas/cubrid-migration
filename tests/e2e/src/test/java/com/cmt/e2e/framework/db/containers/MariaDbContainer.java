@@ -8,11 +8,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
-/**
- * MariaDB 11 Testcontainer (image {@code mariadb:11.4}). JDBC URL:
- * {@code jdbc:mariadb://host:port/dbName}. {@code ref_schema} is absent —
- * see SEED_SPEC §1 anti-coverage.
- */
+/** MariaDB 11 Testcontainer ({@code jdbc:mariadb://host:port/dbName}). */
 public class MariaDbContainer implements DatabaseContainer {
 
     private static final DockerImageName IMAGE = DockerImageName.parse("mariadb:11.4");
@@ -35,15 +31,10 @@ public class MariaDbContainer implements DatabaseContainer {
         GenericContainer<?> c = new GenericContainer<>(IMAGE)
             .withExposedPorts(MARIADB_PORT)
             .withEnv("MARIADB_ROOT_PASSWORD", ROOT_PASSWORD)
-            // Allow main_user (non-SUPER) to CREATE FUNCTION; otherwise V5
-            // routines fail with ER_BINLOG_UNSAFE_ROUTINE.
+            // Required for non-SUPER user to CREATE FUNCTION (else ER_BINLOG_UNSAFE_ROUTINE).
             .withCommand("mariadbd", "--log-bin-trust-function-creators=ON")
-            // MariaDB emits "ready for connections" twice — once for the
-            // bootstrap mariadbd that runs init scripts on a Unix socket,
-            // once for the final TCP listener on port 3306. Unlike MySQL,
-            // MariaDB splits the message and the port onto separate lines,
-            // so we count occurrences rather than matching the port inline.
-            // No X Plugin, so count=2 is unambiguous.
+            // mariadbd boots twice (bootstrap socket + final TCP); count=2
+            // anchors on the post-init listener.
             .waitingFor(Wait.forLogMessage(".*mariadbd: ready for connections.*", 2))
             .withStartupTimeout(Duration.ofMinutes(3));
 

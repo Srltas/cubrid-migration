@@ -13,11 +13,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Functional tests for {@code migration.sh}. Each test pins one CMT
- * Console binary entry point — dispatch branches and first-run
- * filesystem contracts. Runs in seconds without a database; if any
- * fails the binary is not usable and the rest of the E2E suite is
- * suspect.
+ * Functional tests for {@code migration.sh} dispatch branches and
+ * first-run filesystem contracts. No DB required — runs in seconds and
+ * gates the rest of the E2E suite.
  */
 @DisplayName("CLI: migration.sh dispatch + first-run filesystem contracts")
 public class CliTest {
@@ -25,8 +23,7 @@ public class CliTest {
     @RegisterExtension
     final CmtTestContext ctx = new CmtTestContext();
 
-    // --- Dispatch routing (DoMigration.handlerFactory) ---
-
+    // Dispatch routing
     @Test
     @DisplayName("CLI-01: lists all subcommands when called with no args")
     void should_listAllSubcommands_when_calledWithoutArgs() throws Exception {
@@ -38,13 +35,8 @@ public class CliTest {
             .contains("CUBRID Migration Toolkit");
     }
 
-    /**
-     * {@code migration.sh start} alone blocks on {@code ConsoleUtils.readingInput()}
-     * waiting for stdin, so we pass a deliberately nonexistent path to
-     * reach the "script not found → printHelp" exit. The {@code -sd}
-     * token is unique to start help — it confirms the right dispatch
-     * branch ran.
-     */
+    // 'start' alone blocks on stdin; pass a nonexistent path to reach the
+    // "script not found → printHelp" exit. -sd is unique to start help.
     @Test
     @DisplayName("CLI-02: dispatches to StartCommandHandler when 'start' subcommand")
     void should_dispatchToStartHandler_when_invokedWithStartSubcommand() throws Exception {
@@ -102,8 +94,7 @@ public class CliTest {
             .contains("Usage in Linux: migration.sh start");
     }
 
-    // --- First-run filesystem contracts ---
-
+    // First-run filesystem contracts
     @Test
     @DisplayName("CLI-07: creates workspace/cmt/log and workspace/cmt/report on any invocation")
     void should_createWorkspaceDirectories_onAnyInvocation() throws Exception {
@@ -113,11 +104,7 @@ public class CliTest {
         assertThat(ctx.cmtConsoleHome().resolve("workspace/cmt/report")).isDirectory();
     }
 
-    /**
-     * Captures log size before invocation and asserts strict growth, so
-     * the test stays valid across repeated runs (every invocation logs
-     * at least the "Thank you" header).
-     */
+    // Capture-then-grow pattern keeps the test valid across repeated runs.
     @Test
     @DisplayName("CLI-08: appends to cubrid-migration.log on every invocation")
     void should_appendToLogFile_onAnyInvocation() throws Exception {

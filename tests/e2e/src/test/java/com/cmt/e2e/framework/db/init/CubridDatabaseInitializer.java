@@ -7,11 +7,7 @@ import org.flywaydb.core.api.output.MigrateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Flyway-based helper for CUBRID test databases. Each {@link #migrate}
- * call applies all {@code V*.sql} files in the given scenario folder in
- * version order against the configured user.
- */
+/** Flyway-based seed helper for CUBRID. */
 public final class CubridDatabaseInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(CubridDatabaseInitializer.class);
@@ -31,7 +27,7 @@ public final class CubridDatabaseInitializer {
         this.password  = password;
     }
 
-    /** Convenience overload for users without a password (e.g. {@code dba} on a fresh CUBRID). */
+    /** Convenience overload for passwordless users (e.g. fresh-CUBRID dba). */
     public static CubridDatabaseInitializer of(CubridContainer container,
                                          String dbName,
                                          String userName) {
@@ -54,8 +50,8 @@ public final class CubridDatabaseInitializer {
             throw new IllegalArgumentException("scenarioName must not be blank");
         }
 
-        // If the scenario folder is missing from the classpath, Flyway exits
-        // successfully with executed=0, so validate it up front for a fast failure.
+        // Flyway exits successfully with executed=0 if the folder is missing —
+        // validate up front for a clear failure.
         String resourcePath = "db/" + scenarioName;
         if (Thread.currentThread().getContextClassLoader().getResource(resourcePath) == null) {
             throw new DatabaseInitializationException(
@@ -87,14 +83,12 @@ public final class CubridDatabaseInitializer {
         return Flyway.configure()
             .dataSource(jdbcUrl, userName, password)
             .driver(CUBRID_DRIVER)
-            .defaultSchema(userName)        // CUBRID: schema == user name
+            .defaultSchema(userName)
             .locations(location)
             .cleanDisabled(true)
-            // Fresh CUBRID users can already look "non-empty" to Flyway because
-            // the cross-schema GRANT applied during ref_schema bootstrap leaves
-            // catalog entries owned by the grantee. Baseline at version 0 so
-            // every V1+ migration in this scenario still runs while Flyway
-            // doesn't refuse with "non-empty schema, no history table".
+            // Cross-schema GRANT during ref bootstrap leaves catalog entries
+            // owned by the grantee, so a fresh main_user already looks
+            // "non-empty" to Flyway. Baseline at 0 to let V1+ run anyway.
             .baselineOnMigrate(true)
             .baselineVersion("0")
             .validateOnMigrate(true)

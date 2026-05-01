@@ -13,20 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Single-shot CMT runner. Composes the three pieces of a migration:
- * <ol>
- *   <li>Build {@code db.conf} from Source/Target.</li>
- *   <li>Generate {@code script.xml} via {@code migration.sh script}
- *       (with timestamp normalisation for snapshot determinism).</li>
- *   <li>Run {@code migration.sh start <script.xml>}.</li>
- * </ol>
- * The result is wrapped in {@link MigrationOutcome} for fluent
- * verification.
- *
- * <p>Source/Target are expected to be already started; {@code Migration}
- * does not own their lifecycle. {@link com.cmt.e2e.framework.junit.AbstractMigrationE2E}
- * handles container start/stop and calls {@link #run(Path)} once per
- * test class in {@code @BeforeAll}.
+ * Single-shot CMT runner: build db.conf → generate sanitized
+ * script.xml → run {@code migration.sh start}. Source / Target must
+ * already be started; lifecycle belongs to
+ * {@link com.cmt.e2e.framework.junit.AbstractMigrationE2E}.
  */
 public final class Migration {
 
@@ -47,12 +37,7 @@ public final class Migration {
         this.scenarioName = scenarioName;
     }
 
-    /**
-     * Runs the migration end-to-end.
-     *
-     * @param workDir framework-owned scratch dir for this run; the generated
-     *                {@code script.xml} and raw CMT output land under it
-     */
+    /** {@code workDir} is the scratch dir for this run (script.xml + raw CMT output). */
     public MigrationOutcome run(Path workDir) throws Exception {
         Path consoleHome = CmtConsoleEnv.resolve();
 

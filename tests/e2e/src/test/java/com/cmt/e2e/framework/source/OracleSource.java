@@ -4,13 +4,7 @@ import com.cmt.e2e.framework.db.JdbcDriverJars.DB;
 import com.cmt.e2e.framework.db.containers.OracleContainer;
 import com.cmt.e2e.framework.db.init.OracleDatabaseInitializer;
 
-/**
- * Oracle 11g source — two-user e2e seed (REF_SCHEMA + MAIN_SCHEMA).
- *
- * <p>Connects as {@code MAIN_SCHEMA} so unqualified SELECT in CMT-generated
- * scripts hits the main namespace. {@code REF_SCHEMA} is reachable via
- * synonym/grant set up in {@code db/oracle/init/00_prepare_database.sql}.
- */
+/** Oracle 11g source with two-user (REF + MAIN) e2e seed. */
 final class OracleSource implements Source {
 
     private final OracleContainer container;

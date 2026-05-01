@@ -7,37 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Formats tabular data as a {@code psql}-style aligned text table —
- * the canonical snapshot format per ARCHITECTURE.md §7.
- *
- * <p>Output shape:
- * <pre>
- *  COL_A     | COL_B      | COL_C
- * -----------+------------+----------
- *  value-a-1 | value-b-1  | value-c-1
- *  value-a-2 | <NULL>     | value-c-2
- * </pre>
- *
- * <ul>
- *   <li>Each column width = {@code max(header.length, max(value.length))}.</li>
- *   <li>Cells get 1-space padding on each side; column separator is {@code |}.</li>
- *   <li>Separator line uses {@code -} for cell area and {@code +} at boundaries.</li>
- *   <li>{@code null} values render as {@code <NULL>} (matches PoC convention).</li>
- *   <li>Trailing whitespace is stripped from each line for clean diffs.</li>
- *   <li>Output ends with a single trailing newline (POSIX text file convention).</li>
- * </ul>
+ * Formats tabular data as a {@code psql}-style aligned text table — the
+ * canonical snapshot format (see ARCHITECTURE.md §7). Caller must
+ * {@code ORDER BY} for determinism. SQL {@code NULL} renders as
+ * {@code <NULL>}; trailing whitespace is stripped.
  */
 public final class Tabulator {
 
-    /** Sentinel for SQL NULL in formatted output. */
     public static final String NULL_VALUE = "<NULL>";
 
     private Tabulator() {}
 
-    /**
-     * Format a {@link ResultSet} as a snapshot table. Reads all rows
-     * (caller is responsible for {@code ORDER BY} for determinism).
-     */
     public static String format(ResultSet rs) throws SQLException {
         ResultSetMetaData md = rs.getMetaData();
         int n = md.getColumnCount();
@@ -59,17 +39,12 @@ public final class Tabulator {
         return format(headers, rows);
     }
 
-    /**
-     * Format raw header + rows directly. {@code null} values in {@code rows}
-     * are converted to {@link #NULL_VALUE} by the caller before invocation
-     * (this method does not coerce nulls).
-     */
+    /** Caller must coerce null cells to {@link #NULL_VALUE} — this method does not. */
     public static String format(List<String> headers, List<List<String>> rows) {
         if (headers.isEmpty()) {
             throw new IllegalArgumentException("headers must not be empty");
         }
         int n = headers.size();
-        // Validate row shape before any width math so error message is precise.
         for (List<String> row : rows) {
             if (row.size() != n) {
                 throw new IllegalArgumentException(
@@ -87,10 +62,6 @@ public final class Tabulator {
         return sb.toString();
     }
 
-    // -------------------------------------------------------------------------
-    // helpers
-    // -------------------------------------------------------------------------
-
     private static int[] computeWidths(List<String> headers, List<List<String>> rows, int n) {
         int[] widths = new int[n];
         for (int i = 0; i < n; i++) {
@@ -105,7 +76,6 @@ public final class Tabulator {
         return widths;
     }
 
-    /** Cell layout: {@code  value-padded } between {@code |}. (psql convention.) */
     private static void appendRow(StringBuilder sb, List<String> cells, int[] widths) {
         StringBuilder line = new StringBuilder();
         for (int i = 0; i < cells.size(); i++) {
@@ -115,7 +85,6 @@ public final class Tabulator {
         sb.append(stripTrailing(line)).append('\n');
     }
 
-    /** Separator: dashes filling each cell area (width+2), {@code +} at column boundaries. */
     private static void appendSeparator(StringBuilder sb, int[] widths) {
         StringBuilder line = new StringBuilder();
         for (int i = 0; i < widths.length; i++) {

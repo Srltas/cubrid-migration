@@ -10,20 +10,15 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
- * Manages per-test resource directories (input) and artifact directories (output).
- *
- * <p>The resource directory can only be defined with {@link TestResources}.
- * Tests without the annotation, such as CLI smoke tests, are fine unless
- * {@link #getResourceDir()} is called. That failure is intentionally deferred
- * to produce a clear message.
- *
- * <p>The artifact directory ({@code target/e2e/<Class>/<method>/}) is always created.
+ * Per-test resource (input) and artifact (output) directories. Resource
+ * dir is opt-in via {@link TestResources}; artifact dir is always
+ * created at {@code target/e2e/<Class>/<method>/}.
  */
 public class TestPaths {
 
     private final String testClassName;
     private final String testMethodName;
-    private final Path resourceDir;     // null when @TestResources is not declared
+    private final Path resourceDir;     // null when @TestResources is absent
     private final Path artifactDir;
 
     public TestPaths(Class<?> testClass, Method testMethod) throws IOException {
@@ -39,12 +34,7 @@ public class TestPaths {
         Files.createDirectories(this.artifactDir);
     }
 
-    /**
-     * Returns the resource directory resolved from {@code @TestResources}.
-     *
-     * @throws IllegalStateException if the annotation is missing on the test
-     *                               class or method
-     */
+    /** @throws IllegalStateException if {@link TestResources} is not declared */
     public Path getResourceDir() {
         if (resourceDir == null) {
             throw new IllegalStateException(
@@ -55,18 +45,10 @@ public class TestPaths {
         return resourceDir;
     }
 
-    /**
-     * Returns the test artifact output directory,
-     * for example {@code target/e2e/OracleToCubridTest/should_migrate.../}.
-     */
     public Path getArtifactDir() {
         return artifactDir;
     }
 
-    /**
-     * Returns the per-test diagnostic log path,
-     * for example {@code target/e2e/<Class>/<method>/test.log}.
-     */
     public Path getTestLogPath() {
         return artifactDir.resolve("test.log");
     }

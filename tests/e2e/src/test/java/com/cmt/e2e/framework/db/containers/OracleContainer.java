@@ -8,15 +8,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
-/**
- * Oracle 11g XE Testcontainer (image {@code gvenzl/oracle-xe:11.2.0.2-slim-faststart}).
- *
- * <ul>
- *   <li>JDBC URL: {@code jdbc:oracle:thin:@host:port:XE} — 11g uses SID format</li>
- *   <li>{@link #withEmptyDb()} — single-user (MAIN_SCHEMA only)</li>
- *   <li>{@link #withTwoUsers()} — adds REF_SCHEMA for cross-schema grant/synonym</li>
- * </ul>
- */
+/** Oracle 11g XE Testcontainer ({@code jdbc:oracle:thin:@host:port:XE}). */
 public class OracleContainer implements DatabaseContainer {
 
     private static final DockerImageName IMAGE =
@@ -59,49 +51,26 @@ public class OracleContainer implements DatabaseContainer {
         this.container = c;
     }
 
-    public static OracleContainer withEmptyDb() {
-        return new OracleContainer(false);
-    }
-
-    public static OracleContainer withTwoUsers() {
-        return new OracleContainer(true);
-    }
+    public static OracleContainer withEmptyDb()  { return new OracleContainer(false); }
+    public static OracleContainer withTwoUsers() { return new OracleContainer(true); }
 
     @Override
     public void start() {
-        // Oracle 11g XE 's timezone file (v4) does not recognize newer region IDs.
-        // ojdbc 21.x sends the JVM timezone as a region name during authentication
-        // unless this property forces a numeric UTC offset, which causes
-        // ORA-01882. The setting only affects the test JVM; the CMT Console
-        // child process is handled separately via JAVA_TOOL_OPTIONS in
-        // docker-compose.yml and the GHA workflow.
+        // Oracle 11g XE's tz file (v4) does not recognize newer region IDs.
+        // Force ojdbc to send a numeric UTC offset instead of a region name —
+        // otherwise authentication fails with ORA-01882. CMT Console child
+        // process gets the same setting via JAVA_TOOL_OPTIONS in compose.
         System.setProperty("oracle.jdbc.timezoneAsRegion", "false");
         container.start();
     }
 
-    @Override
-    public void stop() {
-        container.stop();
-    }
-
-    @Override
-    public String getHost() {
-        return container.getHost();
-    }
-
-    @Override
-    public Integer getDatabasePort() {
-        return container.getMappedPort(ORACLE_PORT);
-    }
-
-    @Override
-    public DB getDbType() {
-        return DB.ORACLE;
-    }
+    @Override public void stop()  { container.stop(); }
+    @Override public String getHost() { return container.getHost(); }
+    @Override public Integer getDatabasePort() { return container.getMappedPort(ORACLE_PORT); }
+    @Override public DB getDbType() { return DB.ORACLE; }
 
     @Override
     public String getJdbcUrl(String dbName, String user) {
-        // 11g XE always exposes SID=XE; dbName/user args ignored.
         return String.format("jdbc:oracle:thin:@%s:%d:%s",
             getHost(), getDatabasePort(), SID);
     }

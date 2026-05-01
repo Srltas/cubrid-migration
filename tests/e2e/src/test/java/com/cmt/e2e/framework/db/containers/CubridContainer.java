@@ -8,12 +8,9 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- * CUBRID 11.4 Testcontainer using the official {@code cubrid/cubrid:11.4}
- * image. The entrypoint runs {@code cubrid createdb $CUBRID_DB} on first
- * boot, so the database name is fixed by the {@code CUBRID_DB} env var.
- *
- * <p>{@code --privileged} is required for CUBRID 11.4+ — the image needs
- * to apply system parameters (vm.swappiness, kernel.shmmax) at startup.
+ * CUBRID 11.4 Testcontainer. {@code CUBRID_DB} env fixes the DB name;
+ * {@code --privileged} is required so the image can tune kernel
+ * parameters (vm.swappiness, kernel.shmmax) at startup.
  */
 public class CubridContainer implements DatabaseContainer {
     private static final DockerImageName IMAGE = DockerImageName.parse("cubrid/cubrid:11.4");
@@ -28,10 +25,8 @@ public class CubridContainer implements DatabaseContainer {
             .withEnv("CUBRID_DB", DATABASE_NAME)
             .withEnv("CUBRID_COMPONENTS", "ALL")
             .withExposedPorts(CUBRID_BROKER_PORT)
-            // Broker port opens before createdb completes; matching it would
-            // accept connections that fail because the DB isn't usable yet.
-            // The "++ cubrid server start: success" line is emitted only
-            // after createdb + recovery, so it's the correct ready signal.
+            // Broker port opens before createdb completes — wait for the
+            // post-createdb log line, not just port availability.
             .waitingFor(Wait.forLogMessage(".*\\+\\+ cubrid server start: success.*", 1))
             .withStartupTimeout(Duration.ofMinutes(8));
     }

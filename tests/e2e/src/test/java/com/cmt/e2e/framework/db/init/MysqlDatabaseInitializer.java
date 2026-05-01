@@ -7,11 +7,7 @@ import org.flywaydb.core.api.output.MigrateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Flyway-based helper for MySQL test databases. MySQL "schema" == database;
- * each {@link #migrateAs} call connects to one database and Flyway tracks
- * {@code flyway_schema_history} inside it.
- */
+/** Flyway-based seed helper for MySQL (schema == database). */
 public final class MysqlDatabaseInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(MysqlDatabaseInitializer.class);
@@ -82,14 +78,10 @@ public final class MysqlDatabaseInitializer {
     }
 
     private Flyway buildFlyway(String location, String database, String user, String password) {
-        // jdbc:mysql://host:port/database — the path component pins the connection
-        // to one database, which Flyway also uses as defaultSchema for history tracking.
-        String jdbcUrl = container.getJdbcUrl(database, user);
-
         return Flyway.configure()
-            .dataSource(jdbcUrl, user, password)
+            .dataSource(container.getJdbcUrl(database, user), user, password)
             .driver(MYSQL_DRIVER)
-            .defaultSchema(database)        // MySQL: schema == database
+            .defaultSchema(database)
             .schemas(database)
             .locations(location)
             .cleanDisabled(true)

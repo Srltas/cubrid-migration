@@ -7,43 +7,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Compares an actual text payload against a checked-in snapshot file,
- * with a developer escape hatch for capturing/refreshing snapshots.
- *
- * <h2>Modes</h2>
- * <ul>
- *   <li><b>Default (CI / regression):</b> read snapshot file, diff against
- *       {@code actual}, throw {@link AssertionError} on mismatch.</li>
- *   <li><b>Update ({@code -Dsnapshot.update=true}):</b> write {@code actual}
- *       to the snapshot path (creating parent dirs as needed). No diff,
- *       no exception. Used for capturing a new snapshot or absorbing an
- *       expected CMT-output change.</li>
- * </ul>
- *
- * <p>The update flag is read once per call via {@link Boolean#getBoolean(String)}
- * so tests can toggle it via {@code System.setProperty} without rebuilding.
- *
- * <h2>Workflow</h2>
- * <pre>
- *   mvn test                          # diff mode — fails on mismatch
- *   mvn -Dsnapshot.update=true test   # regen mode — overwrites snapshots
- * </pre>
- * After regen, the developer reviews the file diff in their PR and
- * documents the change in the commit message.
+ * Compares text against a snapshot file. Default = diff mode (assert on
+ * mismatch). With {@code -Dsnapshot.update=true} the actual text is
+ * written to the snapshot path instead.
  */
 public final class SnapshotStore {
 
-    /** System property toggling capture/regen mode. */
     public static final String UPDATE_PROP = "snapshot.update";
 
     private SnapshotStore() {}
 
-    /**
-     * Compare {@code actual} to the contents of {@code snapshotPath}.
-     *
-     * @throws AssertionError if the snapshot is missing (default mode) or
-     *         differs from {@code actual}
-     */
     public static void match(Path snapshotPath, String actual) {
         if (updateMode()) {
             write(snapshotPath, actual);
@@ -64,10 +37,6 @@ public final class SnapshotStore {
             throw new AssertionError(diffMessage(snapshotPath, expected, actual));
         }
     }
-
-    // -------------------------------------------------------------------------
-    // helpers
-    // -------------------------------------------------------------------------
 
     private static boolean updateMode() {
         return Boolean.getBoolean(UPDATE_PROP);

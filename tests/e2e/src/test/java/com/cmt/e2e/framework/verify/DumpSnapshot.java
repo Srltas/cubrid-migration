@@ -10,29 +10,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Dump-file snapshot — compares the entire CMT {@code unload} output tree
- * against a checked-in golden tree.
- *
- * <p>Snapshot location:
- * {@code src/test/resources/snapshots/<scenario>/dumpfile/...}
- * — mirrors the structure of
- * {@code $CMT_CONSOLE_HOME/output/<migration-name>/...} 1:1.
- *
- * <h2>Modes</h2>
- * <ul>
- *   <li><b>Default (CI):</b> walk the actual output tree; for each file
- *       call {@link SnapshotStore#match(Path, String)} against the
- *       corresponding snapshot file. Then walk the snapshot tree and
- *       fail if any expected file is missing from CMT output.</li>
- *   <li><b>Update ({@code -Dsnapshot.update=true}):</b> wipe the snapshot
- *       directory, then copy the actual output tree into it.</li>
- * </ul>
- *
- * <p>If the dump output contains non-deterministic content (e.g. data
- * file row order), the standard fix is to add CMT-side determinism in
- * {@link com.cmt.e2e.framework.runner.ScriptXmlBuilder#sanitize(String)}
- * (e.g. forcing {@code split_schema=yes}, fixed timezone) rather than
- * special-casing files here.
+ * Dump-file snapshot — compares the entire CMT {@code unload} output
+ * tree against {@code snapshots/<scenario>/dumpfile/}. Update mode
+ * ({@code -Dsnapshot.update=true}) wipes and recopies the snapshot
+ * tree. For non-determinism in dump content, fix it CMT-side in
+ * {@link com.cmt.e2e.framework.runner.ScriptXmlBuilder#sanitize(String)}.
  */
 public final class DumpSnapshot {
 
@@ -44,7 +26,6 @@ public final class DumpSnapshot {
         this.scenarioName = scenarioName;
     }
 
-    /** Compare the full output tree against {@code snapshots/<scenario>/dumpfile/}. */
     public DumpSnapshot matchesSnapshot() {
         Path snapshotBase = CatalogSnapshot.SNAPSHOT_ROOT
             .resolve(scenarioName)
@@ -57,10 +38,6 @@ public final class DumpSnapshot {
         diffTree(outputBase, snapshotBase);
         return this;
     }
-
-    // -------------------------------------------------------------------------
-    // capture (update mode)
-    // -------------------------------------------------------------------------
 
     private static void captureTree(Path actual, Path snapshot) {
         if (!Files.isDirectory(actual)) {
@@ -90,10 +67,6 @@ public final class DumpSnapshot {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // diff (default mode)
-    // -------------------------------------------------------------------------
-
     private static void diffTree(Path actual, Path snapshot) {
         if (!Files.isDirectory(actual)) {
             throw new AssertionError(
@@ -105,7 +78,7 @@ public final class DumpSnapshot {
                 + "Run with -D" + SnapshotStore.UPDATE_PROP + "=true to capture.");
         }
 
-        // (1) Each file in actual must match its snapshot counterpart.
+        // Each file in actual must match its snapshot counterpart.
         List<Path> actualFiles = listFiles(actual);
         for (Path file : actualFiles) {
             Path rel = actual.relativize(file);
@@ -114,7 +87,7 @@ public final class DumpSnapshot {
             SnapshotStore.match(snap, content);
         }
 
-        // (2) Each file in snapshot must exist in actual.
+        // Each file in snapshot must exist in actual.
         List<Path> snapshotFiles = listFiles(snapshot);
         List<String> missing = new ArrayList<>();
         for (Path snap : snapshotFiles) {
@@ -130,10 +103,6 @@ public final class DumpSnapshot {
                     + String.join("\n  - ", missing));
         }
     }
-
-    // -------------------------------------------------------------------------
-    // helpers
-    // -------------------------------------------------------------------------
 
     private static List<Path> listFiles(Path root) {
         try (Stream<Path> walk = Files.walk(root)) {

@@ -11,15 +11,7 @@ import com.cmt.e2e.framework.target.Targets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * CUBRID e2e dataset → CUBRID online migration.
- *
- * <p>Snapshot files: {@code src/test/resources/snapshots/cubrid_to_cubrid/}.
- * To regenerate after an intended CMT-output change:
- * <pre>{@code
- *   mvn -Dsnapshot.update=true test -Dtest=CubridToCubridTest
- * }</pre>
- */
+/** CUBRID → CUBRID online migration. Snapshots: {@code snapshots/cubrid_to_cubrid/}. */
 @MigrationE2E(name = "cubrid_to_cubrid")
 @DisplayName("CUB-ON: CUBRID e2e dataset → CUBRID online migration")
 class CubridToCubridTest extends AbstractMigrationE2E {
@@ -27,16 +19,14 @@ class CubridToCubridTest extends AbstractMigrationE2E {
     @Override protected Source source() { return Sources.cubridE2eSeed(); }
     @Override protected Target target() { return Targets.cubridOnline(); }
 
-    // L1 — smoke ----------------------------------------------------------
-
+    // L1 smoke
     @Test
     @DisplayName("CMT exits 0 with MIGRATION RESULT: SUCCESS, no fatal stderr")
     void migration_succeeds() {
         run().expectSuccess().expectNoFatalStderr();
     }
 
-    // L2 — coverage (catalog snapshots) -----------------------------------
-
+    // L2 coverage
     @Test
     @DisplayName("All target classes (tables/views) match snapshot")
     void classes_match_snapshot() {
@@ -61,8 +51,7 @@ class CubridToCubridTest extends AbstractMigrationE2E {
         run().catalog().matchesSnapshot("grants");
     }
 
-    // L3 — fidelity (column types, indexes, sequences, row counts) --------
-
+    // L3 fidelity
     @Test
     @DisplayName("Column types preserved through CUBRID → CUBRID translation")
     void columns_match_snapshot() {
@@ -90,7 +79,7 @@ class CubridToCubridTest extends AbstractMigrationE2E {
     @Test
     @DisplayName("Plain indexes preserved (asc/desc; idxf_* anti-coverage stripped)")
     void indexes_match_snapshot() {
-        run().catalog().matchesSnapshot("indexes");  // non-unique non-FK; idxd_* only
+        run().catalog().matchesSnapshot("indexes");
     }
 
     @Test

@@ -8,16 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Flyway-based helper for Informix test databases. Informix has no
- * separate "schema" namespace — every object 's schema is its creating
- * user, so {@link #migrateAs} 's {@code schema} arg matches the user.
- *
- * <p>{@code ref_schema} is absent (single-user pattern); see SEED_SPEC §1
- * for the cross-schema anti-coverage rationale.
- *
- * <p>Requires the {@code flyway-database-informix} plugin on the classpath
- * — Flyway 10.x discovers {@code jdbc:informix-sqli:} support via
- * ServiceLoader and would otherwise raise "No database found to handle ...".
+ * Flyway-based helper for Informix. Informix has no schema namespace —
+ * every object's schema equals its creating user, so {@code schema}
+ * arg matches {@code user}. Requires {@code flyway-database-informix}
+ * on the classpath.
  */
 public final class InformixDatabaseInitializer {
 
@@ -95,40 +89,15 @@ public final class InformixDatabaseInitializer {
         return this;
     }
 
-    // -------------------------------------------------------------------------
-    // private helpers
-    // -------------------------------------------------------------------------
-
     private Flyway buildFlyway(String location, String database, String schema, String user, String password) {
-        // jdbc:informix-sqli://host:port/database:INFORMIXSERVER=informix
-        String jdbcUrl = container.getJdbcUrl(database, user);
-
         return Flyway.configure()
-            .dataSource(jdbcUrl, user, password)
+            .dataSource(container.getJdbcUrl(database, user), user, password)
             .driver(INFORMIX_DRIVER)
-            .defaultSchema(schema)          // Informix: schema = owner = connecting user
+            .defaultSchema(schema)
             .schemas(schema)
-            // Informix multi-user history-table workaround.
-            //
-            // Two consecutive migrate() calls (migrateRef as ref_user, then
-            // migrateMain as main_user) share the same e2e_db database.
-            // flyway-database-informix does not consistently owner-qualify the
-            // history-table existence check on a non-ANSI Informix database
-            // (which is what `CREATE DATABASE ... WITH LOG` produces). The
-            // table created by ref_user is then mis-detected when main_user
-            // tries to bootstrap, causing
-            //     Error -310: Table (main_user.flyway_schema_history) already exists
-            //
-            // Giving each scenario its own history-table name keeps the two
-            // bootstraps independent. ref_user gets
-            // flyway_schema_history_ref_user; main_user gets
-            // flyway_schema_history_main_user. Both coexist in the same
-            // database without colliding.
-            //
-            // This change does not affect the migration target — CMT 's
-            // InformixSchemaFetcher uses systables to enumerate user objects;
-            // the per-scenario history tables are filtered out by the
-            // top-level test.* / migration.* fixtures via standard naming.
+            // Per-user history table — flyway-database-informix mis-detects
+            // a shared history table on non-ANSI Informix DBs ("Error -310:
+            // Table already exists" when the second user bootstraps).
             .table("flyway_schema_history_" + schema)
             .locations(location)
             .cleanDisabled(true)
