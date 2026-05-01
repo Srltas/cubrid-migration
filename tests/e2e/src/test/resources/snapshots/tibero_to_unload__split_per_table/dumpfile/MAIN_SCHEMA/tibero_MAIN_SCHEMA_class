@@ -1,3 +1,9 @@
+CREATE TABLE [MAIN_SCHEMA].[e2e_binary_types](
+[id] numeric(10,0),
+[raw_col] bit varying(128),
+[blob_col] bit varying(1073741823)
+)
+;
 CREATE TABLE [MAIN_SCHEMA].[e2e_customer](
 [customer_id] numeric(10,0),
 [customer_code] char(4) NOT NULL COMMENT 'business key',
@@ -14,6 +20,25 @@ CREATE TABLE [MAIN_SCHEMA].[e2e_employee](
 [manager_id] numeric(10,0) COMMENT 'Self-FK to direct manager',
 [emp_name] varchar(100) NOT NULL,
 [hired_on] datetime
+)
+;
+CREATE TABLE [MAIN_SCHEMA].[e2e_numeric_types](
+[id] numeric(10,0),
+[integer_col] numeric(38,0),
+[decimal_col] numeric(20,4),
+[number_p0_col] numeric(38,0),
+[number_ps_col] numeric(20,6),
+[number_round_col] numeric(10,0),
+[number_any_col] numeric(38,15),
+[float_col] numeric(9,0),
+[real_col] numeric(38,15),
+[binary_float_col] float,
+[binary_double_col] double
+)
+;
+CREATE TABLE [MAIN_SCHEMA].[e2e_oracle_locator_types](
+[id] numeric(10,0),
+[rowid_col] varchar(32)
 )
 ;
 CREATE TABLE [MAIN_SCHEMA].[e2e_order](
@@ -34,5 +59,28 @@ CREATE TABLE [MAIN_SCHEMA].[e2e_order_line](
 [qty] numeric(10,0),
 [unit_price] numeric(15,2),
 [line_note] varchar(200)
+)
+;
+CREATE TABLE [MAIN_SCHEMA].[e2e_temporal_types](
+[id] numeric(10,0),
+[date_col] datetime,
+[ts6_col] datetime,
+[ts9_col] datetime,
+[tsltz6_col] datetimeltz,
+[tstz9_col] datetimetz,
+[interval_ds_col] varchar(64),
+[interval_ym_col] varchar(16)
+)
+;
+CREATE TABLE [MAIN_SCHEMA].[e2e_text_types](
+[id] numeric(10,0),
+[char_byte_col] char(3),
+[char_char_col] char(12),
+[varchar_byte_col] varchar(10),
+[varchar_char_col] varchar(40),
+[nchar_col] char(10),
+[nvarchar_col] varchar(40),
+[clob_col] varchar(1073741823),
+[nclob_col] varchar(1073741823)
 )
 ;
