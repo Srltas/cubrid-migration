@@ -20,7 +20,11 @@ import com.cmt.e2e.framework.source.ConnectionConfig;
  * @Test void allObjectsMigrated() {
  *     var c = run().catalog();
  *     c.matchesSnapshot("classes");
- *     c.matchesSnapshot("indexes");
+ *     // Indexes split by kind, with key columns inlined per file:
+ *     c.matchesSnapshot("pk");
+ *     c.matchesSnapshot("fk");
+ *     c.matchesSnapshot("unique");
+ *     c.matchesSnapshot("indexes");      // plain (non-unique non-FK; carries func expr)
  * }
  * }</pre>
  *

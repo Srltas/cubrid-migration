@@ -20,8 +20,8 @@ import java.lang.annotation.Target;
  * Examples:
  * <ul>
  *   <li>{@code "oracle_to_cubrid"} — the only Oracle → CUBRID online TC</li>
- *   <li>{@code "oracle_to_dump__flat"} — Oracle → dump producing a flat
- *       single-file output</li>
+ *   <li>{@code "oracle_to_unload__split_per_table"} — Oracle → unload
+ *       with split_schema=true, one_table_one_file=true (one variant)</li>
  *   <li>{@code "oracle_to_cubrid__bug_cmt_1234"} — regression fixture</li>
  * </ul>
  *
@@ -30,15 +30,22 @@ import java.lang.annotation.Target;
  * CMT defaults can change between releases — relying on them silently
  * shifts a test's meaning. ARCHITECTURE.md §12.0.
  *
+ * <p><b>Variants live as {@code @Nested} inner classes</b> under one
+ * outer namespace per source/target shape (§12.5). The annotation goes
+ * on the inner class:
+ *
  * <pre>{@code
- * @MigrationE2E(
- *     name = "oracle_to_dump__flat",
- *     options = {
- *         "split_schema=false",
- *         "one_table_one_file=false",
- *         "file_prefix=XE",
- *     })
- * class OracleToDumpFlatTest extends AbstractMigrationE2E { ... }
+ * class OracleToUnloadTest {
+ *     @Nested
+ *     @MigrationE2E(
+ *         name = "oracle_to_unload__split_per_table",
+ *         options = {
+ *             "file_prefix=XE",
+ *             "split_schema=true",
+ *             "one_table_one_file=true",
+ *         })
+ *     class SplitPerTable extends AbstractMigrationE2E { ... }
+ * }
  * }</pre>
  */
 @Retention(RetentionPolicy.RUNTIME)

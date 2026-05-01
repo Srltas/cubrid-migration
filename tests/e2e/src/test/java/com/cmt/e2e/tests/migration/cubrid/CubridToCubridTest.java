@@ -70,11 +70,27 @@ class CubridToCubridTest extends AbstractMigrationE2E {
     }
 
     @Test
-    @DisplayName("Indexes preserved (PK/UK/FK/functional)")
+    @DisplayName("Primary keys preserved (with key columns and order)")
+    void pk_match_snapshot() {
+        run().catalog().matchesSnapshot("pk");
+    }
+
+    @Test
+    @DisplayName("Foreign-key indexes preserved (with referencing columns)")
+    void fk_match_snapshot() {
+        run().catalog().matchesSnapshot("fk");
+    }
+
+    @Test
+    @DisplayName("Unique non-PK indexes preserved (with key columns)")
+    void unique_match_snapshot() {
+        run().catalog().matchesSnapshot("unique");
+    }
+
+    @Test
+    @DisplayName("Plain indexes preserved (asc/desc; idxf_* anti-coverage stripped)")
     void indexes_match_snapshot() {
-        var c = run().catalog();
-        c.matchesSnapshot("indexes");
-        c.matchesSnapshot("index_keys");
+        run().catalog().matchesSnapshot("indexes");  // non-unique non-FK; idxd_* only
     }
 
     @Test
