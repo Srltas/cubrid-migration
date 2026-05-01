@@ -1,97 +1,54 @@
 # Tibero Seed Specification
 
-> ## ⚠ 0. 현재 상태: 보류 (Deferred)
+> ## 0. 현재 상태: 활성 (Phase 12.* 시리즈 + Phase 13.1)
 >
-> **Tibero E2E 테스트는 현재 띄울 수 없는 상태이며, 이 spec 만 만들어 두고
-> 보류한다.** 시드 SQL / Container / Initializer 등 실제 코드 자산은
-> 라이선스 인프라가 갖춰진 뒤에 만든다.
+> Tibero E2E 는 라이선스 인프라 (TmaxSoft 30 일 trial + libfaketime + system-scope
+> JDBC dep + e2e.tibero.* 4 키 required) 와 함께 **실제 부팅 / 시드 적용 / 마이그레이션
+> 검증** 까지 동작한다. 활성된 객체:
 >
-> ### 왜 보류했는가 (쉽게)
+> - §3 Business Graph (e2e_customer / e2e_order / e2e_order_line / e2e_employee)
+>   + REF_SCHEMA.e2e_ref_audit + cross-schema GRANT + synonym
+> - §4.1 Sequence × 2, §4.2 view, §4.3 synonym, §4.5 comments
+> - §4.4 PL/SQL function + procedure (Phase 13.1, Oracle SPEC §4.4 mirror)
+> - §5.1 ~ §5.5 Type-test 4 종 + e2e_oracle_locator_types (rowid-only)
+>   (Phase 13.1, Oracle SPEC §5.1 ~ §5.5 mirror)
 >
-> Tibero 는 **컨테이너를 띄우는 것 자체가 자동화 환경에서 어렵다**.
-> 두 가지 이유:
+> ### 보류 중인 항목 (TENTATIVE — 후속 phase)
 >
-> #### 1. 라이선스 파일이 있어야 부팅이 된다
->
-> Tibero 는 무료 / 오픈 라이선스가 없다. 사용하려면 다음 중 하나가 필요하다:
->
-> - **30 일 데모 라이선스** — TmaxSoft TechNet 에 회원가입하고 신청서 제출 후
->   사람이 발급
-> - **유료 라이선스** — 회사 단위 구매
->
-> 그리고 발급받은 `license.xml` 안에는 사용자가 신청 시 입력한 **hostname
-> 이 박혀 있다**. 컨테이너의 hostname 과 정확히 똑같지 않으면 Tibero 는
-> "이 라이선스는 다른 컴퓨터 거다" 라고 판단해서 **부팅 자체를 거부**한다.
->
-> 그런데 우리의 테스트 환경 (Testcontainers) 은 매번 컨테이너를 새로 만들 때
-> 임의의 hostname (`a3f2b1...` 같은 hash) 을 붙인다. 그러면 license.xml 의
-> hostname 과 절대 일치할 수 없다 → 매번 부팅 실패.
->
-> 우회는 가능하다: 코드에서 `withHostName("cmt-e2e-tibero")` 처럼 고정
-> hostname 을 강제하고, 그 hostname 으로 미리 발급받은 license.xml 을
-> 컨테이너 안에 마운트해 주면 된다. 다만 이건 **사람이 한 번 TechNet 에
-> 가서 받아온 license 파일이 CI runner 에 깔려 있다**는 전제가 있어야
-> 한다. 그리고 30 일마다 사람이 다시 받아와서 갱신해 줘야 한다.
->
-> #### 2. JDBC 드라이버가 Maven Central 에 없다
->
-> 다른 DB (Oracle, MySQL, MariaDB, MSSQL, CUBRID) 의 JDBC 드라이버는
-> 모두 Maven Central 또는 공개 repository 에서 받을 수 있다. pom.xml 에
-> dependency 한 줄 적으면 끝.
->
-> Tibero 의 `tibero7-jdbc.jar` 은 **Maven 에 안 올라와 있다**. 받는 방법은
-> 둘 중 하나:
->
-> - Tibero 컨테이너를 띄워 놓고 `docker cp` 로 jar 를 빼낸다 (그런데 컨테이너를
->   띄우려면 라이선스가 있어야 한다 — 이유 1 의 닭-달걀 문제)
-> - TmaxSoft TechNet 에서 라이선스와 함께 jar 를 다운로드한다
->
-> 어느 쪽이든 **사람이 한 번 받아와서 빌드 환경의 로컬 Maven repository
-> 에 등록해 둬야** (`mvn install:install-file`) 된다.
->
-> ### 다른 source DB 는 왜 안 막혔는가
->
-> | DB | 이미지 라이선스 | JDBC |
-> |---|---|---|
-> | CUBRID | 오픈, 무료 | Maven Central |
-> | Oracle XE | 무료 (Express Edition) | Maven Central |
-> | MySQL | 오픈 (GPL) | Maven Central |
-> | MariaDB | 오픈 (GPL) | Maven Central |
-> | MSSQL Developer | 무료 (개발용) | Maven Central |
-> | **Tibero** | **유료/30일 데모, hostname 바인딩** | **Maven Central 미배포** |
->
-> Tibero 만 두 가지 모두에서 "사람의 사전 작업"이 필요하다.
->
-> ### 보류 해제 조건 (둘 다 충족돼야 진행 가능)
->
-> 1. **고정 hostname 으로 발급된 Tibero 데모 라이선스** 가 CI runner 에
->    배포되어 있고, env (예: `TIBERO_LICENSE_PATH`) 로 위치가 전달된다.
->    30 일 갱신 절차도 정해져 있어야 한다.
-> 2. **`tibero7-jdbc.jar` 이 빌드 환경의 로컬 Maven repository 에 등록**
->    되어 있다 (`com.tmax.tibero:tibero-jdbc:7` 같은 GAV; 정확한 좌표는
->    첫 회 진행 시 확정).
->
-> 위 두 가지가 갖춰지면, 그 시점부터는 다른 source DB 와 동일한 패턴으로
-> 진행한다 (시드 SQL → Container/Initializer → Drivers/pom.xml →
-> RegenerateScripts → 테스트/golden).
->
-> ### 지금까지 만들어 둔 것
->
-> | 항목 | 상태 |
+> | 항목 | 보류 사유 |
 > |---|---|
-> | 본 SPEC | 작성 완료 — Oracle SPEC 미러링 + Tibero 고유 항목 (native JSON, XMLTYPE) extension 분리, tentative 항목 5개 명시 |
-> | `db/tibero/{init,ref_schema,main_schema}/*` 시드 SQL | **없음** — 라이선스 없이 실제 검증을 못 하므로 보류 해제 후 작성 |
-> | `TiberoContainer.java` / `TiberoDatabaseInitializer.java` | **없음** — 동일 사유 |
-> | `Drivers.TIBERO` / `pom.xml` JDBC dependency | **없음** — 동일 사유 |
-> | `RegenerateScripts` 시나리오 / 테스트 / golden | **없음** — 동일 사유 |
+> | §4.6 trigger | Tibero buildTriggers override 동작 / type-map 결과 미확정 |
+> | §5.6 `e2e_tibero_semi_structured_types` (JSON / XMLTYPE) | type-map (`Tibero2CUBRID.xml`) entry 는 있으나 round-trip 결과 미확정 |
 >
-> MSSQL 과 다르게 시드 SQL 도 만들지 않은 이유: MSSQL 은 **컨테이너는
-> 정상적으로 띄워져 Flyway 적용까지 검증** 가능했고 (CMT 의 TLS 처리만
-> 막힌 상태), Tibero 는 **컨테이너 자체가 안 떠서** Flyway 가 적용되는
-> 모양조차 확인할 수 없다. 라이선스 / 드라이버 두 인프라 모두 갖춰지는
-> 시점에 시드 SQL 을 한 번에 작성/검증한다.
+> ### Phase 13.1 1차 실행으로 확정된 anti-coverage
 >
-> ---
+> | 항목 | 결과 | 사유 |
+> |---|---|---|
+> | `UROWID` 컬럼 타입 | anti-coverage 확정 | Tibero 7 SQL parser 가 거부 (`JDBC-7454: Datatype 'UROWID' is invalid`). e2e_oracle_locator_types 에서 컬럼 자체 제거. |
+>
+> ### Phase 13.1 후속 조사 필요 — 마이그레이션 단계 거부
+>
+> Tibero 의 `e2e_numeric_types` (6 rows) 와 `e2e_temporal_types` (5 rows) 가
+> CMT 의 Tibero→CUBRID 마이그레이션에서 모두 거부됨 (record: Exported 39 / Imported 28).
+> 동일한 row 값이 Oracle 시드에서는 모두 imported 되므로 시드 자체가 잘못된 것은
+> 아니고, **CMT 의 Tibero importer 또는 Tibero JDBC 의 NUMBER / TIMESTAMP /
+> BINARY_FLOAT(NaN, INFINITY) 처리에 차이**가 있는 것으로 보인다. 별도 phase
+> 에서 정밀 조사 (어느 row 가 어느 컬럼에서 거부되는지 좁혀, Oracle 과의 차이를
+> CMT importer 내부에서 식별) 필요.
+>
+> 위 anti-coverage 항목은 §1 표에도 반영. Phase 12 ~ 13.1 의 routines /
+> type-test 활성화는 확신도가 충분한 Oracle-호환 영역에 한정한다.
+>
+> ### 인프라 운영 메모
+>
+> - 라이선스 갱신 30 일 주기는 `tibero/restart-faketime-tibero.sh` + cron 으로 자동화
+>   되어 있다 (`--if-due` 모드).
+> - `tibero7-jdbc-17.jar` 은 `tests/e2e/lib/` 에 system-scope 로 보관 + `.gitignore` 됨.
+>   `tibero` Maven profile 이 jar 존재 시 자동 활성.
+> - 4 개 required key (`e2e.tibero.{image,hostname,license,faketime}`) 가 모두 채워지지
+>   않으면 `@EnabledIf("...TiberoEnvironment#isAvailable")` 가 Tibero TC 만 skip.
+> - 활성화 이전 (Phase 12 이전) 의 보류 사유 / 인프라 구축 과정은 git 로그
+>   `Phase 12.1 ~ 12.8` + `tests/e2e/tibero/README.md` 의 setup SOP 참고.
 
 이 문서는 Tibero source DB 용 시드 명세다. 공통 규칙은
 `../COMMON_SEED_CONTRACT.md` 를 따른다.
@@ -131,8 +88,12 @@ Tibero seed 는 다음 기능을 검증한다.
 | Package / Package Body | Oracle 과 동일하게 별도 추출 경로 미정의 |
 | Custom Type (`CREATE TYPE`) | 동일 사유 |
 | Database Link | E2E 폭증 + CMT 매핑 미확정 |
-| `UROWID` | TiberoDataTypeHelper 가 ROWID 만 명시 — UROWID 는 첫 회 결과로 확정 (TENTATIVE) |
-| Function-based / Domain Index | Oracle 에서는 `idxf_*` 시도했으나 Tibero 의 fetcher 동작이 동일한지는 첫 회 결과로 확정 (TENTATIVE) |
+| `UROWID` 컬럼 타입 | Tibero 7 SQL parser 가 컬럼 타입으로 거부 (`JDBC-7454: Datatype 'UROWID' is invalid`, Phase 13.1 1차 실행 확정). e2e_oracle_locator_types 에서 컬럼 제거. |
+| Domain Index / Materialized View / Package | 추출 경로 미정의 |
+
+> **Function-based index**: Phase 12.7 의 13/13 PASS 에서 `idxf_e2e_order_upper_status`
+> round-trip 동작이 확인됨 → confirmed-supported. 0 의 TENTATIVE 표 / 본문 §3.x 의
+> 마크는 historical 표기.
 
 > **첫 회 테스트로 확정해야 할 항목**:
 > 1. **Native `JSON` type** — Tibero 7 은 native JSON 을 지원한다. 시드에
@@ -178,9 +139,8 @@ TO MAIN_SCHEMA;
 
 ### 3.x Tibero-specific notes
 
-- `idxf_e2e_order_upper_status` 는 Oracle 과 동일 syntax 로 시도하지만
-  Tibero 의 fetcher / parser 가 동일하게 처리하는지 첫 회 결과로 확정
-  (TENTATIVE — anti-coverage 또는 살아남는지 결정).
+- `idxf_e2e_order_upper_status` 는 Oracle 과 동일 syntax 로 적용. Phase 12.7 의
+  TiberoToCubridTest 13/13 PASS 에서 round-trip 검증됨 (confirmed-supported).
 - `e2e_employee` self-FK 는 Tibero 도 지원 (Oracle 호환).
 
 ## 4. Object Samples
@@ -210,6 +170,12 @@ FOR REF_SCHEMA.e2e_ref_audit;
 ### 4.4 PL/SQL Routine
 
 Oracle SPEC §4.4 의 함수 / 프로시저를 그대로 사용한다 (PL/SQL 호환).
+실제 SQL 은 `db/tibero/main_schema/V4__schema_routines.sql` 에 동일 본문으로 작성.
+
+> Tibero 시드는 raw JDBC (`ClasspathSqlRunner`) 로 실행되므로 PL/SQL 블록의
+> trailing `/` 가 statement terminator 로 인식되어야 한다. ClasspathSqlRunner
+> 는 파일 안에 `^\s*/\s*$` 라인이 등장하면 slash-mode splitter 로 자동 전환
+> 한다 (Phase 13.1). Oracle Flyway 와 동일한 V4 SQL 형식이 그대로 유효.
 
 ### 4.5 Comment
 
@@ -265,7 +231,10 @@ FROM MAIN_SCHEMA.e2e_customer src
 WHERE src.customer_id = 1;
 ```
 
-`UROWID` 컬럼은 첫 회 결과로 살릴지 anti-coverage 로 옮길지 확정 (TENTATIVE).
+`UROWID` 컬럼은 Phase 13.1 1차 실행에서 Tibero 7 parser 가 거부함이 확인되어
+**anti-coverage 로 확정**. 본 spec 의 §1 표 / §0 의 anti-coverage 절 참고. 시드
+SQL (`db/tibero/main_schema/V3__schema_type_test_tables.sql`) 에서도 컬럼 자체를
+삭제했다.
 
 ### 5.6 `MAIN_SCHEMA.e2e_tibero_semi_structured_types` (Tibero 고유 extension)
 

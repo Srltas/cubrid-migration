@@ -42,9 +42,8 @@ CREATE TABLE e2e_order (
 
 CREATE INDEX idx_e2e_order_customer      ON e2e_order(customer_id);
 CREATE INDEX idxd_e2e_order_ordered_at   ON e2e_order(ordered_at DESC);
--- Functional index: TENTATIVE per tibero/SEED_SPEC.md §1 (§5.6 in spec).
--- First-run result will determine whether Tibero's fetcher emits the
--- expression like Oracle's (works) or not (would need anti-coverage).
+-- Functional index: confirmed-supported by Tibero's fetcher (Phase 12.7
+-- TiberoToCubridTest 13/13 PASS verified `UPPER(order_status)` round-trip).
 CREATE INDEX idxf_e2e_order_upper_status ON e2e_order(UPPER(order_status));
 
 -- ====== §3.3 e2e_order_line ======================================
