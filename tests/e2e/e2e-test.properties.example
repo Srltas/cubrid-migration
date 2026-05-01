@@ -49,7 +49,8 @@ e2e.tibero.image=
 #   Example: e2e.tibero.hostname=tibero-3-100
 e2e.tibero.hostname=
 
-# Host-side path to license.xml. Relative paths resolve against the
-# e2e module root (= the working directory during `mvn test`).
-#   Example: e2e.tibero.license=tibero/license.xml
+# Host-side absolute path to license.xml. Must be absolute — relative
+# paths are rejected (test skips with a clear reason). Use a full path
+# regardless of where you launched `mvn test` from.
+#   Example: e2e.tibero.license=/Users/you/Devel/cmt-console-e2e/cubrid-migration/tests/e2e/tibero/license.xml
 e2e.tibero.license=

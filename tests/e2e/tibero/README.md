@@ -61,9 +61,9 @@ When asked for hostname, enter the value you plan to set as
 `e2e.tibero.hostname` in `e2e-test.properties` (the example uses
 `tibero-3-100`). The value must match the `<licensee>` suffix in
 `license.xml` exactly — Tibero binds the license to that hostname and
-refuses to start otherwise. Place the resulting `license.xml` at
-`tests/e2e/tibero/license.xml` (or anywhere you prefer; the path goes
-into `e2e.tibero.license`).
+refuses to start otherwise. Save the resulting `license.xml` anywhere
+you like; the **absolute path** to it goes into `e2e.tibero.license`
+(see Step 5).
 
 ### Step 3 — Build the custom image
 
@@ -100,7 +100,7 @@ specific reason. The rest of the suite (Oracle, CUBRID) is unaffected.
 |-----|---------|
 | `e2e.tibero.image` | Docker image tag (built in Step 3) |
 | `e2e.tibero.hostname` | License-bound hostname; matches `<licensee>` in `license.xml` |
-| `e2e.tibero.license` | Host-side path to `license.xml` (relative paths resolve against the e2e module root) |
+| `e2e.tibero.license` | **Absolute** host-side path to `license.xml`. Relative paths are rejected (skip with reason) — invocation cwd must not affect resolution |
 
 The in-container license path is fixed at
 `/opt/tibero7/license/license.xml` (Tibero 7 install convention) and
@@ -112,10 +112,10 @@ configurable here.
 
 ```bash
 cp tests/e2e/e2e-test.properties.example tests/e2e/e2e-test.properties
-# edit the new file — fill in all three keys:
+# edit the new file — fill in all three keys (license must be ABSOLUTE):
 #   e2e.tibero.image=faketime-tibero:2026-fixed
 #   e2e.tibero.hostname=tibero-3-100
-#   e2e.tibero.license=tibero/license.xml
+#   e2e.tibero.license=/Users/you/Devel/cmt-console-e2e/cubrid-migration/tests/e2e/tibero/license.xml
 ```
 
 `tests/e2e/e2e-test.properties` is `.gitignore`d — your edits never
@@ -128,7 +128,7 @@ level, so leaving a key with no value is the same as omitting it.
 mvn test \
   -De2e.tibero.image=faketime-tibero:2026-fixed \
   -De2e.tibero.hostname=tibero-3-100 \
-  -De2e.tibero.license=tibero/license.xml
+  -De2e.tibero.license=/abs/path/to/license.xml
 ```
 
 Wins over the file when both are set — handy for CI runs that should
@@ -171,7 +171,7 @@ The script:
 4. If it is running, stops and removes it; if it exists but is stopped,
    removes it.
 5. Creates a new container with the calculated `FAKETIME`, the license
-   hostname, the mounted license file, and 1 GB shared memory.
+   hostname, and the mounted license file.
 
 The current example license is valid `2026-01-21` → `2026-02-19`.
 That gives 29 days before the end date. With the script's fixed
@@ -196,7 +196,7 @@ Useful overrides:
 
 ```bash
 TIBERO_IMAGE=faketime-tibero:required-faketime ./restart-faketime-tibero.sh
-TIBERO_LICENSE_PATH=/abs/path/to/license.xml ./restart-faketime-tibero.sh --plan
+TIBERO_LICENSE_PATH=/abs/path/to/license.xml ./restart-faketime-tibero.sh
 ```
 
 ## License renewal SOP
@@ -207,11 +207,9 @@ When the time comes (or sooner):
    `e2e.tibero.hostname` value the codebase assumes.
 2. Replace `tibero/license.xml` and **do not** commit (the path is
    `.gitignore`d for exactly this reason).
-3. Run `./restart-faketime-tibero.sh --plan` to confirm the new calculated
-   `FAKETIME` and refresh interval.
-4. Run `./restart-faketime-tibero.sh` to recreate the local smoke
+3. Run `./restart-faketime-tibero.sh` to recreate the local smoke
    container with the new calculated `FAKETIME`.
-5. Verify: `mvn test -Dtest=TiberoToCubridTest` should be green; if
+4. Verify: `mvn test -Dtest=TiberoToCubridTest` should be green; if
    capturing fresh snapshots, ensure
    `git diff src/test/resources/snapshots/tibero_*` is empty after a
    second non-capture run.
@@ -221,6 +219,6 @@ When the time comes (or sooner):
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | `Tibero @Test` methods all show "skipped" | `TiberoEnvironment.isAvailable()` returned false | Check the jar exists at `lib/tibero7-jdbc-17.jar` and the license at the configured path |
-| Container boot hangs / fails with "license invalid" | Hostname or license expired | Verify `license.xml` `<identified_by_host>` matches the container hostname; run `restart-faketime-tibero.sh --plan` and check the fake date window |
+| Container boot hangs / fails with "license invalid" | Hostname or license expired | Verify `license.xml` `<identified_by_host>` matches the container hostname and check the fake date printed by `restart-faketime-tibero.sh` |
 | "No suitable driver found for jdbc:tibero:..." | Maven `tibero` profile not active (jar missing or wrong path) | Confirm `lib/tibero7-jdbc-17.jar` exists; rebuild with `mvn clean test-compile` |
 | Image not found | Custom image not built or wrong tag | Run Step 3 above, or pass `-De2e.tibero.image=<your-tag>` |

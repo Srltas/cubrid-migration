@@ -86,9 +86,16 @@ public final class TiberoEnvironment {
             return false;
         }
         Path lic = licensePath();
+        if (!lic.isAbsolute()) {
+            log.info("[Tibero] skipping — license path '{}' (from key '{}') "
+                + "must be absolute. Relative paths are no longer accepted; "
+                + "use a full path like /Users/you/.../license.xml.",
+                lic, LICENSE_KEY);
+            return false;
+        }
         if (!Files.exists(lic)) {
             log.info("[Tibero] skipping — license file not found at {} "
-                + "(from key '{}').", lic.toAbsolutePath(), LICENSE_KEY);
+                + "(from key '{}').", lic, LICENSE_KEY);
             return false;
         }
         return true;
@@ -108,8 +115,11 @@ public final class TiberoEnvironment {
         return required(HOSTNAME_KEY);
     }
 
-    /** Host-side path to {@code license.xml}. Relative paths resolve
-     *  against the e2e module root (= {@code mvn test} cwd). */
+    /** Host-side path to {@code license.xml}. Must be absolute —
+     *  {@link #isAvailable()} skips the scenario when the configured
+     *  value is relative. Returning a {@link Path} as-is (without
+     *  resolving against cwd) keeps the contract honest: whatever the
+     *  user typed is what the container sees. */
     public static Path licensePath() {
         return Paths.get(required(LICENSE_KEY));
     }

@@ -71,8 +71,10 @@ public final class TiberoContainer implements DatabaseContainer {
             })
             .withExposedPorts(TIBERO_PORT)
             .withEnv("TB_ROOT_PASSWORD", DBA_PASSWORD)
+            // licenseHostPath is guaranteed absolute by TiberoEnvironment.isAvailable() —
+            // pass through directly so `docker inspect` shows exactly the configured path.
             .withCopyFileToContainer(
-                MountableFile.forHostPath(licenseHostPath.toAbsolutePath().toString()),
+                MountableFile.forHostPath(licenseHostPath.toString()),
                 LICENSE_IN_CONTAINER)
             .withSharedMemorySize(1024L * 1024 * 1024)  // 1 GB shm — Tibero needs it
             // Tibero boot marker — verified empirically by booting the image
