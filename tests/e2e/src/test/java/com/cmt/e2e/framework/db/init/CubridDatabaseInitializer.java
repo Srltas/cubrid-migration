@@ -86,9 +86,7 @@ public final class CubridDatabaseInitializer {
             .defaultSchema(userName)
             .locations(location)
             .cleanDisabled(true)
-            // Cross-schema GRANT during ref bootstrap leaves catalog entries
-            // owned by the grantee, so a fresh main_user already looks
-            // "non-empty" to Flyway. Baseline at 0 to let V1+ run anyway.
+            // Baseline at 0: cross-schema GRANT leaves the user looking "non-empty" to Flyway.
             .baselineOnMigrate(true)
             .baselineVersion("0")
             .validateOnMigrate(true)

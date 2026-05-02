@@ -23,7 +23,6 @@ public class CliTest {
     @RegisterExtension
     final CmtTestContext ctx = new CmtTestContext();
 
-    // Dispatch routing
     @Test
     @DisplayName("CLI-01: lists all subcommands when called with no args")
     void should_listAllSubcommands_when_calledWithoutArgs() throws Exception {
@@ -94,7 +93,6 @@ public class CliTest {
             .contains("Usage in Linux: migration.sh start");
     }
 
-    // First-run filesystem contracts
     @Test
     @DisplayName("CLI-07: creates workspace/cmt/log and workspace/cmt/report on any invocation")
     void should_createWorkspaceDirectories_onAnyInvocation() throws Exception {

@@ -140,7 +140,4 @@ public final class CatalogQueries {
         return sql;
     }
 
-    public static java.util.Set<String> names() {
-        return QUERIES.keySet();
-    }
 }

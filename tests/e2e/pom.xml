@@ -24,19 +24,9 @@
         <ojdbc8.version>21.9.0.0</ojdbc8.version>
         <mysql-connector-j.version>8.4.0</mysql-connector-j.version>
         <mariadb-java-client.version>3.4.1</mariadb-java-client.version>
-        <!-- mssql-jdbc 11.2.3.jre11 keeps the legacy "encrypt=false" default
-             that 12.x flipped to "true". CMT 's ScriptCommandHandler reads
-             db.conf as Java Properties and does not forward user_jdbc_url
-             (the field is XML-only), so we cannot inject encrypt=false at
-             the URL level. Sticking with 11.x avoids needing to ship a
-             trusted server cert in the test JVM 's truststore. -->
         <mssql-jdbc.version>11.2.3.jre11</mssql-jdbc.version>
-        <!-- IBM Informix JDBC. 4.50.x is the long-term support line for
-             Informix 12.10 / 14.10 servers; 15.x targets 15.0 servers.
-             Class: com.informix.jdbc.IfxDriver. -->
         <informix-jdbc.version>4.50.3</informix-jdbc.version>
-        <!-- The flyway-database-cubrid community plugin is only released up to 10.x.
-             Keep flyway-core and the plugin on the same version to avoid conflicts. -->
+        <!-- flyway-core and flyway-database-cubrid must share a version. -->
         <flyway.version>10.22.0</flyway.version>
         <!-- Explicit Jackson version that includes @JsonKey required by flyway-database-cubrid -->
         <jackson.version>2.16.2</jackson.version>

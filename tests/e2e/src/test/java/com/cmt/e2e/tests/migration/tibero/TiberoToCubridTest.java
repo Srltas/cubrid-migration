@@ -23,14 +23,12 @@ class TiberoToCubridTest extends AbstractMigrationE2E {
     @Override protected Source source() { return Sources.tiberoE2eSeed(); }
     @Override protected Target target() { return Targets.cubridOnline(); }
 
-    // L1 smoke
     @Test
     @DisplayName("CMT exits 0 with MIGRATION RESULT: SUCCESS, no fatal stderr")
     void migration_succeeds() {
         run().expectSuccess().expectNoFatalStderr();
     }
 
-    // L2 coverage
     @Test
     @DisplayName("All target classes (tables/views) match snapshot")
     void classes_match_snapshot() {
@@ -61,7 +59,6 @@ class TiberoToCubridTest extends AbstractMigrationE2E {
         run().catalog().matchesSnapshot("comments");
     }
 
-    // L3 fidelity
     @Test
     @DisplayName("Column types preserved through Tibero → CUBRID translation")
     void columns_match_snapshot() {

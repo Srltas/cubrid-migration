@@ -19,14 +19,12 @@ class CubridToCubridTest extends AbstractMigrationE2E {
     @Override protected Source source() { return Sources.cubridE2eSeed(); }
     @Override protected Target target() { return Targets.cubridOnline(); }
 
-    // L1 smoke
     @Test
     @DisplayName("CMT exits 0 with MIGRATION RESULT: SUCCESS, no fatal stderr")
     void migration_succeeds() {
         run().expectSuccess().expectNoFatalStderr();
     }
 
-    // L2 coverage
     @Test
     @DisplayName("All target classes (tables/views) match snapshot")
     void classes_match_snapshot() {
@@ -57,7 +55,6 @@ class CubridToCubridTest extends AbstractMigrationE2E {
         run().catalog().matchesSnapshot("grants");
     }
 
-    // L3 fidelity
     @Test
     @DisplayName("Column types preserved through CUBRID → CUBRID translation")
     void columns_match_snapshot() {

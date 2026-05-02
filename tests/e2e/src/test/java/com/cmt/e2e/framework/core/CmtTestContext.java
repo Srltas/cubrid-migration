@@ -15,9 +15,9 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * JUnit 5 extension wiring the common per-test plumbing (paths,
- * CommandRunner, WorkspaceCleaner) and per-test log routing via MDC.
- * Register with {@code @RegisterExtension final CmtTestContext ctx = ...}.
+ * JUnit 5 extension wiring per-test plumbing (CommandRunner,
+ * WorkspaceCleaner) and per-test log routing via MDC. Register with
+ * {@code @RegisterExtension final CmtTestContext ctx = ...}.
  */
 public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
     private static final Logger log = LoggerFactory.getLogger(CmtTestContext.class);
@@ -25,7 +25,6 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
     /** SiftingAppender discriminator — must match {@code logback-test.xml}. */
     private static final String MDC_TEST_ID = "testId";
 
-    private TestPaths testPaths;
     private CommandRunner commandRunner;
     private WorkspaceCleaner workspaceCleaner;
     private Path cmtConsoleHome;
@@ -39,8 +38,6 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
 
         // MDC first so any log line (including failures here) lands in the per-test file.
         MDC.put(MDC_TEST_ID, testClass.getSimpleName() + "/" + testMethod.getName());
-
-        this.testPaths = new TestPaths(testClass, testMethod);
 
         String cmtConsoleHome = System.getenv("CMT_CONSOLE_HOME");
         assertThat(cmtConsoleHome)
@@ -62,13 +59,10 @@ public class CmtTestContext implements BeforeEachCallback, AfterEachCallback {
                 workspaceCleaner.cleanupOutput();
             }
         } finally {
-            // Clear MDC so the next test does not leak logs into _bootstrap.
             MDC.remove(MDC_TEST_ID);
         }
     }
 
-    public TestPaths testPaths() { return testPaths; }
     public CommandRunner commandRunner() { return commandRunner; }
-    public WorkspaceCleaner workspaceCleaner() { return workspaceCleaner; }
     public Path cmtConsoleHome() { return cmtConsoleHome; }
 }

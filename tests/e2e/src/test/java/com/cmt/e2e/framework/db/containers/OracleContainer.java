@@ -56,10 +56,7 @@ public class OracleContainer implements DatabaseContainer {
 
     @Override
     public void start() {
-        // Oracle 11g XE's tz file (v4) does not recognize newer region IDs.
-        // Force ojdbc to send a numeric UTC offset instead of a region name —
-        // otherwise authentication fails with ORA-01882. CMT Console child
-        // process gets the same setting via JAVA_TOOL_OPTIONS in compose.
+        // Oracle 11g XE tz file (v4) → ORA-01882 on newer region IDs unless ojdbc sends UTC offset.
         System.setProperty("oracle.jdbc.timezoneAsRegion", "false");
         container.start();
     }

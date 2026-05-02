@@ -37,9 +37,6 @@ public abstract class AbstractMigrationE2E {
 
     @BeforeAll
     final void e2eStartup() throws Exception {
-        // CMT appends to function/procedure dump files within an output
-        // directory; reusing CMT_CONSOLE_HOME without this clean yields
-        // doubled dump content.
         new WorkspaceCleaner(CmtConsoleEnv.resolve().toFile()).cleanupOutput();
 
         this.source = source();
@@ -72,7 +69,7 @@ public abstract class AbstractMigrationE2E {
         return cachedOutcome;
     }
 
-    protected final String scenarioName() {
+    private String scenarioName() {
         MigrationE2E ann = getClass().getAnnotation(MigrationE2E.class);
         if (ann == null) {
             throw new IllegalStateException(
@@ -81,7 +78,4 @@ public abstract class AbstractMigrationE2E {
         }
         return ann.name();
     }
-
-    protected final Source sourceInstance() { return source; }
-    protected final Target targetInstance() { return target; }
 }

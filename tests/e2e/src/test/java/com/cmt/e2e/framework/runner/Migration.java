@@ -53,9 +53,6 @@ public final class Migration {
         CommandResult result = runner.run(cmd);
         log.info("[Migration] start exited with {}", result.exitCode());
 
-        return new MigrationOutcome(
-            result, source, target,
-            generated.scriptXml(), generated.migrationName(),
-            scenarioName);
+        return new MigrationOutcome(result, target, generated.migrationName(), scenarioName);
     }
 }

@@ -8,19 +8,17 @@ import java.util.List;
 
 import com.cmt.e2e.framework.command.CommandResult;
 import com.cmt.e2e.framework.env.CmtConsoleEnv;
-import com.cmt.e2e.framework.source.Source;
 import com.cmt.e2e.framework.target.Target;
 import com.cmt.e2e.framework.verify.CatalogSnapshot;
 import com.cmt.e2e.framework.verify.DumpSnapshot;
 import com.cmt.e2e.framework.verify.RowCounts;
 import com.cmt.e2e.framework.verify.RowQueries;
-import com.cmt.e2e.framework.verify.RowQuery;
 
 /**
  * Outcome of one {@link Migration#run(Path)} call. Verification surface
  * across four layers (see ARCHITECTURE.md §3): L1 smoke
  * ({@link #expectSuccess()}, {@link #expectNoFatalStderr()}); L2 coverage
- * + L3 fidelity ({@link #catalog()} / {@link #rowCounts} / {@link #query} /
+ * + L3 fidelity ({@link #catalog()} / {@link #rowCounts} / {@link #queries} /
  * {@link #dumpfile()}); L4 regression (same surface, scoped per
  * {@code @Test}).
  */
@@ -32,18 +30,14 @@ public final class MigrationOutcome {
         "(?m)^(?:ERROR\\b|FATAL\\b|Exception(?:\\s|:)|Caused by:|java\\.lang\\.[A-Za-z]+Exception)");
 
     private final CommandResult result;
-    private final Source source;
     private final Target target;
-    private final Path scriptXml;
     private final String migrationName;
     private final String scenarioName;
 
-    public MigrationOutcome(CommandResult result, Source source, Target target,
-                            Path scriptXml, String migrationName, String scenarioName) {
+    public MigrationOutcome(CommandResult result, Target target,
+                            String migrationName, String scenarioName) {
         this.result        = result;
-        this.source        = source;
         this.target        = target;
-        this.scriptXml     = scriptXml;
         this.migrationName = migrationName;
         this.scenarioName  = scenarioName;
     }
@@ -94,11 +88,6 @@ public final class MigrationOutcome {
         return new RowCounts(target.connection(), scenarioName, List.of(ownerSchemas));
     }
 
-    public RowQuery query(String sql) {
-        requireOnlineTarget("query()");
-        return new RowQuery(sql, target.connection(), scenarioName);
-    }
-
     /** Run all labelled queries from {@code queries/<scenario>.sql} and snapshot the output. */
     public RowQueries queries(java.nio.file.Path sqlFile) {
         requireOnlineTarget("queries()");
@@ -110,7 +99,7 @@ public final class MigrationOutcome {
         if (!target.isDumpfile()) {
             throw new IllegalStateException(
                 "dumpfile() is for dump-file targets; this is an online migration. "
-                + "Use catalog() / rowCounts() / query() instead.");
+                + "Use catalog() / rowCounts() / queries() instead.");
         }
         Path outputBase = CmtConsoleEnv.resolve()
             .resolve("output")
@@ -125,10 +114,4 @@ public final class MigrationOutcome {
                 + "Use dumpfile() instead.");
         }
     }
-
-    public CommandResult commandResult() { return result; }
-    public Path scriptXml() { return scriptXml; }
-
-    Source source() { return source; }
-    Target target() { return target; }
 }
