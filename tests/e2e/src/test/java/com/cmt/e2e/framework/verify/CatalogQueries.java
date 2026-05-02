@@ -112,6 +112,22 @@ public final class CatalogQueries {
             FROM db_stored_procedure
             WHERE owner NOT IN ('DBA', 'PUBLIC')
             ORDER BY owner, sp_type, sp_name
+            """),
+        // Table + column comments unioned into one snapshot — keeps
+        // multi-byte unicode round-trip in a single readable diff.
+        Map.entry("comments", """
+            SELECT 'TABLE'  AS scope, owner_name, class_name, ''         AS attr_name, comment
+            FROM db_class
+            WHERE owner_name NOT IN ('DBA', 'PUBLIC')
+              AND class_name NOT LIKE 'flyway_%'
+              AND comment IS NOT NULL AND comment <> ''
+            UNION ALL
+            SELECT 'COLUMN' AS scope, owner_name, class_name, attr_name,    comment
+            FROM db_attribute
+            WHERE owner_name NOT IN ('DBA', 'PUBLIC')
+              AND class_name NOT LIKE 'flyway_%'
+              AND comment IS NOT NULL AND comment <> ''
+            ORDER BY scope, owner_name, class_name, attr_name
             """)
     );
 

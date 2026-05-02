@@ -55,6 +55,12 @@ class TiberoToCubridTest extends AbstractMigrationE2E {
         run().catalog().matchesSnapshot("routines");
     }
 
+    @Test
+    @DisplayName("Table + column COMMENTs preserved (incl. multi-byte unicode)")
+    void comments_match_snapshot() {
+        run().catalog().matchesSnapshot("comments");
+    }
+
     // L3 fidelity
     @Test
     @DisplayName("Column types preserved through Tibero → CUBRID translation")

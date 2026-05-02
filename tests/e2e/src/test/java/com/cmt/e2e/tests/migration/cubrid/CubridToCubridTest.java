@@ -46,6 +46,12 @@ class CubridToCubridTest extends AbstractMigrationE2E {
     }
 
     @Test
+    @DisplayName("Table + column COMMENTs preserved (incl. multi-byte unicode)")
+    void comments_match_snapshot() {
+        run().catalog().matchesSnapshot("comments");
+    }
+
+    @Test
     @DisplayName("Cross-schema GRANTs preserved")
     void grants_match_snapshot() {
         run().catalog().matchesSnapshot("grants");
