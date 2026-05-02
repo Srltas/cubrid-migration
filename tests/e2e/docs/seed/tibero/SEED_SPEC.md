@@ -39,10 +39,69 @@
 > 동일한 시드 값이 Oracle→CUBRID 에서는 모두 통과. **CMT 의 Tibero importer
 > 가 NUMBER 의 큰 값 / 음수 scale / IEEE 754 special / TIMESTAMP WITH LOCAL
 > TIME ZONE 을 Oracle importer 와 다른 wire format 으로 보내서 CUBRID coerce
-> 가 거부**한다는 가설. 후속 phase 에서 CMT importer 의 Tibero 경로 코드를
-> 조사 필요 (`com.cubrid.cubridmigration.core.engine.importer.impl.JDBCImporter`
-> + Tibero 전용 type adapter). 우회 적용 후 Phase 13.3 에서 13/13 PASS,
-> 39/39 imported 확인.
+> 가 거부**한다는 가설. 우회 적용 후 Phase 13.3 에서 13/13 PASS, 39/39
+> imported 확인.
+>
+> ### Phase 14.1 디버그 진단 결과 (read-only, revert 됨)
+>
+> 임시 디버그 로그를 `cubrid/stmt/handler/{NumericHandler,DateTimeLTZHandler}.java`
+> 에 넣고 1 cycle 실행해서 좁힘:
+>
+> **datetimeltz** (확정):
+> CMT 의 `DateTimeLTZHandler.handle()` 에 진입한 `value` 가:
+> - 클래스: `java.lang.String` (예상은 `java.sql.Timestamp`)
+> - 내용: `"1970-01-01 00:00:00.0"` — **timezone offset 부재**
+>
+> Tibero JDBC 가 LTZ 컬럼을 표준 `java.sql.Timestamp` 로 returning →
+> `Timestamp.toString()` 은 zone 정보를 포함하지 않음 → CMT 가 그대로
+> setString → CUBRID DATETIMELTZ 가 zone 없는 string 코어스 거부.
+>
+> 비교: Oracle JDBC 는 LTZ 컬럼을 `oracle.sql.TIMESTAMPLTZ` (Oracle 전용)
+> 로 returning. 그 객체의 `toString()` 은 `"... +09:00"` 형식 포함 → CUBRID 통과.
+>
+> → **Tibero JDBC 의 한계**. CMT 측 fix 를 하려면 Tibero LTZ 컬럼만큼은
+> 일반 Timestamp 가 아니라 Tibero 전용 방식으로 zone 을 별도 추출하는
+> Tibero 전용 처리 로직을 추가해야 함 (큰 작업).
+>
+> **numeric** (부분 확정):
+> NumericHandler 자체의 처리는 정상 — 38자리 BigDecimal 도 toPlainString
+> 그대로 정확히 출력. 그런데 R_MIN/R_MAX 의 일부 컬럼이 NumericHandler
+> 에 도달하기 전 변환 단계에서 throw 되어 batch 에 못 들어감.
+> NumericHandler 가 아닌 path 의심 (FloatHandler / DoubleHandler /
+> DefaultHandler). 정확한 컬럼/값 좌표는 추가 디버그 1 cycle 더 필요.
+>
+> 후속 phase 에서 처리할 entry point: `JDBCImporter.simpleImportRecords` +
+> `DBTransformHelper.convertValueToTargetDBValue` + Tibero 전용
+> type adapter (`Tibero2CUBRID.xml` + `TiberoDataTypeHelper`).
+>
+> ### Phase 15.3 — 다국어 COMMENT mojibake 회귀 (3 DB 공통)
+>
+> COMMENT 검증 TC 추가 시 발견. 시드의 다국어 한글 COMMENT (예: `e2e_customer.customer_alias`
+> 의 `'고객 별칭 (다국어 검증)'`) 가 CUBRID target 에서 mojibake (UTF-8 byte
+> 가 latin1 으로 디코딩된 형태) 로 보존됨:
+>
+> ```
+> 시드:    "고객 별칭 (다국어 검증)"
+> CUBRID:  "ê³ ê° ë³ì¹­ (ë¤êµ­ì´ ê²ì¦)"
+> ```
+>
+> Oracle → CUBRID, Tibero → CUBRID 모두 동일한 mojibake 패턴. CUBRID 자체
+> seed (CUBRID → CUBRID) 는 한글 comment 가 시드에 없어서 단정 불가.
+>
+> → **CMT importer 가 다국어 COMMENT 를 적용할 때 charset 처리 회귀**
+> 추정. 본 phase 에서는 "현재 mojibake 동작을 그대로 snapshot capture"
+> 로 CI 안정성 확보. 진짜 fix 는 별도 phase — CMT 의 charset 처리
+> 정밀 조사 필요 (가설: comment INSERT 경로의 byte→string 변환에서
+> `getBytes("ISO-8859-1")` 같은 잘못된 charset 가정).
+>
+> ### CHECK constraint — 의도된 anti-coverage (Phase 15 audit)
+>
+> CMT plugins 코드 전체에 CHECK constraint 처리 로직 부재 (`buildCheck` /
+> `CheckConstraint` / `CHECK_CONS` 모두 0 references). 시드의
+> `ck_e2e_customer_status` 등은 source DB 에 만들어지지만 **CMT 가
+> CUBRID target 으로 옮기지 않음 (의도적)**. 검증 TC 를 추가하지 않는
+> 것이 정직 — round-trip 검증 가능 항목이 아니다. SEED_DATA_GUIDE 와
+> COMMON_SEED_CONTRACT 의 anti-coverage 표에 명시된 패턴.
 >
 > 위 anti-coverage 항목은 §1 표에도 반영. Phase 12 ~ 13.1 의 routines /
 > type-test 활성화는 확신도가 충분한 Oracle-호환 영역에 한정한다.

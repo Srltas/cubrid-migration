@@ -39,6 +39,17 @@ CUBRID 의 OBJECT (OO 참조) 타입, 외부 Java 클래스 사용, 사용자 �
   로 거부된다. 빈 문자열은 `N''`, ASCII 는 `N'A'`, 다국어는 `N'한中Ω'` 처럼
   쓴다.
 
+### Phase 15 audit 발견사항
+
+- **CHECK constraint** — CMT plugins 전체에 처리 로직 부재 (`buildCheck` /
+  `CheckConstraint` / `CHECK_CONS` 모두 0 references). 시드의
+  `ck_e2e_customer_status` 등은 source 에 만들어지지만 target 으로
+  round-trip 안 됨. **의도된 anti-coverage** — 검증 TC 추가하지 않음.
+- CUBRID 의 시드는 한글 inline COMMENT 가 없어서 Phase 15.3 의 다국어
+  COMMENT mojibake 회귀 (Oracle / Tibero 에서 발견) 가 직접 관찰되지
+  않는다. 향후 시드에 한글 COMMENT 를 추가하면 같은 회귀가 노출될 수
+  있음. 자세한 내용은 Oracle / Tibero SEED_SPEC.
+
 ## 2. Schema Setup
 
 | Schema | Role |

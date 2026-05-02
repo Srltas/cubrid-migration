@@ -18,6 +18,18 @@ Oracle seed 는 다음 기능을 검증한다.
 Oracle Materialized View, Package, Package Body, Custom Type은 이 spec 에 포함하지
 않는다. CMT fetcher/importer 지원 범위가 명확해진 뒤 별도 extension 으로 추가한다.
 
+### Phase 15 audit 발견사항
+
+- **CHECK constraint** — CMT plugins 전체에 처리 로직 부재 (`buildCheck` /
+  `CheckConstraint` / `CHECK_CONS` 모두 0 references). 시드의
+  `ck_e2e_customer_status` 등은 Oracle 안에 만들어지지만 CUBRID target
+  으로 round-trip 안 됨. **의도된 anti-coverage** — 검증 TC 추가하지 않음.
+- **다국어 COMMENT mojibake** (Phase 15.3) — 시드의 한글 COMMENT (예:
+  `'고객 별칭 (다국어 검증)'`) 가 CUBRID 에서 mojibake 형태 (UTF-8 byte
+  가 latin1 디코딩) 로 보존됨. CMT importer 의 charset 처리 회귀 추정.
+  현재 snapshot 은 mojibake 그대로 capture (CI 안정용); 본 회귀 fix 는
+  별도 phase.
+
 ## 2. Schema Setup
 
 | Schema | Role |
