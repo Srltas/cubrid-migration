@@ -1,5 +1,7 @@
 package com.cmt.e2e.tests.migration.tibero;
 
+import java.nio.file.Path;
+
 import com.cmt.e2e.framework.junit.AbstractMigrationE2E;
 import com.cmt.e2e.framework.junit.MigrationE2E;
 import com.cmt.e2e.framework.source.Source;
@@ -47,6 +49,12 @@ class TiberoToCubridTest extends AbstractMigrationE2E {
         run().catalog().matchesSnapshot("grants");
     }
 
+    @Test
+    @DisplayName("All stored routines (FUNCTION/PROCEDURE) preserved")
+    void routines_match_snapshot() {
+        run().catalog().matchesSnapshot("routines");
+    }
+
     // L3 fidelity
     @Test
     @DisplayName("Column types preserved through Tibero → CUBRID translation")
@@ -88,5 +96,12 @@ class TiberoToCubridTest extends AbstractMigrationE2E {
     @DisplayName("Row counts per migrated table match")
     void row_counts_match_snapshot() {
         run().rowCounts().matchesSnapshot("row_counts");
+    }
+
+    @Test
+    @DisplayName("Representative business rows preserved (8 spot-checks)")
+    void representative_rows_match_snapshot() {
+        run().queries(Path.of("src/test/resources/queries/tibero_to_cubrid.sql"))
+             .matchesSnapshot("representative_rows");
     }
 }
