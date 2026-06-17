@@ -1,0 +1,286 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<migration name="MYSQL_main_schema_202604271429" version="11.1.0" wizard_start_date_time="202604271429">
+    <connections>
+        <connection id="source" host="%%SOURCE_HOST%%" port="%%SOURCE_PORT%%" driver="%%SOURCE_DRIVER%%" name="main_schema" user="root" password="cmt" charset="utf8mb4" timezone="GMT+00:00" user_jdbc_url="" db_type="MYSQL"/>
+        <connection id="target" host="%%TARGET_HOST%%" port="%%TARGET_PORT%%" driver="%%TARGET_DRIVER%%" name="cubdb" user="dba" password="" charset="utf-8" timezone="" user_jdbc_url="" create_constraints_before_data="no" write_error_records="no" add_schema="yes"/>
+    </connections>
+    <schemas>
+        <schema source="ROOT" target="ROOT"/>
+    </schemas>
+    <source db_type="MYSQL" online="yes">
+        <tables>
+            <table schema="" name="e2e_binary_types" target_schema="ROOT" target_name="e2e_binary_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="id" target_name="id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="binary_col" target_name="binary_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="varbinary_col" target_name="varbinary_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="bit_col" target_name="bit_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="blob_col" target_name="blob_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="longblob_col" target_name="longblob_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="" name="e2e_customer" target_schema="ROOT" target_name="e2e_customer" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="E2E master customer table">
+                <columns>
+                    <column name="customer_id" target_name="customer_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="customer_code" target_name="customer_code" trim="no" replace_expression="" data_handler="" comment="business key"/>
+                    <column name="customer_name" target_name="customer_name" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="customer_alias" target_name="customer_alias" trim="no" replace_expression="" data_handler="" comment="고객 별칭 (다국어 검증)"/>
+                    <column name="status" target_name="status" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="credit_limit" target_name="credit_limit" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="created_on" target_name="created_on" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="updated_on" target_name="updated_on" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+                <constraints>
+                    <index name="uk_e2e_customer_code" target_name="uk_e2e_customer_code"/>
+                </constraints>
+            </table>
+            <table schema="" name="e2e_employee" target_schema="ROOT" target_name="e2e_employee" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="Employee hierarchy (self-FK)">
+                <columns>
+                    <column name="employee_id" target_name="employee_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="manager_id" target_name="manager_id" trim="no" replace_expression="" data_handler="" comment="Self-FK to direct manager"/>
+                    <column name="emp_name" target_name="emp_name" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="hired_on" target_name="hired_on" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+                <constraints>
+                    <fk name="fk_e2e_employee_manager" target_name="fk_e2e_employee_manager"/>
+                </constraints>
+            </table>
+            <table schema="" name="e2e_mysql_enum_types" target_schema="ROOT" target_name="e2e_mysql_enum_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="id" target_name="id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="status_enum" target_name="status_enum" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="" name="e2e_numeric_types" target_schema="ROOT" target_name="e2e_numeric_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="id" target_name="id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="tinyint_col" target_name="tinyint_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="smallint_col" target_name="smallint_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="mediumint_col" target_name="mediumint_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="int_col" target_name="int_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="bigint_col" target_name="bigint_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="decimal_col" target_name="decimal_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="decimal_p0_col" target_name="decimal_p0_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="float_col" target_name="float_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="double_col" target_name="double_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="" name="e2e_order" target_schema="ROOT" target_name="e2e_order" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="Customer order transactions">
+                <columns>
+                    <column name="order_id" target_name="order_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="customer_id" target_name="customer_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="order_no" target_name="order_no" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="order_status" target_name="order_status" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="total_amount" target_name="total_amount" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="ordered_at" target_name="ordered_at" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="settled_at" target_name="settled_at" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="source_comment" target_name="source_comment" trim="no" replace_expression="" data_handler="" comment="주문 비고: 다국어/특수문자 검증"/>
+                </columns>
+                <constraints>
+                    <fk name="fk_e2e_order_customer" target_name="fk_e2e_order_customer"/>
+                    <index name="idx_e2e_order_customer" target_name="idx_e2e_order_customer"/>
+                    <index name="idxd_e2e_order_ordered_at" target_name="idxd_e2e_order_ordered_at"/>
+                </constraints>
+            </table>
+            <table schema="" name="e2e_order_line" target_schema="ROOT" target_name="e2e_order_line" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="Order line items (composite PK)">
+                <columns>
+                    <column name="order_id" target_name="order_id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="line_no" target_name="line_no" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="sku" target_name="sku" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="qty" target_name="qty" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="unit_price" target_name="unit_price" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="line_note" target_name="line_note" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+                <constraints>
+                    <fk name="fk_e2e_order_line_order" target_name="fk_e2e_order_line_order"/>
+                </constraints>
+            </table>
+            <table schema="" name="e2e_temporal_types" target_schema="ROOT" target_name="e2e_temporal_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="id" target_name="id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="date_col" target_name="date_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="time_col" target_name="time_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="datetime_col" target_name="datetime_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="timestamp_col" target_name="timestamp_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="year_col" target_name="year_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="" name="e2e_text_types" target_schema="ROOT" target_name="e2e_text_types" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="id" target_name="id" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="char_col" target_name="char_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="varchar_col" target_name="varchar_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="text_col" target_name="text_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="mediumtext_col" target_name="mediumtext_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="longtext_col" target_name="longtext_col" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+            </table>
+            <table schema="" name="flyway_schema_history" target_schema="ROOT" target_name="flyway_schema_history" create="yes" pk="yes" migrate_data="yes" rename="no" replace="yes" partition="yes" condition="" sql_before="" sql_after="" exp_opt_col="yes" start_target_max="no" comment="">
+                <columns>
+                    <column name="installed_rank" target_name="installed_rank" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="version" target_name="version" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="description" target_name="description" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="type" target_name="type" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="script" target_name="script" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="checksum" target_name="checksum" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="installed_by" target_name="installed_by" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="installed_on" target_name="installed_on" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="execution_time" target_name="execution_time" trim="no" replace_expression="" data_handler="" comment=""/>
+                    <column name="success" target_name="success" trim="no" replace_expression="" data_handler="" comment=""/>
+                </columns>
+                <constraints>
+                    <index name="flyway_schema_history_s_idx" target_name="flyway_schema_history_s_idx"/>
+                </constraints>
+            </table>
+        </tables>
+    </source>
+    <target version="114" type="online" db_type="cubrid">
+        <tables>
+            <table schema="ROOT" name="e2e_binary_types" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="id" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="binary_col" type="bit(64)" base_type="bit" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="varbinary_col" type="bit varying(512)" base_type="bit varying" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="bit_col" type="bit(64)" base_type="bit" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="blob_col" type="bit varying(4194240)" base_type="bit varying" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="longblob_col" type="bit varying(1073741823)" base_type="bit varying" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="id"/>
+                </constraints>
+            </table>
+            <table schema="ROOT" name="e2e_customer" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="customer_id" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="yes" start="5" increment="1" comment=""/>
+                    <column name="customer_code" type="char(4)" base_type="char" null="no" unique="yes" shared="no" auto_increment="no" comment="business key"/>
+                    <column name="customer_name" type="varchar(100)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="customer_alias" type="varchar(60)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment="고객 별칭 (다국어 검증)"/>
+                    <column name="status" type="char(1)" base_type="char" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="credit_limit" type="numeric(15,2)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="created_on" type="datetime" base_type="datetime" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="updated_on" type="datetime" base_type="datetime" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="customer_id"/>
+                    <index name="uk_e2e_customer_code" fields="customer_code" order_rule="A" reverse="no" unique="yes"/>
+                </constraints>
+            </table>
+            <table schema="ROOT" name="e2e_employee" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="employee_id" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="manager_id" type="int" base_type="int" null="yes" unique="no" shared="no" auto_increment="no" comment="Self-FK to direct manager"/>
+                    <column name="emp_name" type="varchar(100)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="hired_on" type="date" base_type="date" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="employee_id"/>
+                    <fk name="fk_e2e_employee_manager" ref_table="e2e_employee" on_update="RESTRICT" on_delete="RESTRICT" fields="manager_id" ref_fields="employee_id"/>
+                </constraints>
+            </table>
+            <table schema="ROOT" name="e2e_mysql_enum_types" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="id" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="status_enum" type="enum('NEW','HOLD','DONE','CANCEL')" base_type="enum" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="id"/>
+                </constraints>
+            </table>
+            <table schema="ROOT" name="e2e_numeric_types" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="id" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="tinyint_col" type="short" base_type="short" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="smallint_col" type="short" base_type="short" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="mediumint_col" type="int" base_type="int" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="int_col" type="int" base_type="int" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="bigint_col" type="bigint" base_type="bigint" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="decimal_col" type="numeric(20,6)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="decimal_p0_col" type="numeric(38,0)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="float_col" type="float" base_type="float" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="double_col" type="double" base_type="double" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="id"/>
+                </constraints>
+            </table>
+            <table schema="ROOT" name="e2e_order" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="order_id" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="yes" start="5" increment="1" comment=""/>
+                    <column name="customer_id" type="int" base_type="int" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="order_no" type="varchar(30)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="order_status" type="varchar(20)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="total_amount" type="numeric(18,2)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="ordered_at" type="datetime" base_type="datetime" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="settled_at" type="datetime" base_type="datetime" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="source_comment" type="varchar(200)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment="주문 비고: 다국어/특수문자 검증"/>
+                </columns>
+                <constraints>
+                    <pk fields="order_id"/>
+                    <fk name="fk_e2e_order_customer" ref_table="e2e_customer" on_update="RESTRICT" on_delete="RESTRICT" fields="customer_id" ref_fields="customer_id"/>
+                    <index name="idx_e2e_order_customer" fields="customer_id" order_rule="A" reverse="no" unique="no"/>
+                    <index name="idxd_e2e_order_ordered_at" fields="ordered_at" order_rule="D" reverse="no" unique="no"/>
+                </constraints>
+            </table>
+            <table schema="ROOT" name="e2e_order_line" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="order_id" type="int" base_type="int" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="line_no" type="short" base_type="short" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="sku" type="varchar(30)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="qty" type="int" base_type="int" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="unit_price" type="numeric(15,2)" base_type="numeric" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="line_note" type="varchar(200)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="order_id,line_no"/>
+                    <fk name="fk_e2e_order_line_order" ref_table="e2e_order" on_update="RESTRICT" on_delete="RESTRICT" fields="order_id" ref_fields="order_id"/>
+                </constraints>
+            </table>
+            <table schema="ROOT" name="e2e_temporal_types" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="id" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="date_col" type="date" base_type="date" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="time_col" type="time" base_type="time" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="datetime_col" type="datetime" base_type="datetime" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="timestamp_col" type="timestamp" base_type="timestamp" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="year_col" type="char(4)" base_type="char" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="id"/>
+                </constraints>
+            </table>
+            <table schema="ROOT" name="e2e_text_types" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="id" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="char_col" type="char(3)" base_type="char" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="varchar_col" type="varchar(10)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="text_col" type="varchar(65535)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="mediumtext_col" type="varchar(16277215)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="longtext_col" type="varchar(1073741823)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="id"/>
+                </constraints>
+            </table>
+            <table schema="ROOT" name="flyway_schema_history" source_schema="ROOT" reuse_oid="no" comment="">
+                <columns>
+                    <column name="installed_rank" type="int" base_type="int" null="no" unique="yes" shared="no" auto_increment="no" comment=""/>
+                    <column name="version" type="varchar(50)" base_type="varchar" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="description" type="varchar(200)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="type" type="varchar(20)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="script" type="varchar(1000)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="checksum" type="int" base_type="int" null="yes" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="installed_by" type="varchar(100)" base_type="varchar" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="installed_on" type="timestamp" base_type="timestamp" null="no" unique="no" shared="no" default="CURRENT_TIMESTAMP" expression_default="no" auto_increment="no" comment=""/>
+                    <column name="execution_time" type="int" base_type="int" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                    <column name="success" type="short" base_type="short" null="no" unique="no" shared="no" auto_increment="no" comment=""/>
+                </columns>
+                <constraints>
+                    <pk fields="installed_rank"/>
+                    <index name="flyway_schema_history_s_idx" fields="success" order_rule="A" reverse="no" unique="no"/>
+                </constraints>
+            </table>
+        </tables>
+    </target>
+    <params export_thread="4" import_thread="3" commit_count="1000" page_fetch_count="1000" implicit_estimate_progress="no" update_statistics="yes"/>
+</migration>

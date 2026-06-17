@@ -1,0 +1,3 @@
+CREATE /*+ NO_STATS */ INDEX [idx_e2e_order_customer] ON [ROOT].[e2e_order]([customer_id]);
+CREATE /*+ NO_STATS */ INDEX [idxd_e2e_order_ordered_at] ON [ROOT].[e2e_order]([ordered_at] DESC);
+CREATE /*+ NO_STATS */ INDEX [flyway_schema_history_s_idx] ON [ROOT].[flyway_schema_history]([success]);
