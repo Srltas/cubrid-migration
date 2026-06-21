@@ -1,0 +1,64 @@
+# =============================================================
+# tests/e2e/e2e-test.properties — local-only configuration template
+# =============================================================
+#
+# Copy this file to e2e-test.properties (no .example suffix) and fill
+# in the values your machine needs. The real file is gitignored —
+# put machine-specific paths, internal image registries, license
+# locations there without leaking them into the repo.
+#
+# Resolution order (per com.cmt.e2e.framework.core.E2eTestProperties):
+#   1. -Dkey=value command-line system property (CI / one-off override)
+#   2. This file
+#   3. Hardcoded fallback in the consuming class — see per-key notes
+#      below; some keys have no fallback and must be set here.
+#
+# Empty / blank values fall through to the next level — leaving a key
+# with no value is the same as omitting the key.
+#
+# -------------------------------------------------------------
+# CMT Console binary location
+# -------------------------------------------------------------
+# Absolute path to an extracted CMT Console release (the directory
+# that contains migration.sh + jdbcDrivers/ + jre/). Leave blank to
+# inherit from the CMT_CONSOLE_HOME environment variable.
+cmt.console.home=
+
+# -------------------------------------------------------------
+# Tibero source-DB scenario  (see tests/e2e/tibero/README.md)
+# -------------------------------------------------------------
+# All four keys are REQUIRED. If any is missing or invalid the Tibero
+# @Test methods skip via @EnabledIf — by design. The other source-DB
+# scenarios (Oracle, CUBRID) are unaffected.
+#
+# The in-container license path is fixed at
+# /opt/tibero7/license/license.xml (Tibero 7 install convention) and
+# lives as a hardcoded constant in TiberoContainer — not configurable
+# here.
+#
+# Example values (matching the standard internal-dev setup) are
+# shown in comments. Uncomment and adjust for your environment.
+
+# Tibero Docker image. Built from tests/e2e/tibero/dockerfile.
+#   Example: e2e.tibero.image=faketime-tibero:260501
+e2e.tibero.image=
+
+# License-bound hostname — must equal the licensee suffix in license.xml.
+# The container's internal hostname is forced to this value via
+# Testcontainers withHostName(...).
+#   Example: e2e.tibero.hostname=tibero-3-100
+e2e.tibero.hostname=
+
+# Host-side absolute path to license.xml. Must be absolute — relative
+# paths are rejected (test skips with a clear reason). Use a full path
+# regardless of where you launched `mvn test` from.
+#   Example: e2e.tibero.license=/Users/you/Devel/cmt-console-e2e/cubrid-migration/tests/e2e/tibero/license.xml
+e2e.tibero.license=
+
+# libfaketime offset, expressed as a positive integer = days back from
+# now. The container env is set to FAKETIME=-Nd. Pick N so that
+# (today - N days) lands inside the license validity window
+# (<start_date>..<end_date> in license.xml). Same convention as the
+# local-smoke helper restart-faketime-tibero.sh.
+#   Example: e2e.tibero.faketime=100   (FAKETIME=-100d)
+e2e.tibero.faketime=
