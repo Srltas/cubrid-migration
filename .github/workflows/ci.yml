@@ -14,7 +14,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # PR runs supersede themselves; every develop push gets its own group so a later
+  # merge cannot cancel an earlier commit's verification before it reports.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -61,6 +63,32 @@ jobs:
           path: target/CUBRID-Migration-Toolkit-console-*.tar.gz
           retention-days: 7
           if-no-files-found: error
+
+  unit-test:
+    name: unit-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Java 21
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c  # v6.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Run unit tests
+        run: mvn -B -Punit-test test
+
+      - name: Upload Surefire Reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: surefire-reports-unit
+          path: tests/unit-test/target/surefire-reports/**
+          if-no-files-found: ignore
 
   e2e-test:
     name: e2e-${{ matrix.name }}
