@@ -1,0 +1,121 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1b1f24;
+  --muted: #5b6570;
+  --line: #d8dee4;
+  --panel: #f6f8fa;
+  --accent: #0a5fd6;
+  --ok: #1a7f37;
+  --bad: #b42318;
+  --warn: #9a6700;
+  --idle: #6e7781;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --muted: #9198a1;
+    --line: #2b313a;
+    --panel: #161b22;
+    --accent: #6cb0ff;
+    --ok: #3fb950;
+    --bad: #ff7b72;
+    --warn: #d29922;
+    --idle: #8b949e;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  max-width: 78rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Helvetica, Arial, sans-serif;
+}
+
+h1 { font-size: 1.5rem; margin: 0; }
+h2 { font-size: 1.05rem; margin: 2.5rem 0 0.75rem; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; }
+a { color: var(--accent); }
+
+.page-head .sub { color: var(--muted); margin: 0.35rem 0 0; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* The newest attempt owns the banner, so its colour must never imply more than it knows. */
+.banner {
+  margin: 1.5rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--idle);
+  border-radius: 6px;
+  background: var(--panel);
+}
+.banner .headline { font-weight: 600; }
+.banner .detail { color: var(--muted); margin-top: 0.2rem; }
+.banner.is-ok { border-left-color: var(--ok); }
+.banner.is-bad { border-left-color: var(--bad); }
+.banner.is-warn { border-left-color: var(--warn); }
+
+.notice {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px dashed var(--warn);
+  border-radius: 6px;
+  color: var(--warn);
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+.counts div { margin: 0; }
+.counts dt { color: var(--muted); font-size: 0.82rem; }
+.counts dd { margin: 0.1rem 0 0; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.counts .note { font-size: 0.78rem; color: var(--muted); }
+
+.run-meta { color: var(--muted); }
+.run-meta b { color: var(--fg); font-weight: 600; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; }
+th, td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+tbody tr:hover { background: var(--panel); }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }
+.filters label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--muted); }
+.filters .grow { flex: 1 1 18rem; }
+.filters input, .filters select {
+  font: inherit; padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line); border-radius: 5px;
+  background: var(--bg); color: var(--fg);
+}
+.shown { color: var(--muted); font-size: 0.85rem; margin: 0.75rem 0 0; }
+
+.state { font-weight: 600; white-space: nowrap; }
+.state.passed, .state.PASSED, .state.PASSED_WITH_SKIPS { color: var(--ok); }
+.state.failed, .state.FAILED { color: var(--bad); }
+.state.blocked, .state.BLOCKED, .state.EMPTY, .state.INCOMPLETE { color: var(--warn); }
+.state.skipped, .state.CANCELLED { color: var(--muted); }
+.state.not-in-ci, .state.no-report, .state.not-selected, .state.NO_DATA { color: var(--idle); font-weight: 400; }
+
+.tc-name { font-weight: 500; }
+.tc-method { display: block; color: var(--muted); font-size: 0.8rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.group { color: var(--muted); font-size: 0.85rem; }
+.pill {
+  display: inline-block; padding: 0.05rem 0.4rem; border-radius: 999px;
+  border: 1px solid var(--line); font-size: 0.75rem; color: var(--muted);
+}
+
+footer { margin-top: 3rem; color: var(--muted); font-size: 0.82rem; }

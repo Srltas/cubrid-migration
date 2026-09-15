@@ -39,3 +39,4 @@ tests/e2e/e2e-test.properties
 
 /catalog-unit.json
 /catalog-e2e.json
+/webreport/data/

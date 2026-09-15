@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CMT Test Cases</title>
+    <link rel="stylesheet" href="assets/app.css" />
+  </head>
+  <body>
+    <header class="page-head">
+      <h1>CMT Test Cases</h1>
+      <p class="sub">
+        Every test case defined on <code>develop</code>, and how the latest verification of it went.
+      </p>
+    </header>
+
+    <main>
+      <!-- 1. Current state: the newest attempt owns this banner, whatever its outcome. -->
+      <section aria-labelledby="state-h">
+        <h2 id="state-h" class="sr-only">Current state</h2>
+        <div id="banner" class="banner" hidden></div>
+        <div id="stale" class="notice" hidden></div>
+        <dl id="counts" class="counts"></dl>
+      </section>
+
+      <!-- 3. Latest run: per-suite outcome and where the detail lives. -->
+      <section aria-labelledby="run-h">
+        <h2 id="run-h">Latest verification</h2>
+        <div id="run-meta" class="run-meta"></div>
+        <table class="suites">
+          <caption class="sr-only">Outcome of each CI suite</caption>
+          <thead>
+            <tr>
+              <th scope="col">Suite</th>
+              <th scope="col">State</th>
+              <th scope="col">Passed</th>
+              <th scope="col">Failed</th>
+              <th scope="col">Skipped</th>
+              <th scope="col">Blocked</th>
+            </tr>
+          </thead>
+          <tbody id="suites"></tbody>
+        </table>
+      </section>
+
+      <!-- 2. The catalog itself. -->
+      <section aria-labelledby="tc-h">
+        <h2 id="tc-h">Test cases</h2>
+        <div class="filters">
+          <label class="grow">
+            <span>Search</span>
+            <input id="q" type="search" placeholder="name, group, class or method" autocomplete="off" />
+          </label>
+          <label>
+            <span>Type</span>
+            <select id="f-type"><option value="">all</option></select>
+          </label>
+          <label>
+            <span>Group</span>
+            <select id="f-group"><option value="">all</option></select>
+          </label>
+          <label>
+            <span>Runs in CI</span>
+            <select id="f-ci">
+              <option value="">all</option>
+              <option value="yes">yes</option>
+              <option value="no">no</option>
+            </select>
+          </label>
+          <label>
+            <span>Latest result</span>
+            <select id="f-state"><option value="">all</option></select>
+          </label>
+        </div>
+        <p id="shown" class="shown" role="status"></p>
+        <table class="tests">
+          <caption class="sr-only">Test cases defined on develop</caption>
+          <thead>
+            <tr>
+              <th scope="col">Result</th>
+              <th scope="col">Test case</th>
+              <th scope="col">Group</th>
+              <th scope="col">Type</th>
+              <th scope="col">CI</th>
+              <th scope="col">Source</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </section>
+
+      <!-- 4. How to refresh. -->
+      <section aria-labelledby="refresh-h">
+        <h2 id="refresh-h">Refreshing this page</h2>
+        <p>
+          It refreshes by itself after every merge to <code>develop</code>: the merge runs the tests,
+          and this page is rebuilt from that run. Nothing here comes from an unmerged pull request.
+        </p>
+        <p>
+          To re-verify the current <code>develop</code> on demand, open
+          <a id="dispatch-link" href="#">the CI workflow</a> and use <b>Run workflow</b>. That runs the
+          tests again, so it takes as long as a normal CI run; the page updates when it finishes.
+        </p>
+      </section>
+    </main>
+
+    <footer id="foot"></footer>
+    <script src="assets/app.js"></script>
+  </body>
+</html>
