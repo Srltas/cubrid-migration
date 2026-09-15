@@ -90,6 +90,14 @@ jobs:
           path: tests/unit-test/target/surefire-reports/**
           if-no-files-found: ignore
 
+      - name: Upload unit Allure results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: allure-unit
+          path: tests/unit-test/target/allure-results/**
+          if-no-files-found: ignore
+
       - name: Upload unit test report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -273,6 +281,14 @@ jobs:
         with:
           name: otr-${{ matrix.name }}
           path: tests/e2e/target/open-test-report/**
+          if-no-files-found: ignore
+
+      - name: Upload e2e Allure results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: allure-${{ matrix.name }}
+          path: tests/e2e/target/allure-results/**
           if-no-files-found: ignore
 
       - name: Upload E2E Failure Artifacts

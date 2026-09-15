@@ -31,6 +31,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
+      - name: Set up Java 21
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c  # v6.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Re-assert the trigger against the fetched run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -104,6 +110,61 @@ jobs:
             --run-url "$RUN_URL" \
             --run-started-at "$RUN_STARTED_AT" \
             -o status.json
+
+      - name: Build Allure reports
+        env:
+          ALLURE_VERSION: 2.46.1
+          ALLURE_SHA256: d25c519bbde940dc953cff8901130ce18b73013dc19a8f8b90b8b4b1c5eb252f
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          zip="allure-commandline-$ALLURE_VERSION.zip"
+          curl -sSfL -o "$zip" \
+            "https://repo1.maven.org/maven2/io/qameta/allure/allure-commandline/$ALLURE_VERSION/$zip"
+          echo "$ALLURE_SHA256  $zip" | sha256sum -c -
+          unzip -q "$zip"
+          allure="allure-$ALLURE_VERSION/bin/allure"
+
+          # allure generate exits 0 on an empty or missing input and writes a valid all-green
+          # zero-test report, so the result count decides whether a report may exist at all.
+          report() {
+            local name="$1"; shift
+            local dirs=() found=0
+            for d in "$@"; do
+              test -d "$d" || continue
+              dirs+=("$d")
+              found=$((found + $(find "$d" -name '*-result.json' | wc -l)))
+            done
+            if [ "$found" -eq 0 ]; then
+              echo "::warning::no Allure results for $name — no report generated"
+              return 0
+            fi
+            for d in "${dirs[@]}"; do
+              printf 'commit=%s\nrun=%s\nsuite=%s\n' "$HEAD_SHA" "$RUN_URL" "$name" \
+                > "$d/environment.properties"
+            done
+            "$allure" generate "${dirs[@]}" -o "report-$name" --clean --single-file
+            mv "report-$name/index.html" "$name.html"
+            echo "  $name.html: $found results, $(stat -c%s "$name.html") bytes"
+          }
+
+          report unit artifacts/allure-unit
+          e2e_dirs=()
+          while read -r n; do
+            e2e_dirs+=("artifacts/allure-$n")
+          done < <(grep -oE "^ {10}- name: [a-z0-9]+$" .github/workflows/ci.yml | sed 's/.*: //')
+          report e2e "${e2e_dirs[@]}"
+
+      - name: Upload Allure reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: allure-reports
+          path: |
+            unit.html
+            e2e.html
+          if-no-files-found: ignore
 
       - name: Upload status
         if: always()
