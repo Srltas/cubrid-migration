@@ -107,13 +107,15 @@ def definitions(path, module, repo, commit):
     return out
 
 
-def selected_ids(paths):
-    ids = set()
-    for path in paths:
+def selecting_job(specs):
+    """uniqueId -> the CI job whose -Dtest pattern selects it."""
+    owner = {}
+    for spec in specs:
+        job, _, path = spec.partition("=")
         for node in read_nodes(path).values():
             if kind_of(node["uniqueId"]):
-                ids.add(node["uniqueId"])
-    return ids
+                owner.setdefault(node["uniqueId"], job)
+    return owner
 
 
 def main():
@@ -126,9 +128,11 @@ def main():
         "--selected",
         action="append",
         default=[],
+        metavar="JOB=OTR_XML",
         help="dry-run report for one CI job's -Dtest pattern; repeat per job. "
-        "Omit when the job runs the whole module.",
+        "Omit when a single job runs the whole module.",
     )
+    ap.add_argument("--ci-job", help="job that runs the whole module, when --selected is not used")
     ap.add_argument("-o", "--out", required=True)
     args = ap.parse_args()
 
@@ -137,12 +141,14 @@ def main():
         sys.exit(f"{args.all}: no test definitions found — refusing to write an empty catalog")
 
     if args.selected:
-        executed = selected_ids(args.selected)
+        owner = selecting_job(args.selected)
         for entry in entries.values():
-            entry["ciExecuted"] = entry["id"] in executed
+            entry["ciJob"] = owner.get(entry["id"])
+            entry["ciExecuted"] = entry["ciJob"] is not None
     else:
         for entry in entries.values():
-            entry["ciExecuted"] = True
+            entry["ciJob"] = args.ci_job
+            entry["ciExecuted"] = args.ci_job is not None
 
     rows = sorted(entries.values(), key=lambda e: e["id"])
     catalog = {

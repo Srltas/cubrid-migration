@@ -1,0 +1,116 @@
+name: Pages
+
+# Consumes the CI run a merge already triggered, so building the status never re-runs a test.
+# Collect-only for now: everything is uploaded as an artifact and nothing is published.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    name: collect
+    # A fork PR can trigger CI but must never reach this job: it runs with the default branch's
+    # workflow file and a token the PR head cannot influence.
+    if: >-
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.head_branch == 'develop' &&
+      (github.event.workflow_run.event == 'push' ||
+       github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Re-assert the trigger against the fetched run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID")
+          test "$(jq -r .head_repository.full_name <<<"$run")" = "$GITHUB_REPOSITORY"
+          test "$(jq -r .head_branch <<<"$run")" = develop
+
+      - name: Download this run's artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          # A re-run leaves several artifacts under one name, and they carry no attempt field,
+          # so resolve by the newest upload per name rather than by a name pattern.
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" \
+            -q '.artifacts[] | select(.expired | not) | {name, id, created_at}' \
+            | jq -s 'group_by(.name) | map(max_by(.created_at)) | .[] | "\(.name) \(.id)"' -r \
+            > wanted.txt
+          while read -r name id; do
+            gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" > "$name.zip"
+            mkdir -p "artifacts/$name"
+            unzip -q -o "$name.zip" -d "artifacts/$name"
+          done < wanted.txt
+          cut -d' ' -f1 wanted.txt | sed 's/^/  resolved: /'
+
+      - name: Build status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_STARTED_AT: ${{ github.event.workflow_run.run_started_at }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          gh api --paginate \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT/jobs" \
+            -q '.jobs[] | {name, conclusion, started_at}' | jq -s . > jobs.json
+
+          catalogs=()
+          for c in artifacts/catalog-unit/catalog-unit.json artifacts/catalog-e2e/catalog-e2e.json; do
+            test -f "$c" && catalogs+=(--catalog "$c")
+          done
+          if [ "${#catalogs[@]}" -eq 0 ]; then
+            echo "::error::no catalog artifact — cannot say what the test set is"
+            exit 1
+          fi
+
+          # Expected suites come from the matrix, so a job that never reported is still counted.
+          expect=(--expect unit-test)
+          results=()
+          test -f artifacts/otr-unit/open-test-report.xml &&
+            results+=(--result "unit-test=artifacts/otr-unit/open-test-report.xml")
+          while read -r name; do
+            expect+=(--expect "e2e-$name")
+            test -f "artifacts/otr-$name/open-test-report.xml" &&
+              results+=(--result "e2e-$name=artifacts/otr-$name/open-test-report.xml")
+          done < <(grep -oE "^ {10}- name: [a-z0-9]+$" .github/workflows/ci.yml | sed 's/.*: //')
+
+          python3 .github/scripts/build_status.py \
+            "${catalogs[@]}" "${results[@]+"${results[@]}"}" "${expect[@]}" \
+            --jobs jobs.json \
+            --commit "$HEAD_SHA" \
+            --run-id "$RUN_ID" \
+            --run-attempt "$RUN_ATTEMPT" \
+            --run-url "$RUN_URL" \
+            --run-started-at "$RUN_STARTED_AT" \
+            -o status.json
+
+      - name: Upload status
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: status
+          path: |
+            status.json
+            jobs.json
+          if-no-files-found: error
