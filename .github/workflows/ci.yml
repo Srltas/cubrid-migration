@@ -90,6 +90,86 @@ jobs:
           path: tests/unit-test/target/surefire-reports/**
           if-no-files-found: ignore
 
+      - name: Build TC catalog
+        if: always()
+        run: |
+          mvn -B -q -Punit-test test \
+            -Djunit.platform.execution.dryRun.enabled=true \
+            -Djunit.platform.reporting.output.dir=target/catalog-otr \
+            -Dsurefire.reportsDirectory=target/catalog-dryrun-reports
+          python3 .github/scripts/build_catalog.py \
+            --type unit --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" \
+            --all tests/unit-test/target/catalog-otr/open-test-report.xml \
+            -o catalog-unit.json
+
+      - name: Upload TC catalog
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: catalog-unit
+          path: catalog-unit.json
+          if-no-files-found: error
+
+  catalog-e2e:
+    name: catalog-e2e
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Java 21
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c  # v6.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build TC catalog
+        run: |
+          set -euo pipefail
+          dry() {
+            local out="$1"; shift
+            mvn -B -q -f tests/e2e/pom.xml test \
+              -Djunit.platform.execution.dryRun.enabled=true \
+              -Djunit.platform.reporting.output.dir="target/$out" \
+              -Dsurefire.reportsDirectory=target/catalog-dryrun-reports \
+              -Dsurefire.failIfNoSpecifiedTests=false "$@"
+          }
+          dry otr-all
+
+          # ciExecuted is derived by selecting with each job's own -Dtest pattern, read from the
+          # matrix below, so surefire decides what CI covers and the two cannot drift.
+          # Anchored to the start of a line so this step's own grep does not match itself.
+          selected=()
+          count=0
+          while read -r pattern; do
+            case "$pattern" in
+              *Test) ;;
+              *) echo "::error::unexpected -Dtest pattern from ci.yml: $pattern"; exit 1 ;;
+            esac
+            count=$((count + 1))
+            dry "otr-$count" -Dtest="$pattern"
+            selected+=(--selected "tests/e2e/target/otr-$count/open-test-report.xml")
+          done < <(grep -oE "^ +tests: '[^']+'" .github/workflows/ci.yml | sed "s/^ *tests: '//;s/'$//")
+          if [ "$count" -eq 0 ]; then
+            echo "::error::no e2e matrix patterns found in ci.yml"
+            exit 1
+          fi
+
+          python3 .github/scripts/build_catalog.py \
+            --type e2e --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" \
+            --all tests/e2e/target/otr-all/open-test-report.xml \
+            "${selected[@]}" -o catalog-e2e.json
+
+      - name: Upload TC catalog
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: catalog-e2e
+          path: catalog-e2e.json
+          if-no-files-found: error
+
   e2e-test:
     name: e2e-${{ matrix.name }}
     needs: build-console
