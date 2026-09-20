@@ -11,7 +11,7 @@ import sys
 from xml.etree import ElementTree  # nosec B405
 from collections import Counter
 
-from catalog import INVOCATION, load
+from catalog import INVOCATION, kind, load
 
 NS = {
     "c": "https://schemas.opentest4j.org/reporting/core/0.2.0",
@@ -22,13 +22,6 @@ NS = {
 SEVERITY = {"SKIPPED": 0, "SUCCESSFUL": 1, "ABORTED": 2, "FAILED": 3}
 
 TC_STATE = {"SUCCESSFUL": "passed", "FAILED": "failed", "ABORTED": "failed", "SKIPPED": "skipped"}
-
-
-def is_definition(unique_id):
-    """True for a test case as written, not for one of its parameterized executions."""
-    if INVOCATION in unique_id:
-        return False
-    return "[test-template:" in unique_id or "[method:" in unique_id
 
 
 def worse(current, status):
@@ -52,7 +45,8 @@ def uniqueids(root):
 def read_results(path):
     """Map each uniqueId to its outcome, with failed containers and invocation counts."""
     # A JUnit container finishes SUCCESSFUL even when one of its children failed, so where a
-    # definition has invocations the invocations decide, not its own node.
+    # definition has invocations the invocations decide — except a failure of the node itself,
+    # which is no invocation's and still counts.
     root = ElementTree.parse(path).getroot()  # nosec B314
     uid_of = uniqueids(root)
     outcomes, blocked_roots, invocations, own = {}, [], Counter(), {}
@@ -66,12 +60,15 @@ def read_results(path):
         if sep:
             invocations[definition] += 1
             outcomes[definition] = worse(outcomes.get(definition), status)
-        elif is_definition(uid):
+        elif kind(uid):
             own[uid] = status
         elif status in ("FAILED", "ABORTED"):
             blocked_roots.append(uid)  # a class or @Nested group that blew up in setup
     for uid, status in own.items():
-        outcomes.setdefault(uid, status)  # disabled, or arguments that never resolved
+        if status in ("FAILED", "ABORTED"):
+            outcomes[uid] = worse(outcomes.get(uid), status)
+        else:
+            outcomes.setdefault(uid, status)  # disabled, or arguments that never resolved
     return outcomes, blocked_roots, invocations
 
 
@@ -143,8 +140,11 @@ def attribute(catalog, results, blocked_roots):
             else:
                 unjoined[suite] += 1
     for suite, roots in blocked_roots.items():
-        for uid in catalog:
-            if uid not in by_tc and any(uid.startswith(root + "/") for root in roots):
+        # Only what the suite owns: a root as broad as the engine node prefixes every uniqueId
+        # there is, and would blame this suite for another module's test cases.
+        for uid, entry in catalog.items():
+            if (uid not in by_tc and entry.get("ciJob") == suite
+                    and any(uid.startswith(root + "/") for root in roots)):
                 by_tc[uid] = {"suite": suite, "state": "blocked"}
     for uid, entry in catalog.items():
         if uid in by_tc:
@@ -175,7 +175,7 @@ def summarize(expect, by_tc, jobs, results, unjoined):
 
 def forget_what_unfinished_suites_never_ran(by_tc, suites):
     """A suite that stopped early cannot claim it chose not to run the rest."""
-    unfinished = {s["name"] for s in suites if s["state"] in ("INCOMPLETE", "CANCELLED")}
+    unfinished = {s["name"] for s in suites if s["jobConclusion"] != "success"}
     for tc in by_tc.values():
         if tc["state"] == "not-selected" and tc["suite"] in unfinished:
             tc["state"] = "unknown"
@@ -223,7 +223,12 @@ def main():
     results, blocked_roots, invocations = {}, {}, {}
     for spec in args.result:
         suite, _, path = spec.partition("=")
-        results[suite], blocked_roots[suite], invocations[suite] = read_results(path)
+        try:
+            results[suite], blocked_roots[suite], invocations[suite] = read_results(path)
+        except ElementTree.ParseError as err:
+            # The report is streamed and closed only when the test plan finishes, so a JVM that
+            # died mid-run leaves one that cannot be read. The suite then reported nothing.
+            print(f"::warning::{path}: {err}; {suite} reported nothing that can be read")
     reject_unexpected(set(args.expect), results, catalog)
     with open(args.jobs, encoding="utf-8") as fh:
         jobs = {j["name"]: j.get("conclusion") for j in json.load(fh)}

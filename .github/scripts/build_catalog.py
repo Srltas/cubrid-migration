@@ -10,7 +10,7 @@ import sys
 from xml.etree import ElementTree  # nosec B405
 from collections import Counter
 
-from catalog import INVOCATION
+from catalog import kind
 
 NS = {
     "c": "https://schemas.opentest4j.org/reporting/core/0.2.0",
@@ -68,7 +68,7 @@ def read_nodes(path):
 
 
 def group_chain(nodes, node_id):
-    """Display names from the engine down to, but excluding, the test itself."""
+    """Display names of the containers above the test — its class and any @Nested groups."""
     chain = []
     cur = nodes[node_id]["parent"]
     while cur in nodes:
@@ -77,24 +77,13 @@ def group_chain(nodes, node_id):
     return list(reversed(chain))[1:]  # drop the engine node
 
 
-def kind_of(unique_id):
-    """A definition's kind, or None for anything that is not one."""
-    if INVOCATION in unique_id:
-        return None
-    if "[test-template:" in unique_id:
-        return "parameterized"
-    if "[method:" in unique_id:
-        return "test"
-    return None
-
-
 def definitions(path, module, repo, commit):
     """Map each uniqueId to one catalog entry, per test case the report defines."""
     nodes = read_nodes(path)
     out = {}
     for node_id, node in nodes.items():
-        kind = kind_of(node["uniqueId"])
-        if kind is None or node["class"] is None:
+        written_as = kind(node["uniqueId"])
+        if written_as is None or node["class"] is None:
             continue
         top = node["class"].split("$")[0].replace(".", "/")
         out[node["uniqueId"]] = {
@@ -104,7 +93,7 @@ def definitions(path, module, repo, commit):
             "group": group_chain(nodes, node_id),
             "class": node["class"],
             "method": node["method"],
-            "kind": kind,
+            "kind": written_as,
             "database": database(node["class"], module),
             "sourceUrl":
                 f"https://github.com/{repo}/blob/{commit}/{SOURCE_ROOT[module]}/{top}.java",
@@ -121,7 +110,7 @@ def selecting_job(specs):
             sys.exit(f"--selected expects JOB=OTR_XML, got: {spec}")
         jobs.append(job)
         for node in read_nodes(path).values():
-            if kind_of(node["uniqueId"]):
+            if kind(node["uniqueId"]):
                 owner.setdefault(node["uniqueId"], job)
     return owner, jobs
 

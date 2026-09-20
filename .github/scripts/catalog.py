@@ -11,6 +11,15 @@ def definition(unique_id):
     return unique_id.partition(INVOCATION)[0]
 
 
+def kind(unique_id):
+    """How a test case is written, or None for anything that is not one as written."""
+    if INVOCATION in unique_id:
+        return None
+    if "[test-template:" in unique_id:
+        return "parameterized"
+    return "test" if "[method:" in unique_id else None
+
+
 def load(paths):
     """Every catalog entry, keyed by uniqueId."""
     entries = {}

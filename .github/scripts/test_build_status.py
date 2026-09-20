@@ -51,8 +51,8 @@ def otr(*nodes):
 
 
 def entry(uid, job):
-    return {"id": uid, "type": "unit", "name": uid, "group": ["Y"], "class": "x.Y",
-            "method": "m", "kind": "test", "ciJob": job}
+    """The two fields build_status reads; build_catalog writes the rest for the report."""
+    return {"id": uid, "ciJob": job}
 
 
 def suite_inputs():
@@ -207,6 +207,29 @@ class Scenarios(unittest.TestCase):
         self.assertEqual(status["byTest"][TEMPLATE], "failed")
         self.assertEqual(status["state"], "FAILED")
 
+    def test_a_template_that_died_mid_stream_fails_its_test_case(self):
+        """Its invocations passed, but the node that produced them did not finish."""
+        status = self.build(
+            [entry(TEMPLATE, "unit")],
+            {"unit": otr((f"{TEMPLATE}/[test-template-invocation:#1]", "SUCCESSFUL"),
+                         (TEMPLATE, "FAILED"))},
+            ["unit"], self.red)
+        self.assertEqual(status["byTest"][TEMPLATE], "failed")
+        self.assertEqual(status["state"], "FAILED")
+
+    def test_an_abnormal_invocation_status_is_never_a_pass(self):
+        """ABORTED is a failed assumption; a status nobody named must not outrank a pass either."""
+        for abnormal in ("ABORTED", "ERRORED"):
+            with self.subTest(status=abnormal):
+                status = self.build(
+                    [entry(TEMPLATE, "unit")],
+                    {"unit": otr((f"{TEMPLATE}/[test-template-invocation:#1]", "SUCCESSFUL"),
+                                 (f"{TEMPLATE}/[test-template-invocation:#2]", abnormal),
+                                 (TEMPLATE, "SUCCESSFUL"))},
+                    ["unit"], self.red)
+                self.assertEqual(status["byTest"][TEMPLATE], "failed")
+                self.assertEqual(status["state"], "FAILED")
+
     def test_a_test_case_is_skipped_only_when_nothing_ran(self):
         for statuses, expected in (
             (["SKIPPED", "SKIPPED"], "skipped"),
@@ -235,6 +258,30 @@ class Scenarios(unittest.TestCase):
             ["unit"], self.red)
         self.assertEqual(status["state"], "INCOMPLETE")
         self.assertEqual(status["byTest"][TEMPLATE], "unknown")
+
+    def test_a_suite_that_failed_cannot_claim_it_chose_not_to_run_the_rest(self):
+        """Its job died after the failure, so what is left is unknown, not deliberately skipped."""
+        status = self.build(self.unit, {"unit": otr((PLAIN, "FAILED"))}, ["unit"], self.red)
+        self.assertEqual(status["suites"][0]["state"], "FAILED")
+        self.assertEqual(status["byTest"][TEMPLATE], "unknown")
+
+    def test_one_suite_blowing_up_does_not_blame_another(self):
+        """An engine-level failure prefixes every uniqueId there is, other modules' included."""
+        status = self.build(
+            [entry(PLAIN, "unit"), entry(TEMPLATE, "e2e")],
+            {"unit": otr(("[engine:junit-jupiter]", "FAILED"))},
+            ["unit", "e2e"],
+            [{"name": "unit", "conclusion": "failure"}, {"name": "e2e", "conclusion": "success"}])
+        self.assertEqual(status["byTest"][PLAIN], "blocked")
+        self.assertEqual(status["byTest"][TEMPLATE], "no-report")
+
+    def test_a_report_that_cannot_be_read_is_not_a_pass(self):
+        """A JVM killed mid-run leaves no closing tag, and the rest of the run still has to show."""
+        status = self.build(
+            self.unit, {"unit": otr((PLAIN, "SUCCESSFUL")).replace("</e:events>", "")},
+            ["unit"], self.red)
+        self.assertEqual(status["suites"][0]["state"], "NO_DATA")
+        self.assertEqual(status["byTest"][PLAIN], "no-report")
 
     def test_a_suite_that_never_reported_is_not_a_pass(self):
         status = self.build(self.unit, {}, ["unit"], self.green)

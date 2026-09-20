@@ -482,7 +482,7 @@ not distributable. A Tibero test will not be verified by CI: run it locally and 
 
 ## Why these rules exist
 
-The published Allure report uses these names verbatim, for every test case the catalog knows -- the
+The published Allure report uses these names verbatim, for every test case the catalog knows — the
 ones CI never runs included. A teammate browsing it sees the `@DisplayName` text and the `@Nested`
 chain, not the code and not the method name. A display name that merely restates the method name
 therefore wastes the only human-readable field there is, and a missing one publishes a raw Java

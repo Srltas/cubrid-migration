@@ -67,16 +67,28 @@ jobs:
           fi
 
       # A slow suite can make an older commit's CI finish after a newer one's, so a run that
-      # has already been overtaken stands down rather than publishing stale results.
+      # has already been overtaken stands down rather than publishing stale results. Only a run
+      # that built a site overtakes: one that died before allure-report verified nothing, and
+      # standing down for it would leave the pair of pushes with nothing published at all.
       - name: Check no newer verification exists
         id: order
         run: |
           set -euo pipefail
-          # The listing is newest first, so the first page already holds the highest id.
-          newest=$(gh api \
+          newest=0
+          for id in $(gh api \
             "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=develop&status=completed&per_page=30" \
-            -q '[.workflow_runs[] | select(.event == "push" or .event == "workflow_dispatch") | .id] | max // 0')
-          echo "  this run $RUN_ID, newest completed CI run $newest"
+            -q '[.workflow_runs[]
+                 | select((.event == "push" or .event == "workflow_dispatch")
+                          and .id > (env.RUN_ID | tonumber))
+                 | .id] | sort | reverse | .[]'); do
+            if gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs/$id/artifacts" \
+                 -q '.artifacts[] | select(.name == "site" and (.expired | not)) | .id' | grep -q .
+            then
+              newest=$id
+              break
+            fi
+          done
+          echo "  this run $RUN_ID, newest completed CI run with a site $newest"
           if [ "$newest" -gt "$RUN_ID" ]; then
             echo "::notice::run $newest has verified a newer commit — not publishing $RUN_ID"
             echo "publish=false" >> "$GITHUB_OUTPUT"

@@ -89,22 +89,27 @@ def synthesize(catalog, states, reported, out, note=None):
         made[status] += 1
         group = entry.get("group") or []
         labels = [label("parentSuite", entry.get("ciJob") or "not run by CI"),
+                  label("package", entry["class"]),
                   label("testClass", entry["class"]),
                   label("testMethod", entry["method"]),
                   label("tag", entry["database"]),
                   label("tag", state or "unaccounted"),
                   label("junit.platform.uniqueid", unique_id)]
-        labels += [label(n, v) for n, v in zip(("suite", "subSuite"), group)]
+        # The adapter takes suite from the test's own declaring class, so a @Nested test case
+        # sits under the innermost name. Anything else files it where no real result lands.
+        labels += [label("suite", group[-1])] if group else []
         uid = str(uuid.uuid5(uuid.NAMESPACE_URL, unique_id))
         write_json(out / f"{uid}-result.json", {
             "uuid": uid,
+            # Allure keys history by testCaseId, so without it the same test case owns one
+            # lineage for the runs it reported and another for the runs it did not. No start or
+            # stop: a run's duration is max(stop) - min(start), which a zero would make an age.
+            "testCaseId": unique_id,
             "name": entry["name"],
             "fullName": f'{entry["class"]}.{entry["method"]}',
             "status": status,
             "statusDetails": {"message": message},
             "stage": "finished",
-            "start": 0,
-            "stop": 0,
             "labels": labels,
             "links": [source_link(entry)],
             "steps": [],
@@ -190,7 +195,11 @@ def main():
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    reported = stamp(pathlib.Path(args.artifacts), args.suite, catalog, out)
+    # A suite that ran again and uploaded nothing still has the previous attempt's results on
+    # disk. The status already dropped them; copying them would publish that attempt as this one.
+    adopted = {s["name"] for s in status["suites"] if s["reported"]}
+    reported = stamp(pathlib.Path(args.artifacts),
+                     [s for s in args.suite if s in adopted], catalog, out)
     made = synthesize(catalog, status["byTest"], reported, out, args.not_run_note)
     if args.history:
         print(f"  history carried: {carry_history(pathlib.Path(args.history), out)} files")

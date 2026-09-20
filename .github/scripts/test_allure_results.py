@@ -4,16 +4,19 @@
 # what ran cannot say anything is missing. These pin the rule that makes the rest safe: never
 # "passed".
 
+import io
 import json
 import pathlib
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from unittest import mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import build_status as bs  # noqa: E402
 from allure_results import (  # noqa: E402
-    HISTORY_LIMIT, SYNTHETIC, UNACCOUNTED, carry_history, environment, prune_history, stamp,
+    HISTORY_LIMIT, SYNTHETIC, UNACCOUNTED, carry_history, environment, main, prune_history, stamp,
     synthesize)
 
 # A state comes from a result the run produced, or from the catalog saying it produced none.
@@ -46,6 +49,14 @@ def labelled(result, name):
     return [x["value"] for x in result["labels"] if x["name"] == name]
 
 
+class TempDir(unittest.TestCase):
+    def tmp(self):
+        """A directory that goes away with the test."""
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        return pathlib.Path(directory.name)
+
+
 class NeverGreen(unittest.TestCase):
     def test_no_test_case_is_written_as_passed(self):
         """The one rule. A test case that did not run may not read as one that did."""
@@ -67,10 +78,10 @@ class NeverGreen(unittest.TestCase):
         self.assertEqual(SYNTHETIC["no-report"][0], "unknown")
 
 
-class Synthesized(unittest.TestCase):
+class Synthesized(TempDir):
     def synth(self, catalog, states, reported=(), note=None):
-        out = tempfile.mkdtemp()
-        made = synthesize(catalog, states, set(reported), pathlib.Path(out), note)
+        out = self.tmp()
+        made = synthesize(catalog, states, set(reported), out, note)
         return made, results_of(out)
 
     def test_the_reason_ci_runs_none_of_them_is_carried_through(self):
@@ -97,6 +108,25 @@ class Synthesized(unittest.TestCase):
         self.assertIn("Tibero", labelled(written[uid], "tag"))
         self.assertIn("not-in-ci", labelled(written[uid], "tag"))
 
+    def test_it_is_filed_where_the_adapter_would_have_filed_it(self):
+        """Allure takes suite from the declaring class, so a @Nested case sits at the inner name."""
+        uid = f"{UID}/[method:m()]"
+        _, written = self.synth({uid: entry(uid)}, {uid: "no-report"})
+        self.assertEqual(labelled(written[uid], "suite"), ["Nested"])
+        self.assertEqual(labelled(written[uid], "subSuite"), [])
+
+    def test_it_continues_the_history_of_the_runs_that_did_report(self):
+        """Allure keys history by testCaseId; without it the same test case owns two lineages."""
+        uid = f"{UID}/[method:m()]"
+        _, written = self.synth({uid: entry(uid)}, {uid: "no-report"})
+        self.assertEqual(written[uid]["testCaseId"], uid)
+
+    def test_it_claims_no_time(self):
+        """A run lasts max(stop) - min(start), so a zero would report it as taking an age."""
+        uid = f"{UID}/[method:m()]"
+        _, written = self.synth({uid: entry(uid)}, {uid: "no-report"})
+        self.assertEqual({"start", "stop"} & set(written[uid]), set())
+
     def test_it_carries_the_catalog_name_and_source(self):
         uid = f"{UID}/[method:m()]"
         _, written = self.synth({uid: entry(uid)}, {uid: "no-report"})
@@ -116,12 +146,12 @@ class Synthesized(unittest.TestCase):
         self.assertIn("something-new", labelled(written[uid], "tag"))
 
 
-class Stamped(unittest.TestCase):
+class Stamped(TempDir):
     def run_one(self, result):
-        artifacts = pathlib.Path(tempfile.mkdtemp())
+        artifacts = self.tmp()
         (artifacts / "allure-unit-test").mkdir()
         (artifacts / "allure-unit-test" / "a-result.json").write_text(json.dumps(result))
-        out = pathlib.Path(tempfile.mkdtemp())
+        out = self.tmp()
         uid = f"{UID}/[method:m()]"
         reported = stamp(artifacts, ["unit-test"], {uid: entry(uid)}, out)
         return reported, results_of(out)
@@ -138,23 +168,54 @@ class Stamped(unittest.TestCase):
     def test_an_invocation_counts_as_its_test_case_reporting(self):
         """Many invocations of one case still mean that case reported."""
         uid = f"{UID}/[test-template:p()]"
-        artifacts = pathlib.Path(tempfile.mkdtemp())
+        artifacts = self.tmp()
         (artifacts / "allure-unit-test").mkdir()
         (artifacts / "allure-unit-test" / "a-result.json").write_text(json.dumps(
             {"uuid": "a", "status": "passed", "labels": [
                 {"name": "junit.platform.uniqueid",
                  "value": f"{uid}/[test-template-invocation:#7]"}]}))
-        reported = stamp(artifacts, ["unit-test"], {uid: entry(uid)},
-                         pathlib.Path(tempfile.mkdtemp()))
+        reported = stamp(artifacts, ["unit-test"], {uid: entry(uid)}, self.tmp())
         self.assertEqual(reported, {uid})
 
 
-class History(unittest.TestCase):
+class Published(TempDir):
+    """What the whole script puts in front of a reader, driven the way ci.yml drives it."""
+
+    def publish(self, reported):
+        uid = f"{UID}/[method:m()]"
+        d = self.tmp()
+        (d / "allure-unit-test").mkdir()
+        (d / "allure-unit-test" / "a-result.json").write_text(json.dumps(
+            {"uuid": "a", "status": "passed",
+             "labels": [{"name": "junit.platform.uniqueid", "value": uid}]}), encoding="utf-8")
+        (d / "catalog.json").write_text(json.dumps({"entries": [entry(uid)]}), encoding="utf-8")
+        (d / "status.json").write_text(json.dumps({
+            "commit": "c0ffee", "state": "PASSED" if reported else "NO_DATA",
+            "coverage": {"expected": 1, "reported": int(reported)},
+            "counts": {"defined": 1, "executed": int(reported), "runs": int(reported)},
+            "suites": [{"name": "unit-test", "reported": reported}],
+            "byTest": {uid: "passed" if reported else "no-report"},
+        }), encoding="utf-8")
+        argv = [".", "--artifacts", str(d), "--suite", "unit-test",
+                "--catalog", str(d / "catalog.json"), "--status", str(d / "status.json"),
+                "--out", str(d / "out")]
+        with mock.patch.object(sys, "argv", argv), redirect_stdout(io.StringIO()):
+            main()
+        return results_of(d / "out")[uid]
+
+    def test_only_results_the_status_accepted_are_published(self):
+        """A job that ran again and uploaded nothing leaves the last attempt's results on disk."""
+        for reported, status in ((True, "passed"), (False, "unknown")):
+            with self.subTest(reported=reported):
+                self.assertEqual(self.publish(reported)["status"], status)
+
+
+class History(TempDir):
     def carry(self, files):
-        source = pathlib.Path(tempfile.mkdtemp())
+        source = self.tmp()
         for name, data in files.items():
             (source / name).write_text(json.dumps(data), encoding="utf-8")
-        out = pathlib.Path(tempfile.mkdtemp())
+        out = self.tmp()
         carry_history(source, out)
         return {p.name: json.loads(p.read_text()) for p in (out / "history").glob("*.json")}
 
@@ -173,14 +234,14 @@ class History(unittest.TestCase):
 
     def test_nothing_to_carry_writes_nothing(self):
         """The first run ever, and every run that does not publish, has no previous report."""
-        out = pathlib.Path(tempfile.mkdtemp())
-        carry_history(pathlib.Path(tempfile.mkdtemp()), out)
+        out = self.tmp()
+        carry_history(self.tmp(), out)
         self.assertFalse((out / "history").exists())
 
 
-class Pruning(unittest.TestCase):
+class Pruning(TempDir):
     def report(self, history, test_case_uids):
-        d = pathlib.Path(tempfile.mkdtemp())
+        d = self.tmp()
         (d / "history").mkdir()
         (d / "data" / "test-cases").mkdir(parents=True)
         (d / "history" / "history.json").write_text(json.dumps(history), encoding="utf-8")
@@ -203,7 +264,7 @@ class Pruning(unittest.TestCase):
         self.assertEqual(prune_history(d), 1)
 
     def test_a_report_with_no_history_is_left_alone(self):
-        d = pathlib.Path(tempfile.mkdtemp())
+        d = self.tmp()
         self.assertEqual(prune_history(d), 0)
 
 

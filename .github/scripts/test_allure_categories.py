@@ -32,11 +32,12 @@ SAMPLES = [
      "Snapshot mismatch: /snap/rowcounts.txt\nFirst difference at line 3:\n"
      "  expected: 10\n  actual:   9\n"
      "expected 42 lines, actual 42 lines; both are attached.\n"
-     "To accept the new snapshot, re-run with -De2e.snapshot.update=true.\n", ""),
+     "To accept the new snapshot, re-run with -Dsnapshot.update=true.\n", ""),
     ("Snapshot not recorded", "failed",
      "Snapshot missing: /snap/rowcounts.txt\n"
-     "Run with -De2e.snapshot.update=true to capture an initial snapshot.", ""),
-    ("Snapshot not recorded", "failed", "Dump snapshot missing: /snap/dump.txt", ""),
+     "Run with -Dsnapshot.update=true to capture an initial snapshot.", ""),
+    ("Snapshot not recorded", "failed",
+     "Dump snapshot missing: /snap/dump.txt\nRun with -Dsnapshot.update=true to capture.", ""),
     ("Snapshot not recorded", "failed", "Failed to read snapshot: /snap/dump.txt", ""),
     # The run's own states, written by allure_results.py for a test case that never reported.
     ("Not reported by CI", "unknown", "its CI job reported nothing", ""),
