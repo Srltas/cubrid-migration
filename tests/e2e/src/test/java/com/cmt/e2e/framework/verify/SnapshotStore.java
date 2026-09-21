@@ -32,6 +32,8 @@ package com.cmt.e2e.framework.verify;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import io.qameta.allure.Allure;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,6 +69,8 @@ public final class SnapshotStore {
             throw new AssertionError("Failed to read snapshot: " + snapshotPath, e);
         }
         if (!expected.equals(actual)) {
+            Allure.addAttachment("expected snapshot", "text/plain", expected, ".txt");
+            Allure.addAttachment("actual snapshot", "text/plain", actual, ".txt");
             throw new AssertionError(diffMessage(snapshotPath, expected, actual));
         }
     }
@@ -106,11 +110,11 @@ public final class SnapshotStore {
             sb.append("  expected: ").append(lineAt(expLines, firstDiff)).append('\n');
             sb.append("  actual:   ").append(lineAt(actLines, firstDiff)).append('\n');
         }
-        sb.append("\n--- expected (").append(expLines.length - 1).append(" lines) ---\n");
-        sb.append(expected);
-        sb.append("--- actual (").append(actLines.length - 1).append(" lines) ---\n");
-        sb.append(actual);
-        sb.append("--- end ---\n");
+        sb.append("expected ")
+                .append(expLines.length - 1)
+                .append(" lines, actual ")
+                .append(actLines.length - 1)
+                .append(" lines; both are attached.\n");
         sb.append("To accept the new snapshot, re-run with -D")
                 .append(UPDATE_PROP)
                 .append("=true.\n");
