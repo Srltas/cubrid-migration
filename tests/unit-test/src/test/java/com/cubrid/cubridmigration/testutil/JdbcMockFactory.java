@@ -45,9 +45,9 @@ import java.sql.Statement;
  * both are three mocks deep before a single value can be stubbed. These helpers set up that chain
  * so a test only spells out the rows it cares about.
  */
-public final class TestJdbcFactory {
+public final class JdbcMockFactory {
 
-    private TestJdbcFactory() {}
+    private JdbcMockFactory() {}
 
     /** A connection whose getMetaData() answers the returned mock. */
     public static DatabaseMetaData attachMetaData(Connection conn) throws SQLException {

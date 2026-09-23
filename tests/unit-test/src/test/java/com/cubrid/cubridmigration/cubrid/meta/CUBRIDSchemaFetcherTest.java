@@ -30,9 +30,9 @@
  */
 package com.cubrid.cubridmigration.cubrid.meta;
 
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachMetaData;
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachPreparedQuery;
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachStatementQuery;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.attachMetaData;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.attachPreparedQuery;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.attachStatementQuery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

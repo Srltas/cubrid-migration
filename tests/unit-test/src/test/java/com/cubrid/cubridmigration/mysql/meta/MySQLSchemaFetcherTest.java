@@ -30,7 +30,7 @@
  */
 package com.cubrid.cubridmigration.mysql.meta;
 
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachStatementQuery;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.attachStatementQuery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -191,8 +191,8 @@ class MySQLSchemaFetcherTest {
                 .isEqualTo(java.sql.Types.VARCHAR);
     }
 
-    // An enum carries its members in the shown type, and the parsed instance is what the
-    // transform stage reads them from.
+    // The instance is parsed from the shown type, where the parentheses hold the members rather
+    // than a length, so unlike every other type it comes back carrying no precision.
     @Test
     @DisplayName("buildSQLTable() parses an enum's members into a type instance")
     void buildSQLTable_parsesEnumMembers() throws Exception {
@@ -200,8 +200,8 @@ class MySQLSchemaFetcherTest {
                 FETCHER.buildSQLTable(oneColumnMetaData("enum('a','b')", java.sql.Types.CHAR, 1));
 
         assertThat(table.getColumns().get(0).getDataType()).isEqualTo("enum");
-        assertThat(table.getColumns().get(0).getDataTypeInstance()).isNotNull();
         assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("enum('a','b')");
+        assertThat(table.getColumns().get(0).getDataTypeInstance().getPrecision()).isNull();
     }
 
     @ParameterizedTest(name = "[{index}] {0}.{1} -> {2}")

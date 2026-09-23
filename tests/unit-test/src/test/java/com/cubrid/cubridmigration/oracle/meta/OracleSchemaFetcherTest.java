@@ -29,7 +29,7 @@
  */
 package com.cubrid.cubridmigration.oracle.meta;
 
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.resultSetOf;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.resultSetOf;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;

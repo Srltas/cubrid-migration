@@ -29,8 +29,8 @@
  */
 package com.cubrid.cubridmigration.core.dbmetadata;
 
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachMetaData;
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.resultSetOf;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.attachMetaData;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.resultSetOf;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -1153,6 +1153,37 @@ class AbstractJDBCSchemaFetcherTest {
     }
 
     @Nested
+    @DisplayName("getSourcePartitionDDL()")
+    class GetSourcePartitionDDL {
+
+        @Test
+        @DisplayName("the DDL from PARTITION BY onwards")
+        void partitionClause_isTakenFromPartitionByOnwards() {
+            Table table = new Table();
+            table.setDDL(
+                    "CREATE TABLE t (a INT) PARTITION BY RANGE (a) (PARTITION p0 LESS THAN (10))");
+
+            assertThat(FETCHER.getSourcePartitionDDL(table))
+                    .isEqualTo("PARTITION BY RANGE (a) (PARTITION p0 LESS THAN (10))");
+        }
+
+        @Test
+        @DisplayName("a DDL without a partition clause -> the empty string")
+        void ddlWithoutAPartitionClause_givesTheEmptyString() {
+            Table table = new Table();
+            table.setDDL("CREATE TABLE t (a INT)");
+
+            assertThat(FETCHER.getSourcePartitionDDL(table)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("no DDL at all -> the empty string")
+        void missingDdl_givesTheEmptyString() {
+            assertThat(FETCHER.getSourcePartitionDDL(new Table())).isEmpty();
+        }
+    }
+
+    @Nested
     @DisplayName("getSupportedSqlTypes()")
     class GetSupportedSqlTypes {
 
@@ -1213,37 +1244,6 @@ class AbstractJDBCSchemaFetcherTest {
             when(bare.getMetaData()).thenReturn(null);
 
             assertThat(FETCHER.getSupportedSqlTypes(bare)).isEmpty();
-        }
-    }
-
-    @Nested
-    @DisplayName("getSourcePartitionDDL()")
-    class GetSourcePartitionDDL {
-
-        @Test
-        @DisplayName("the DDL from PARTITION BY onwards")
-        void partitionClause_isTakenFromPartitionByOnwards() {
-            Table table = new Table();
-            table.setDDL(
-                    "CREATE TABLE t (a INT) PARTITION BY RANGE (a) (PARTITION p0 LESS THAN (10))");
-
-            assertThat(FETCHER.getSourcePartitionDDL(table))
-                    .isEqualTo("PARTITION BY RANGE (a) (PARTITION p0 LESS THAN (10))");
-        }
-
-        @Test
-        @DisplayName("a DDL without a partition clause -> the empty string")
-        void ddlWithoutAPartitionClause_givesTheEmptyString() {
-            Table table = new Table();
-            table.setDDL("CREATE TABLE t (a INT)");
-
-            assertThat(FETCHER.getSourcePartitionDDL(table)).isEmpty();
-        }
-
-        @Test
-        @DisplayName("no DDL at all -> the empty string")
-        void missingDdl_givesTheEmptyString() {
-            assertThat(FETCHER.getSourcePartitionDDL(new Table())).isEmpty();
         }
     }
 

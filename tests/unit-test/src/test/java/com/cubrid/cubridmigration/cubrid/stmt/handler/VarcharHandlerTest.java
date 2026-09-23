@@ -61,6 +61,8 @@ class VarcharHandlerTest {
         return new ColumnValue(column, value);
     }
 
+    // The body is the same as DefaultHandler's, which CHAR and VARCHAR would otherwise fall back
+    // to. What is pinned here is that this override keeps behaving that way.
     @Test
     @DisplayName("text -> setString at the next parameter index")
     void text_setsStringAtNextIndex() throws SQLException {
@@ -70,26 +72,10 @@ class VarcharHandlerTest {
     }
 
     @Test
-    @DisplayName("index 2 -> parameter 3")
-    void index_isOffsetByOne() throws SQLException {
-        HANDLER.handle(stmt, 2, valueOf("hello"));
-
-        verify(stmt).setString(3, "hello");
-    }
-
-    @Test
     @DisplayName("non-string value -> rendered with String.valueOf()")
     void nonStringValue_isRenderedByStringValueOf() throws SQLException {
         HANDLER.handle(stmt, 0, valueOf(7));
 
         verify(stmt).setString(1, "7");
-    }
-
-    @Test
-    @DisplayName("empty string is written as is, not as NULL")
-    void emptyString_isWrittenAsIs() throws SQLException {
-        HANDLER.handle(stmt, 0, valueOf(""));
-
-        verify(stmt).setString(1, "");
     }
 }

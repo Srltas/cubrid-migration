@@ -29,9 +29,9 @@
  */
 package com.cubrid.cubridmigration.mssql.meta;
 
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachMetaData;
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachPreparedQuery;
-import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.resultSetOf;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.attachMetaData;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.attachPreparedQuery;
+import static com.cubrid.cubridmigration.testutil.JdbcMockFactory.resultSetOf;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;

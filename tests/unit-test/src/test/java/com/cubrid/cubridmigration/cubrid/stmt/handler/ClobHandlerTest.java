@@ -66,10 +66,8 @@ class ClobHandlerTest {
         return new ColumnValue(column, value);
     }
 
-    // CMT never links the CUBRID driver: it loads one of the JDBC-*-cubrid.jar files at runtime and
-    // reaches the driver-only API by reflection. The unit-test classpath carries no driver, so the
-    // lookup below always fails here and only the failure path is reachable. The success path is
-    // covered by the E2E suite, which runs against a real CUBRID.
+    // CMT loads the CUBRID driver at runtime, so the reflective lookup below always fails on the
+    // unit-test classpath and only the failure path is reachable here. E2E covers the rest.
 
     @Test
     @DisplayName("text -> NormalMigrationException wrapping the missing driver class")

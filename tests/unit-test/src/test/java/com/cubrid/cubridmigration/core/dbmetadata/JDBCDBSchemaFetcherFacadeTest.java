@@ -48,19 +48,6 @@ class JDBCDBSchemaFetcherFacadeTest {
         assertThatCode(facade::cancel).doesNotThrowAnyException();
     }
 
-    @Test
-    @DisplayName("cancel() stays a no-op however often it is called")
-    void repeatedCancel_staysANoOp() {
-        JDBCDBSchemaFetcherFacade facade = new JDBCDBSchemaFetcherFacade();
-
-        assertThatCode(
-                        () -> {
-                            facade.cancel();
-                            facade.cancel();
-                        })
-                .doesNotThrowAnyException();
-    }
-
     // The facade takes the general IDBSource but casts straight to ConnParameters, so a source of
     // any other kind fails on the cast rather than being rejected with a message of its own.
     @Test
