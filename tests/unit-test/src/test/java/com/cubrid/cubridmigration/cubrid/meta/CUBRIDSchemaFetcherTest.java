@@ -75,13 +75,160 @@ class CUBRIDSchemaFetcherTest {
     private static final CUBRIDSchemaFetcher FETCHER = new CUBRIDSchemaFetcher();
 
     private static final String SCHEMA_NAME = "TEST_SCHEMA";
+
     private static final String OTHER_SCHEMA_NAME = "OTHER_SCHEMA";
+
     private static final String TABLE_NAME = "tbl1";
+
     private static final String COLUMN_NAME = "col1";
+
     private static final String COLUMN_TYPE = "INTEGER";
+
     private static final String PARTITION_NAME = "UNDER_2000";
+
     private static final String PARTITION_METHOD = "RANGE";
+
     private static final String PARTITION_EXPR = "col1";
+
+    @ParameterizedTest(name = "[{index}] {0} -> {1}")
+    @DisplayName("each source spelling is reduced to the standard CUBRID type name")
+    @CsvSource({
+        // The fetcher keeps a table of its own, whose single entry maps STRING. The type helper
+        // already answers varchar for that name, so the entry changes nothing today.
+        "STRING,           varchar",
+        // Everything else is left to the type helper.
+        "VARCHAR,          varchar",
+        "integer,          int",
+        "SET_OF(INTEGER),  set",
+    })
+    void getStdDataType_reducesToTheStandardName(String sourceType, String expected)
+            throws Exception {
+        java.lang.reflect.Method method =
+                CUBRIDSchemaFetcher.class.getDeclaredMethod("getStdDataType", String.class);
+        method.setAccessible(true);
+
+        assertThat(method.invoke(FETCHER, sourceType)).isEqualTo(expected);
+    }
+
+    // The single-schema path keys its tables the same way it keys the cache, so two tables that
+    // share an index name keep their own indexes.
+    @Test
+    @DisplayName("on the single-schema path two tables sharing an index name stay apart")
+    void singleSchemaTablesSharingAnIndexName_stayApart() throws Exception {
+        Connection conn = connectionOnVersion(10, 2);
+        ResultSet rs = attachStatementQuery(conn, 2);
+        when(rs.getString("class_name")).thenReturn("T1", "T2");
+        when(rs.getString("index_name")).thenReturn("IX1", "IX1");
+        when(rs.getString("is_unique")).thenReturn("NO", "NO");
+        when(rs.getString("key_attr_name")).thenReturn("A", "B");
+        when(rs.getString("asc_desc")).thenReturn("A", "A");
+        Table first = tableWithColumn("T1", "A");
+        Table second = tableWithColumn("T2", "B");
+        Map<String, Table> tables = new HashMap<String, Table>();
+        tables.put("T1", first);
+        tables.put("T2", second);
+
+        invokePrivate(
+                "buildCUBRIDTableIndexes", new Class[] {Connection.class, Map.class}, conn, tables);
+
+        assertThat(first.getIndexes().get(0).getColumnNames()).containsExactly("A");
+        assertThat(second.getIndexes().get(0).getColumnNames()).containsExactly("B");
+    }
+
+    // DEFECT: the table comment is passed through commentEditor() twice - once inside the version
+    // branch and again straight after - so each quote it holds is doubled and then doubled again.
+    // The column comment beside it goes through once, and so does the user-schema path below
+    // - see CUBRIDSchemaFetcher.buildCUBRIDTables()
+    @Test
+    @DisplayName("a table comment's quotes are doubled twice, the column's only once")
+    void tableComment_isEscapedTwice() throws Exception {
+        Connection conn = connectionOnVersion(11, 0);
+        ResultSet rs = attachStatementQuery(conn, 1);
+        stubOneAttributeRow(rs, "it's a table", "it's a column");
+        Schema schema = schemaNamed("PUBLIC");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Table> tables =
+                (Map<String, Table>)
+                        invokePrivate(
+                                "buildCUBRIDTables",
+                                new Class[] {
+                                    Connection.class,
+                                    Catalog.class,
+                                    Schema.class,
+                                    IBuildSchemaFilter.class
+                                },
+                                conn,
+                                schema.getCatalog(),
+                                schema,
+                                null);
+
+        assertThat(tables.get("T1").getComment()).isEqualTo("it" + "''''" + "s a table");
+        assertThat(tables.get("T1").getColumns().get(0).getComment())
+                .isEqualTo("it" + "''" + "s a column");
+    }
+
+    @Test
+    @DisplayName("on the user-schema path both comments are escaped once")
+    void userSchemaComments_areEscapedOnce() throws Exception {
+        Connection conn = connectionOnVersion(11, 2);
+        ResultSet rs = attachPreparedQuery(conn, 1);
+        stubOneAttributeRow(rs, "it's a table", "it's a column");
+        Schema schema = schemaNamed("HR");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Table> tables =
+                (Map<String, Table>)
+                        invokePrivate(
+                                "buildCUBRIDTablesWithUserSchema",
+                                new Class[] {
+                                    Connection.class,
+                                    Catalog.class,
+                                    Schema.class,
+                                    IBuildSchemaFilter.class
+                                },
+                                conn,
+                                schema.getCatalog(),
+                                schema,
+                                null);
+
+        assertThat(tables.get("HR.T1").getComment()).isEqualTo("it" + "''" + "s a table");
+        assertThat(tables.get("HR.T1").getColumns().get(0).getComment())
+                .isEqualTo("it" + "''" + "s a column");
+    }
+
+    // DEFECT: the tables are held under "owner.table" but the index cache is keyed on the table
+    // name alone, so two schemas that both carry a table of one name share a single Index. The
+    // second schema's columns are appended to the first schema's index and its own table is left
+    // with none
+    // - see CUBRIDSchemaFetcher.buildCUBRIDTableIndexesWithUserSchema()
+    @Test
+    @DisplayName("two schemas with a same-named table share one index object")
+    void sameTableNameAcrossSchemas_sharesOneIndex() throws Exception {
+        Connection conn = connectionOnVersion(11, 2);
+        ResultSet rs = attachStatementQuery(conn, 2);
+        when(rs.getString("class_name")).thenReturn("T1", "T1");
+        when(rs.getString("owner_name")).thenReturn("HR", "SALES");
+        when(rs.getString("index_name")).thenReturn("IX1", "IX1");
+        when(rs.getString("is_unique")).thenReturn("NO", "NO");
+        when(rs.getString("key_attr_name")).thenReturn("A", "B");
+        when(rs.getString("asc_desc")).thenReturn("A", "A");
+        Table hrTable = tableWithColumn("T1", "A");
+        Table salesTable = tableWithColumn("T1", "B");
+        Map<String, Table> tables = new HashMap<String, Table>();
+        tables.put("HR.T1", hrTable);
+        tables.put("SALES.T1", salesTable);
+
+        invokePrivate(
+                "buildCUBRIDTableIndexesWithUserSchema",
+                new Class[] {Connection.class, Map.class},
+                conn,
+                tables);
+
+        assertThat(hrTable.getIndexes()).hasSize(1);
+        assertThat(hrTable.getIndexes().get(0).getColumnNames()).containsExactly("A", "B");
+        assertThat(salesTable.getIndexes()).isEmpty();
+    }
 
     @Test
     @DisplayName("buildPartitions() maps db_partition rows to table PartitionInfo")
@@ -200,44 +347,6 @@ class CUBRIDSchemaFetcherTest {
                 () -> assertThat(sameNamedTableInOtherSchema.getPartitionInfo()).isNull());
     }
 
-    private static void stubPartitionRow(ResultSet rs, String tableName) throws Exception {
-        when(rs.next()).thenReturn(true, false);
-        when(rs.getString("class_name")).thenReturn(tableName);
-        when(rs.getString("partition_type")).thenReturn(PARTITION_METHOD);
-        when(rs.getString("partition_expr")).thenReturn(PARTITION_EXPR);
-        when(rs.getObject("partition_values")).thenReturn(new Object[] {"0", "2000"});
-        when(rs.getString("partition_name")).thenReturn(PARTITION_NAME);
-    }
-
-    private static Connection mockConnection(int majorVersion, int minorVersion) throws Exception {
-        Connection conn = mock(Connection.class);
-        DatabaseMetaData metaData = mock(DatabaseMetaData.class);
-        when(metaData.getDatabaseMajorVersion()).thenReturn(majorVersion);
-        when(metaData.getDatabaseMinorVersion()).thenReturn(minorVersion);
-        when(conn.getMetaData()).thenReturn(metaData);
-        return conn;
-    }
-
-    @ParameterizedTest(name = "[{index}] {0} -> {1}")
-    @DisplayName("each source spelling is reduced to the standard CUBRID type name")
-    @CsvSource({
-        // The fetcher keeps a table of its own, whose single entry maps STRING. The type helper
-        // already answers varchar for that name, so the entry changes nothing today.
-        "STRING,           varchar",
-        // Everything else is left to the type helper.
-        "VARCHAR,          varchar",
-        "integer,          int",
-        "SET_OF(INTEGER),  set",
-    })
-    void getStdDataType_reducesToTheStandardName(String sourceType, String expected)
-            throws Exception {
-        java.lang.reflect.Method method =
-                CUBRIDSchemaFetcher.class.getDeclaredMethod("getStdDataType", String.class);
-        method.setAccessible(true);
-
-        assertThat(method.invoke(FETCHER, sourceType)).isEqualTo(expected);
-    }
-
     @Test
     @DisplayName("buildSQLTable() gives a column with no type name varchar")
     void buildSQLTable_namesUntypedColumnsVarchar() throws Exception {
@@ -275,6 +384,38 @@ class CUBRIDSchemaFetcherTest {
                                 .class);
     }
 
+    // DEFECT: triggers are only read when the connecting user happens to be DBA, so a migration
+    // run by an ordinary owner loses every trigger in the schema without a word
+    // - see CUBRIDSchemaFetcher.buildTriggers()
+    @Test
+    @DisplayName("a user who is not DBA -> the trigger catalog is never even queried")
+    void nonDbaUser_neverQueriesTheTriggerCatalog() throws Exception {
+        Connection conn = connectionOnVersion(11, 2);
+        when(conn.getMetaData().getUserName()).thenReturn("hr");
+        Schema schema = schemaNamed("HR");
+        List<Trigger> existing = new ArrayList<Trigger>();
+        schema.setTriggers(existing);
+
+        FETCHER.buildTriggers(conn, schema.getCatalog(), schema, null);
+
+        assertThat(schema.getTriggers()).isSameAs(existing);
+        verify(conn, never()).prepareStatement(anyString());
+    }
+
+    @Test
+    @DisplayName("DBA in any case -> the trigger catalog is read")
+    void dbaUser_readsTheTriggerCatalog() throws Exception {
+        Connection conn = connectionOnVersion(11, 2);
+        when(conn.getMetaData().getUserName()).thenReturn("dba");
+        attachPreparedQuery(conn, 0);
+        Schema schema = schemaNamed("HR");
+
+        FETCHER.buildTriggers(conn, schema.getCatalog(), schema, null);
+
+        verify(conn).prepareStatement(anyString());
+        assertThat(schema.getTriggers()).isEmpty();
+    }
+
     // DEFECT: the RETURN clause is written only when the routine returns void, which is exactly
     // when it is meaningless, and is left out for a function that does return something. The
     // generated DDL for a real function therefore names no return type
@@ -293,6 +434,76 @@ class CUBRIDSchemaFetcherTest {
                 .startsWith("CREATE FUNCTION \"f1\" (a int)")
                 .contains("AS LANGUAGE JAVA")
                 .contains("NAME 'Cls.m'");
+    }
+
+    // DEFECT: unique_name is added to the SELECT only from the user-schema version on, but the
+    // row reader asks for that column whatever the version, so an older CUBRID raises on a
+    // column its own query never selected
+    // - see CUBRIDSchemaFetcher.getAllTriggers()
+    @Test
+    @DisplayName("an older CUBRID omits unique_name from the query yet still reads it")
+    void olderVersion_readsAColumnItNeverSelected() throws Exception {
+        Connection conn = connectionOnVersion(10, 2);
+        ResultSet rs = attachPreparedQuery(conn, 1);
+        when(rs.getString("UNIQUE_NAME")).thenThrow(new SQLException("no such column"));
+        Schema schema = schemaNamed("HR");
+
+        assertThatThrownBy(
+                        () ->
+                                invokePrivate(
+                                        "getAllTriggers",
+                                        new Class[] {Connection.class, Schema.class},
+                                        conn,
+                                        schema))
+                .isInstanceOf(SQLException.class);
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        verify(conn).prepareStatement(sql.capture());
+        assertThat(sql.getValue()).doesNotContain("unique_name");
+    }
+
+    @Test
+    @DisplayName("from the user-schema version on the column is selected before it is read")
+    void userSchemaVersion_selectsTheColumnItReads() throws Exception {
+        Connection conn = connectionOnVersion(11, 2);
+        ResultSet rs = attachPreparedQuery(conn, 1);
+        when(rs.getString("UNIQUE_NAME")).thenReturn("HR.trg1");
+        when(rs.getString("NAME")).thenReturn("trg1");
+        // CUBRIDTrigger parses the priority as a number, so it cannot be left unstubbed.
+        when(rs.getString("PRIORITY")).thenReturn("0");
+        Schema schema = schemaNamed("HR");
+
+        @SuppressWarnings("unchecked")
+        List<Trigger> triggers =
+                (List<Trigger>)
+                        invokePrivate(
+                                "getAllTriggers",
+                                new Class[] {Connection.class, Schema.class},
+                                conn,
+                                schema);
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        verify(conn).prepareStatement(sql.capture());
+        assertThat(sql.getValue()).contains("unique_name");
+        assertThat(triggers).extracting(Trigger::getName).containsExactly("trg1");
+    }
+
+    private static void stubPartitionRow(ResultSet rs, String tableName) throws Exception {
+        when(rs.next()).thenReturn(true, false);
+        when(rs.getString("class_name")).thenReturn(tableName);
+        when(rs.getString("partition_type")).thenReturn(PARTITION_METHOD);
+        when(rs.getString("partition_expr")).thenReturn(PARTITION_EXPR);
+        when(rs.getObject("partition_values")).thenReturn(new Object[] {"0", "2000"});
+        when(rs.getString("partition_name")).thenReturn(PARTITION_NAME);
+    }
+
+    private static Connection mockConnection(int majorVersion, int minorVersion) throws Exception {
+        Connection conn = mock(Connection.class);
+        DatabaseMetaData metaData = mock(DatabaseMetaData.class);
+        when(metaData.getDatabaseMajorVersion()).thenReturn(majorVersion);
+        when(metaData.getDatabaseMinorVersion()).thenReturn(minorVersion);
+        when(conn.getMetaData()).thenReturn(metaData);
+        return conn;
     }
 
     private static String storedProcedureDDL(String returnType) throws Exception {
@@ -377,210 +588,6 @@ class CUBRIDSchemaFetcherTest {
         column.setName(columnName);
         table.addColumn(column);
         return table;
-    }
-
-    // DEFECT: the table comment is passed through commentEditor() twice - once inside the version
-    // branch and again straight after - so each quote it holds is doubled and then doubled again.
-    // The column comment beside it goes through once, and so does the user-schema path below
-    // - see CUBRIDSchemaFetcher.buildCUBRIDTables()
-    @Test
-    @DisplayName("a table comment's quotes are doubled twice, the column's only once")
-    void tableComment_isEscapedTwice() throws Exception {
-        Connection conn = connectionOnVersion(11, 0);
-        ResultSet rs = attachStatementQuery(conn, 1);
-        stubOneAttributeRow(rs, "it's a table", "it's a column");
-        Schema schema = schemaNamed("PUBLIC");
-
-        @SuppressWarnings("unchecked")
-        Map<String, Table> tables =
-                (Map<String, Table>)
-                        invokePrivate(
-                                "buildCUBRIDTables",
-                                new Class[] {
-                                    Connection.class,
-                                    Catalog.class,
-                                    Schema.class,
-                                    IBuildSchemaFilter.class
-                                },
-                                conn,
-                                schema.getCatalog(),
-                                schema,
-                                null);
-
-        assertThat(tables.get("T1").getComment()).isEqualTo("it" + "''''" + "s a table");
-        assertThat(tables.get("T1").getColumns().get(0).getComment())
-                .isEqualTo("it" + "''" + "s a column");
-    }
-
-    @Test
-    @DisplayName("on the user-schema path both comments are escaped once")
-    void userSchemaComments_areEscapedOnce() throws Exception {
-        Connection conn = connectionOnVersion(11, 2);
-        ResultSet rs = attachPreparedQuery(conn, 1);
-        stubOneAttributeRow(rs, "it's a table", "it's a column");
-        Schema schema = schemaNamed("HR");
-
-        @SuppressWarnings("unchecked")
-        Map<String, Table> tables =
-                (Map<String, Table>)
-                        invokePrivate(
-                                "buildCUBRIDTablesWithUserSchema",
-                                new Class[] {
-                                    Connection.class,
-                                    Catalog.class,
-                                    Schema.class,
-                                    IBuildSchemaFilter.class
-                                },
-                                conn,
-                                schema.getCatalog(),
-                                schema,
-                                null);
-
-        assertThat(tables.get("HR.T1").getComment()).isEqualTo("it" + "''" + "s a table");
-        assertThat(tables.get("HR.T1").getColumns().get(0).getComment())
-                .isEqualTo("it" + "''" + "s a column");
-    }
-
-    // DEFECT: the tables are held under "owner.table" but the index cache is keyed on the table
-    // name alone, so two schemas that both carry a table of one name share a single Index. The
-    // second schema's columns are appended to the first schema's index and its own table is left
-    // with none
-    // - see CUBRIDSchemaFetcher.buildCUBRIDTableIndexesWithUserSchema()
-    @Test
-    @DisplayName("two schemas with a same-named table share one index object")
-    void sameTableNameAcrossSchemas_sharesOneIndex() throws Exception {
-        Connection conn = connectionOnVersion(11, 2);
-        ResultSet rs = attachStatementQuery(conn, 2);
-        when(rs.getString("class_name")).thenReturn("T1", "T1");
-        when(rs.getString("owner_name")).thenReturn("HR", "SALES");
-        when(rs.getString("index_name")).thenReturn("IX1", "IX1");
-        when(rs.getString("is_unique")).thenReturn("NO", "NO");
-        when(rs.getString("key_attr_name")).thenReturn("A", "B");
-        when(rs.getString("asc_desc")).thenReturn("A", "A");
-        Table hrTable = tableWithColumn("T1", "A");
-        Table salesTable = tableWithColumn("T1", "B");
-        Map<String, Table> tables = new HashMap<String, Table>();
-        tables.put("HR.T1", hrTable);
-        tables.put("SALES.T1", salesTable);
-
-        invokePrivate(
-                "buildCUBRIDTableIndexesWithUserSchema",
-                new Class[] {Connection.class, Map.class},
-                conn,
-                tables);
-
-        assertThat(hrTable.getIndexes()).hasSize(1);
-        assertThat(hrTable.getIndexes().get(0).getColumnNames()).containsExactly("A", "B");
-        assertThat(salesTable.getIndexes()).isEmpty();
-    }
-
-    // The single-schema path keys its tables the same way it keys the cache, so two tables that
-    // share an index name keep their own indexes.
-    @Test
-    @DisplayName("on the single-schema path two tables sharing an index name stay apart")
-    void singleSchemaTablesSharingAnIndexName_stayApart() throws Exception {
-        Connection conn = connectionOnVersion(10, 2);
-        ResultSet rs = attachStatementQuery(conn, 2);
-        when(rs.getString("class_name")).thenReturn("T1", "T2");
-        when(rs.getString("index_name")).thenReturn("IX1", "IX1");
-        when(rs.getString("is_unique")).thenReturn("NO", "NO");
-        when(rs.getString("key_attr_name")).thenReturn("A", "B");
-        when(rs.getString("asc_desc")).thenReturn("A", "A");
-        Table first = tableWithColumn("T1", "A");
-        Table second = tableWithColumn("T2", "B");
-        Map<String, Table> tables = new HashMap<String, Table>();
-        tables.put("T1", first);
-        tables.put("T2", second);
-
-        invokePrivate(
-                "buildCUBRIDTableIndexes", new Class[] {Connection.class, Map.class}, conn, tables);
-
-        assertThat(first.getIndexes().get(0).getColumnNames()).containsExactly("A");
-        assertThat(second.getIndexes().get(0).getColumnNames()).containsExactly("B");
-    }
-
-    // DEFECT: triggers are only read when the connecting user happens to be DBA, so a migration
-    // run by an ordinary owner loses every trigger in the schema without a word
-    // - see CUBRIDSchemaFetcher.buildTriggers()
-    @Test
-    @DisplayName("a user who is not DBA -> the trigger catalog is never even queried")
-    void nonDbaUser_neverQueriesTheTriggerCatalog() throws Exception {
-        Connection conn = connectionOnVersion(11, 2);
-        when(conn.getMetaData().getUserName()).thenReturn("hr");
-        Schema schema = schemaNamed("HR");
-        List<Trigger> existing = new ArrayList<Trigger>();
-        schema.setTriggers(existing);
-
-        FETCHER.buildTriggers(conn, schema.getCatalog(), schema, null);
-
-        assertThat(schema.getTriggers()).isSameAs(existing);
-        verify(conn, never()).prepareStatement(anyString());
-    }
-
-    @Test
-    @DisplayName("DBA in any case -> the trigger catalog is read")
-    void dbaUser_readsTheTriggerCatalog() throws Exception {
-        Connection conn = connectionOnVersion(11, 2);
-        when(conn.getMetaData().getUserName()).thenReturn("dba");
-        attachPreparedQuery(conn, 0);
-        Schema schema = schemaNamed("HR");
-
-        FETCHER.buildTriggers(conn, schema.getCatalog(), schema, null);
-
-        verify(conn).prepareStatement(anyString());
-        assertThat(schema.getTriggers()).isEmpty();
-    }
-
-    // DEFECT: unique_name is added to the SELECT only from the user-schema version on, but the
-    // row reader asks for that column whatever the version, so an older CUBRID raises on a
-    // column its own query never selected
-    // - see CUBRIDSchemaFetcher.getAllTriggers()
-    @Test
-    @DisplayName("an older CUBRID omits unique_name from the query yet still reads it")
-    void olderVersion_readsAColumnItNeverSelected() throws Exception {
-        Connection conn = connectionOnVersion(10, 2);
-        ResultSet rs = attachPreparedQuery(conn, 1);
-        when(rs.getString("UNIQUE_NAME")).thenThrow(new SQLException("no such column"));
-        Schema schema = schemaNamed("HR");
-
-        assertThatThrownBy(
-                        () ->
-                                invokePrivate(
-                                        "getAllTriggers",
-                                        new Class[] {Connection.class, Schema.class},
-                                        conn,
-                                        schema))
-                .isInstanceOf(SQLException.class);
-
-        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-        verify(conn).prepareStatement(sql.capture());
-        assertThat(sql.getValue()).doesNotContain("unique_name");
-    }
-
-    @Test
-    @DisplayName("from the user-schema version on the column is selected before it is read")
-    void userSchemaVersion_selectsTheColumnItReads() throws Exception {
-        Connection conn = connectionOnVersion(11, 2);
-        ResultSet rs = attachPreparedQuery(conn, 1);
-        when(rs.getString("UNIQUE_NAME")).thenReturn("HR.trg1");
-        when(rs.getString("NAME")).thenReturn("trg1");
-        // CUBRIDTrigger parses the priority as a number, so it cannot be left unstubbed.
-        when(rs.getString("PRIORITY")).thenReturn("0");
-        Schema schema = schemaNamed("HR");
-
-        @SuppressWarnings("unchecked")
-        List<Trigger> triggers =
-                (List<Trigger>)
-                        invokePrivate(
-                                "getAllTriggers",
-                                new Class[] {Connection.class, Schema.class},
-                                conn,
-                                schema);
-
-        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-        verify(conn).prepareStatement(sql.capture());
-        assertThat(sql.getValue()).contains("unique_name");
-        assertThat(triggers).extracting(Trigger::getName).containsExactly("trg1");
     }
 
     private static Catalog createCatalog() {

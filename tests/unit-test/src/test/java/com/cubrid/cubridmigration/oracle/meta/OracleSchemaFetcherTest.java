@@ -79,41 +79,23 @@ class OracleSchemaFetcherTest {
         TimeZone.setDefault(defaultZone);
     }
 
-    /**
-     * These rules live in private helpers, reached the way TiberoSchemaFetcherTest reaches its own.
-     */
+    // A query whose result set names no type is still migrated, as Oracle's own widest text type.
+    @Test
+    @DisplayName("buildSQLTable() gives a column with no type name VARCHAR2")
+    void buildSQLTable_namesUntypedColumnsVarchar2() throws SQLException {
+        Table table = FETCHER.buildSQLTable(oneColumn("", Types.OTHER, 10));
 
-    /** buildGrant() runs two queries in turn: table grants first, then view grants. */
-    private static Schema buildGrantsFrom(String tablePrivilege, String viewPrivilege)
-            throws Exception {
-        Connection conn = mock(Connection.class);
-        PreparedStatement tableStmt = mock(PreparedStatement.class);
-        PreparedStatement viewStmt = mock(PreparedStatement.class);
-        ResultSet tableRows = resultSetOf(1);
-        ResultSet viewRows = resultSetOf(1);
-        when(conn.prepareStatement(anyString())).thenReturn(tableStmt, viewStmt);
-        when(tableStmt.executeQuery()).thenReturn(tableRows);
-        when(viewStmt.executeQuery()).thenReturn(viewRows);
-        stubGrantRow(tableRows, "T1", tablePrivilege);
-        stubGrantRow(viewRows, "V1", viewPrivilege);
-
-        Catalog catalog = new Catalog();
-        catalog.setName("ORCL");
-        Schema schema = new Schema(catalog);
-        schema.setName("HR");
-        catalog.addSchema(schema);
-        FETCHER.buildGrant(conn, catalog, schema, null);
-        return schema;
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("VARCHAR2");
+        assertThat(table.getColumns().get(0).getJdbcIDOfDataType()).isEqualTo(Types.VARCHAR);
     }
 
-    private static void stubGrantRow(ResultSet rs, String objectName, String privilege)
-            throws Exception {
-        when(rs.getString("GRANTEE")).thenReturn("HR");
-        when(rs.getString("OWNER")).thenReturn("SCOTT");
-        when(rs.getString("TABLE_NAME")).thenReturn(objectName);
-        when(rs.getString("GRANTOR")).thenReturn("SYS");
-        when(rs.getString("GRANTABLE")).thenReturn("YES");
-        when(rs.getString("PRIVILEGE")).thenReturn(privilege);
+    @Test
+    @DisplayName("buildSQLTable() leaves a named type alone and fills in how it is shown")
+    void buildSQLTable_keepsNamedTypes() throws SQLException {
+        Table table = FETCHER.buildSQLTable(oneColumn("VARCHAR2", Types.VARCHAR, 20));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("VARCHAR2");
+        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("VARCHAR2(20)");
     }
 
     @Test
@@ -153,92 +135,6 @@ class OracleSchemaFetcherTest {
                 .filteredOn(grant -> "V1".equals(grant.getClassName()))
                 .extracting(Grant::getAuthType)
                 .containsExactly("ALL");
-    }
-
-    private static Object invokePrivate(String name, Class<?>[] types, Object... args)
-            throws Exception {
-        Method method = OracleSchemaFetcher.class.getDeclaredMethod(name, types);
-        method.setAccessible(true);
-        return method.invoke(FETCHER, args);
-    }
-
-    private static ResultSetMetaData oneColumn(String typeName, int jdbcType, int precision)
-            throws SQLException {
-        ResultSetMetaData rsm = mock(ResultSetMetaData.class);
-        when(rsm.getColumnCount()).thenReturn(1);
-        when(rsm.getColumnLabel(1)).thenReturn("C1");
-        when(rsm.getColumnName(1)).thenReturn("C1");
-        when(rsm.getColumnType(1)).thenReturn(jdbcType);
-        when(rsm.getColumnTypeName(1)).thenReturn(typeName);
-        when(rsm.getPrecision(1)).thenReturn(precision);
-        when(rsm.getScale(1)).thenReturn(0);
-        return rsm;
-    }
-
-    private static Column columnOf(
-            String dataType, Integer precision, int charLength, int byteLength) {
-        Column column = new Column();
-        column.setName("C1");
-        column.setDataType(dataType);
-        column.setPrecision(precision);
-        column.setCharLength(charLength);
-        column.setByteLength(byteLength);
-        return column;
-    }
-
-    // A query whose result set names no type is still migrated, as Oracle's own widest text type.
-    @Test
-    @DisplayName("buildSQLTable() gives a column with no type name VARCHAR2")
-    void buildSQLTable_namesUntypedColumnsVarchar2() throws SQLException {
-        Table table = FETCHER.buildSQLTable(oneColumn("", Types.OTHER, 10));
-
-        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("VARCHAR2");
-        assertThat(table.getColumns().get(0).getJdbcIDOfDataType()).isEqualTo(Types.VARCHAR);
-    }
-
-    @Test
-    @DisplayName("buildSQLTable() leaves a named type alone and fills in how it is shown")
-    void buildSQLTable_keepsNamedTypes() throws SQLException {
-        Table table = FETCHER.buildSQLTable(oneColumn("VARCHAR2", Types.VARCHAR, 20));
-
-        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("VARCHAR2");
-        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("VARCHAR2(20)");
-    }
-
-    @ParameterizedTest(name = "[{index}] {0} -> kept")
-    @DisplayName("only the eight privileges CUBRID can express are carried over")
-    @ValueSource(
-            strings = {"SELECT", "INSERT", "UPDATE", "DELETE", "ALTER", "INDEX", "EXECUTE", "ALL"})
-    void supportedPrivilege_isCarriedOver(String privilege) throws Exception {
-        assertThat(invokePrivate("isSupportPrivilege", new Class[] {String.class}, privilege))
-                .isEqualTo(true);
-    }
-
-    // The comparison is exact, so an Oracle catalog that reports a privilege in any other
-    // spelling - or one CUBRID has no grant for - is dropped rather than migrated.
-    @ParameterizedTest(name = "[{index}] {0} -> dropped")
-    @DisplayName("anything else, including a lower-case spelling, is dropped")
-    @ValueSource(strings = {"REFERENCES", "DROP", "select", "Select", ""})
-    void unsupportedPrivilege_isDropped(String privilege) throws Exception {
-        assertThat(invokePrivate("isSupportPrivilege", new Class[] {String.class}, privilege))
-                .isEqualTo(false);
-    }
-
-    @ParameterizedTest(name = "[{index}] {0} -> {1}")
-    @DisplayName("ALL is the one privilege whose name CUBRID spells differently")
-    @CsvSource({
-        "ALL,    ALL PRIVILEGES",
-        // Everything else is passed through untouched, and the match is case-sensitive.
-        "SELECT, SELECT",
-        "all,    all",
-    })
-    void privilegeName_isRewrittenOnlyForAll(String oracle, String expected) throws Exception {
-        assertThat(
-                        invokePrivate(
-                                "convertPrivilegeOracle2Cubrid",
-                                new Class[] {String.class},
-                                oracle))
-                .isEqualTo(expected);
     }
 
     // Oracle reports no numeric precision for its text and raw types, so the length is taken from
@@ -309,5 +205,109 @@ class OracleSchemaFetcherTest {
         invokePrivate("setCatalogTimezone", new Class[] {Catalog.class}, catalog);
 
         assertThat(catalog.getTimezone()).isEqualTo(expected);
+    }
+
+    @ParameterizedTest(name = "[{index}] {0} -> kept")
+    @DisplayName("only the eight privileges CUBRID can express are carried over")
+    @ValueSource(
+            strings = {"SELECT", "INSERT", "UPDATE", "DELETE", "ALTER", "INDEX", "EXECUTE", "ALL"})
+    void supportedPrivilege_isCarriedOver(String privilege) throws Exception {
+        assertThat(invokePrivate("isSupportPrivilege", new Class[] {String.class}, privilege))
+                .isEqualTo(true);
+    }
+
+    // The comparison is exact, so an Oracle catalog that reports a privilege in any other
+    // spelling - or one CUBRID has no grant for - is dropped rather than migrated.
+    @ParameterizedTest(name = "[{index}] {0} -> dropped")
+    @DisplayName("anything else, including a lower-case spelling, is dropped")
+    @ValueSource(strings = {"REFERENCES", "DROP", "select", "Select", ""})
+    void unsupportedPrivilege_isDropped(String privilege) throws Exception {
+        assertThat(invokePrivate("isSupportPrivilege", new Class[] {String.class}, privilege))
+                .isEqualTo(false);
+    }
+
+    @ParameterizedTest(name = "[{index}] {0} -> {1}")
+    @DisplayName("ALL is the one privilege whose name CUBRID spells differently")
+    @CsvSource({
+        "ALL,    ALL PRIVILEGES",
+        // Everything else is passed through untouched, and the match is case-sensitive.
+        "SELECT, SELECT",
+        "all,    all",
+    })
+    void privilegeName_isRewrittenOnlyForAll(String oracle, String expected) throws Exception {
+        assertThat(
+                        invokePrivate(
+                                "convertPrivilegeOracle2Cubrid",
+                                new Class[] {String.class},
+                                oracle))
+                .isEqualTo(expected);
+    }
+
+    /**
+     * These rules live in private helpers, reached the way TiberoSchemaFetcherTest reaches its own.
+     */
+
+    /** buildGrant() runs two queries in turn: table grants first, then view grants. */
+    private static Schema buildGrantsFrom(String tablePrivilege, String viewPrivilege)
+            throws Exception {
+        Connection conn = mock(Connection.class);
+        PreparedStatement tableStmt = mock(PreparedStatement.class);
+        PreparedStatement viewStmt = mock(PreparedStatement.class);
+        ResultSet tableRows = resultSetOf(1);
+        ResultSet viewRows = resultSetOf(1);
+        when(conn.prepareStatement(anyString())).thenReturn(tableStmt, viewStmt);
+        when(tableStmt.executeQuery()).thenReturn(tableRows);
+        when(viewStmt.executeQuery()).thenReturn(viewRows);
+        stubGrantRow(tableRows, "T1", tablePrivilege);
+        stubGrantRow(viewRows, "V1", viewPrivilege);
+
+        Catalog catalog = new Catalog();
+        catalog.setName("ORCL");
+        Schema schema = new Schema(catalog);
+        schema.setName("HR");
+        catalog.addSchema(schema);
+        FETCHER.buildGrant(conn, catalog, schema, null);
+        return schema;
+    }
+
+    private static void stubGrantRow(ResultSet rs, String objectName, String privilege)
+            throws Exception {
+        when(rs.getString("GRANTEE")).thenReturn("HR");
+        when(rs.getString("OWNER")).thenReturn("SCOTT");
+        when(rs.getString("TABLE_NAME")).thenReturn(objectName);
+        when(rs.getString("GRANTOR")).thenReturn("SYS");
+        when(rs.getString("GRANTABLE")).thenReturn("YES");
+        when(rs.getString("PRIVILEGE")).thenReturn(privilege);
+    }
+
+    private static Object invokePrivate(String name, Class<?>[] types, Object... args)
+            throws Exception {
+        Method method = OracleSchemaFetcher.class.getDeclaredMethod(name, types);
+        method.setAccessible(true);
+        return method.invoke(FETCHER, args);
+    }
+
+    private static ResultSetMetaData oneColumn(String typeName, int jdbcType, int precision)
+            throws SQLException {
+        ResultSetMetaData rsm = mock(ResultSetMetaData.class);
+        when(rsm.getColumnCount()).thenReturn(1);
+        when(rsm.getColumnLabel(1)).thenReturn("C1");
+        when(rsm.getColumnName(1)).thenReturn("C1");
+        when(rsm.getColumnType(1)).thenReturn(jdbcType);
+        when(rsm.getColumnTypeName(1)).thenReturn(typeName);
+        when(rsm.getPrecision(1)).thenReturn(precision);
+        when(rsm.getScale(1)).thenReturn(0);
+        return rsm;
+    }
+
+    private static Column columnOf(
+            String dataType, Integer precision, int charLength, int byteLength) {
+        Column column = new Column();
+        column.setName("C1");
+        column.setDataType(dataType);
+        column.setPrecision(precision);
+        column.setCharLength(charLength);
+        column.setByteLength(byteLength);
+        return column;
     }
 }

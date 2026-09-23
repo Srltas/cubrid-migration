@@ -62,42 +62,25 @@ class InformixSchemaFetcherTest {
 
     private static final InformixSchemaFetcher FETCHER = new InformixSchemaFetcher();
 
-    @SuppressWarnings("unchecked")
-    private static <T> List<T> invokeRowReader(String method, Connection conn) throws Exception {
-        Method m =
-                InformixSchemaFetcher.class.getDeclaredMethod(
-                        method, Connection.class, String.class);
-        m.setAccessible(true);
-        try {
-            return (List<T>) m.invoke(FETCHER, conn, "hr");
-        } catch (java.lang.reflect.InvocationTargetException e) {
-            throw (Exception) e.getCause();
-        }
+    // Informix spells a timestamp as a range, "datetime year to second". CUBRID has no such form,
+    // so the qualifier is cut and the plain type name is what reaches the transform stage.
+    @Test
+    @DisplayName("a datetime range -> the bare datetime type")
+    void datetimeRange_losesItsQualifier() throws SQLException {
+        Table table =
+                FETCHER.buildSQLTable(oneColumn("datetime year to second", Types.TIMESTAMP, 0));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("datetime");
+        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("datetime");
     }
 
-    // DEFECT: the Sequence is built once, before the loop, and every row overwrites that same
-    // object before adding it again. A schema with N sequences migrates as N copies of the last
-    // one - the same shape applies to getProcedures() and getFunctions()
-    // - see InformixSchemaFetcher.getSequences()
     @Test
-    @DisplayName("two sequence rows -> two references to one object holding the last row")
-    void twoSequenceRows_collapseIntoOne() throws Exception {
-        Connection conn = mock(Connection.class);
-        ResultSet rs = attachPreparedQuery(conn, 2);
-        when(rs.getString("tabname")).thenReturn("seq_a", "seq_b");
-        when(rs.getString("max_val")).thenReturn("100", "200");
-        when(rs.getString("min_val")).thenReturn("1", "2");
-        when(rs.getString("inc_val")).thenReturn("1", "5");
-        when(rs.getString("start_val")).thenReturn("1", "10");
-        when(rs.getString("cycle")).thenReturn("1", "0");
-        when(rs.getInt("cache")).thenReturn(20, 30);
+    @DisplayName("any other type keeps its name and gains how it is shown")
+    void otherType_keepsItsName() throws SQLException {
+        Table table = FETCHER.buildSQLTable(oneColumn("varchar", Types.VARCHAR, 20));
 
-        List<Sequence> sequences = invokeRowReader("getSequences", conn);
-
-        assertThat(sequences).hasSize(2);
-        assertThat(sequences.get(0)).isSameAs(sequences.get(1));
-        assertThat(sequences.get(0).getName()).isEqualTo("seq_b");
-        assertThat(sequences.get(0).getMaxValue()).isEqualTo(new java.math.BigInteger("200"));
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("varchar");
+        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("varchar(20)");
     }
 
     // DEFECT: the same shape as getSequences() above
@@ -132,36 +115,6 @@ class InformixSchemaFetcherTest {
         assertThat(procedures).hasSize(2);
         assertThat(procedures.get(0)).isSameAs(procedures.get(1));
         assertThat(procedures.get(0).getName()).isEqualTo("p2");
-    }
-
-    // The format failure pinned above surfaces here: one trigger with a known event is enough to
-    // abort the whole trigger catalog for the schema.
-    @Test
-    @DisplayName("one trigger with a known event aborts the whole trigger read")
-    void triggerWithKnownEvent_abortsTheRead() throws Exception {
-        Connection conn = mock(Connection.class);
-        ResultSet rs = attachPreparedQuery(conn, 1);
-        when(rs.getString("trigname")).thenReturn("trg1");
-        when(rs.getString("event")).thenReturn("U");
-        when(rs.getString("data")).thenReturn("trigger body");
-
-        assertThatThrownBy(() -> invokeRowReader("getTriggers", conn))
-                .isInstanceOf(MissingFormatArgumentException.class);
-    }
-
-    @Test
-    @DisplayName("a trigger whose event has no mapping is read with its body as the DDL")
-    void triggerWithUnknownEvent_keepsItsBody() throws Exception {
-        Connection conn = mock(Connection.class);
-        ResultSet rs = attachPreparedQuery(conn, 1);
-        when(rs.getString("trigname")).thenReturn("trg1");
-        when(rs.getString("event")).thenReturn("X");
-        when(rs.getString("data")).thenReturn("trigger body");
-
-        List<Trigger> triggers = invokeRowReader("getTriggers", conn);
-
-        assertThat(triggers).hasSize(1);
-        assertThat(triggers.get(0).getDDL()).isEqualTo("trigger body");
     }
 
     @Test
@@ -199,46 +152,59 @@ class InformixSchemaFetcherTest {
         assertThat(FETCHER.buildViewDDL(conn, "hr", "v")).isNull();
     }
 
-    private static ResultSetMetaData oneColumn(String typeName, int jdbcType, int precision)
-            throws SQLException {
-        ResultSetMetaData rsm = mock(ResultSetMetaData.class);
-        when(rsm.getColumnCount()).thenReturn(1);
-        when(rsm.getColumnLabel(1)).thenReturn("C1");
-        when(rsm.getColumnName(1)).thenReturn("C1");
-        when(rsm.getColumnType(1)).thenReturn(jdbcType);
-        when(rsm.getColumnTypeName(1)).thenReturn(typeName);
-        when(rsm.getPrecision(1)).thenReturn(precision);
-        when(rsm.getScale(1)).thenReturn(0);
-        return rsm;
-    }
-
-    private static Object buildTriggerDDL(String body, String name, String event) throws Exception {
-        Method method =
-                InformixSchemaFetcher.class.getDeclaredMethod(
-                        "buildTriggerDDL", String.class, String.class, String.class);
-        method.setAccessible(true);
-        return method.invoke(FETCHER, body, name, event);
-    }
-
-    // Informix spells a timestamp as a range, "datetime year to second". CUBRID has no such form,
-    // so the qualifier is cut and the plain type name is what reaches the transform stage.
+    // DEFECT: the Sequence is built once, before the loop, and every row overwrites that same
+    // object before adding it again. A schema with N sequences migrates as N copies of the last
+    // one - the same shape applies to getProcedures() and getFunctions()
+    // - see InformixSchemaFetcher.getSequences()
     @Test
-    @DisplayName("a datetime range -> the bare datetime type")
-    void datetimeRange_losesItsQualifier() throws SQLException {
-        Table table =
-                FETCHER.buildSQLTable(oneColumn("datetime year to second", Types.TIMESTAMP, 0));
+    @DisplayName("two sequence rows -> two references to one object holding the last row")
+    void twoSequenceRows_collapseIntoOne() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 2);
+        when(rs.getString("tabname")).thenReturn("seq_a", "seq_b");
+        when(rs.getString("max_val")).thenReturn("100", "200");
+        when(rs.getString("min_val")).thenReturn("1", "2");
+        when(rs.getString("inc_val")).thenReturn("1", "5");
+        when(rs.getString("start_val")).thenReturn("1", "10");
+        when(rs.getString("cycle")).thenReturn("1", "0");
+        when(rs.getInt("cache")).thenReturn(20, 30);
 
-        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("datetime");
-        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("datetime");
+        List<Sequence> sequences = invokeRowReader("getSequences", conn);
+
+        assertThat(sequences).hasSize(2);
+        assertThat(sequences.get(0)).isSameAs(sequences.get(1));
+        assertThat(sequences.get(0).getName()).isEqualTo("seq_b");
+        assertThat(sequences.get(0).getMaxValue()).isEqualTo(new java.math.BigInteger("200"));
+    }
+
+    // The format failure pinned above surfaces here: one trigger with a known event is enough to
+    // abort the whole trigger catalog for the schema.
+    @Test
+    @DisplayName("one trigger with a known event aborts the whole trigger read")
+    void triggerWithKnownEvent_abortsTheRead() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 1);
+        when(rs.getString("trigname")).thenReturn("trg1");
+        when(rs.getString("event")).thenReturn("U");
+        when(rs.getString("data")).thenReturn("trigger body");
+
+        assertThatThrownBy(() -> invokeRowReader("getTriggers", conn))
+                .isInstanceOf(MissingFormatArgumentException.class);
     }
 
     @Test
-    @DisplayName("any other type keeps its name and gains how it is shown")
-    void otherType_keepsItsName() throws SQLException {
-        Table table = FETCHER.buildSQLTable(oneColumn("varchar", Types.VARCHAR, 20));
+    @DisplayName("a trigger whose event has no mapping is read with its body as the DDL")
+    void triggerWithUnknownEvent_keepsItsBody() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 1);
+        when(rs.getString("trigname")).thenReturn("trg1");
+        when(rs.getString("event")).thenReturn("X");
+        when(rs.getString("data")).thenReturn("trigger body");
 
-        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("varchar");
-        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("varchar(20)");
+        List<Trigger> triggers = invokeRowReader("getTriggers", conn);
+
+        assertThat(triggers).hasSize(1);
+        assertThat(triggers.get(0).getDDL()).isEqualTo("trigger body");
     }
 
     // DEFECT: the template carries four placeholders but only three arguments are supplied, so
@@ -261,5 +227,39 @@ class InformixSchemaFetcherTest {
     @DisplayName("an event with no mapping -> the body returned untouched")
     void unknownEvent_returnsTheBodyUntouched() throws Exception {
         assertThat(buildTriggerDDL("trigger body", "trg1", "X")).isEqualTo("trigger body");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> List<T> invokeRowReader(String method, Connection conn) throws Exception {
+        Method m =
+                InformixSchemaFetcher.class.getDeclaredMethod(
+                        method, Connection.class, String.class);
+        m.setAccessible(true);
+        try {
+            return (List<T>) m.invoke(FETCHER, conn, "hr");
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            throw (Exception) e.getCause();
+        }
+    }
+
+    private static ResultSetMetaData oneColumn(String typeName, int jdbcType, int precision)
+            throws SQLException {
+        ResultSetMetaData rsm = mock(ResultSetMetaData.class);
+        when(rsm.getColumnCount()).thenReturn(1);
+        when(rsm.getColumnLabel(1)).thenReturn("C1");
+        when(rsm.getColumnName(1)).thenReturn("C1");
+        when(rsm.getColumnType(1)).thenReturn(jdbcType);
+        when(rsm.getColumnTypeName(1)).thenReturn(typeName);
+        when(rsm.getPrecision(1)).thenReturn(precision);
+        when(rsm.getScale(1)).thenReturn(0);
+        return rsm;
+    }
+
+    private static Object buildTriggerDDL(String body, String name, String event) throws Exception {
+        Method method =
+                InformixSchemaFetcher.class.getDeclaredMethod(
+                        "buildTriggerDDL", String.class, String.class, String.class);
+        method.setAccessible(true);
+        return method.invoke(FETCHER, body, name, event);
     }
 }

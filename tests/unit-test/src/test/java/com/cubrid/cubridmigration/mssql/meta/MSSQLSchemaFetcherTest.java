@@ -65,6 +65,83 @@ class MSSQLSchemaFetcherTest {
 
     private static final MSSQLSchemaFetcher FETCHER = new MSSQLSchemaFetcher();
 
+    @Test
+    @DisplayName("buildSQLTable() fills in how the type is shown and keeps the type itself")
+    void buildSQLTable_fillsInTheShownType() throws SQLException {
+        Table table = FETCHER.buildSQLTable(oneColumn("varchar", Types.VARCHAR, 20));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("varchar");
+        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("varchar(20)");
+    }
+
+    // The other dialects put their own widest text type in when the driver names none. MSSQL
+    // does not, so such a column reaches the transform stage still nameless.
+    @Test
+    @DisplayName("a column with no type name is left nameless, unlike the other dialects")
+    void untypedColumn_isLeftNameless() throws SQLException {
+        Table table = FETCHER.buildSQLTable(oneColumn("", Types.OTHER, 10));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEmpty();
+    }
+
+    // MSSQL reports an identity column's type with the keyword attached, and the type lookup
+    // only matches the bare name.
+    @Test
+    @DisplayName("an identity column's type is matched on its bare name")
+    void identityColumn_isMatchedOnItsBareName() throws SQLException {
+        Table table = buildOneColumn("varchar identity", null, catalogKnowing("varchar"));
+
+        assertThat(table.getColumns()).extracting(Column::getDataType).containsExactly("varchar");
+    }
+
+    @Test
+    @DisplayName("a default value is unwrapped from the parentheses MSSQL adds")
+    void defaultValue_isUnwrapped() throws SQLException {
+        Table table = buildOneColumn("varchar", "((5))", catalogKnowing("varchar"));
+
+        assertThat(table.getColumns().get(0).getDefaultValue()).isEqualTo("5");
+    }
+
+    @Test
+    @DisplayName("MSSQL's own spelling of a null default -> no default at all")
+    void nullDefault_becomesNoDefault() throws SQLException {
+        Table table = buildOneColumn("varchar", "(NULL)", catalogKnowing("varchar"));
+
+        assertThat(table.getColumns().get(0).getDefaultValue()).isNull();
+    }
+
+    // DEFECT: a column whose type is not in the catalog's supported list is stepped over without
+    // a word, so a table using a spatial or other unmapped type migrates with that column simply
+    // missing rather than with an error naming it
+    // - see MSSQLSchemaFetcher.buildTableColumns()
+    @Test
+    @DisplayName("a type the catalog does not list -> the column is dropped silently")
+    void unlistedType_dropsTheColumnSilently() throws SQLException {
+        Table table = buildOneColumn("geography", null, catalogKnowing("varchar"));
+
+        assertThat(table.getColumns()).isEmpty();
+    }
+
+    // hierarchyid has no JDBC type of its own, so the name's hash stands in as the identifier.
+    // Nothing else in CMT derives that number, which is why it is pinned here.
+    @Test
+    @DisplayName("hierarchyid is registered under an id derived from its own name")
+    void hierarchyId_isRegisteredUnderItsNameHash() throws Exception {
+        Map<String, List<DataType>> supportedTypes = new HashMap<String, List<DataType>>();
+        Method method =
+                MSSQLSchemaFetcher.class.getDeclaredMethod(
+                        "addHierarchyIDTypeToSupportedTypes", Map.class);
+        method.setAccessible(true);
+
+        method.invoke(FETCHER, supportedTypes);
+
+        assertThat(supportedTypes).containsOnlyKeys("hierarchyid");
+        assertThat(supportedTypes.get("hierarchyid")).hasSize(1);
+        assertThat(supportedTypes.get("hierarchyid").get(0).getTypeName()).isEqualTo("hierarchyid");
+        assertThat(supportedTypes.get("hierarchyid").get(0).getJdbcDataTypeID())
+                .isEqualTo("hierarchyid".hashCode());
+    }
+
     /** A catalog that knows varchar and int, and nothing else. */
     private static Catalog catalogKnowing(String... typeNames) {
         Catalog catalog = new Catalog();
@@ -109,44 +186,6 @@ class MSSQLSchemaFetcherTest {
         return table;
     }
 
-    // MSSQL reports an identity column's type with the keyword attached, and the type lookup
-    // only matches the bare name.
-    @Test
-    @DisplayName("an identity column's type is matched on its bare name")
-    void identityColumn_isMatchedOnItsBareName() throws SQLException {
-        Table table = buildOneColumn("varchar identity", null, catalogKnowing("varchar"));
-
-        assertThat(table.getColumns()).extracting(Column::getDataType).containsExactly("varchar");
-    }
-
-    @Test
-    @DisplayName("a default value is unwrapped from the parentheses MSSQL adds")
-    void defaultValue_isUnwrapped() throws SQLException {
-        Table table = buildOneColumn("varchar", "((5))", catalogKnowing("varchar"));
-
-        assertThat(table.getColumns().get(0).getDefaultValue()).isEqualTo("5");
-    }
-
-    @Test
-    @DisplayName("MSSQL's own spelling of a null default -> no default at all")
-    void nullDefault_becomesNoDefault() throws SQLException {
-        Table table = buildOneColumn("varchar", "(NULL)", catalogKnowing("varchar"));
-
-        assertThat(table.getColumns().get(0).getDefaultValue()).isNull();
-    }
-
-    // DEFECT: a column whose type is not in the catalog's supported list is stepped over without
-    // a word, so a table using a spatial or other unmapped type migrates with that column simply
-    // missing rather than with an error naming it
-    // - see MSSQLSchemaFetcher.buildTableColumns()
-    @Test
-    @DisplayName("a type the catalog does not list -> the column is dropped silently")
-    void unlistedType_dropsTheColumnSilently() throws SQLException {
-        Table table = buildOneColumn("geography", null, catalogKnowing("varchar"));
-
-        assertThat(table.getColumns()).isEmpty();
-    }
-
     private static ResultSetMetaData oneColumn(String typeName, int jdbcType, int precision)
             throws SQLException {
         ResultSetMetaData rsm = mock(ResultSetMetaData.class);
@@ -158,44 +197,5 @@ class MSSQLSchemaFetcherTest {
         when(rsm.getPrecision(1)).thenReturn(precision);
         when(rsm.getScale(1)).thenReturn(0);
         return rsm;
-    }
-
-    @Test
-    @DisplayName("buildSQLTable() fills in how the type is shown and keeps the type itself")
-    void buildSQLTable_fillsInTheShownType() throws SQLException {
-        Table table = FETCHER.buildSQLTable(oneColumn("varchar", Types.VARCHAR, 20));
-
-        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("varchar");
-        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("varchar(20)");
-    }
-
-    // The other dialects put their own widest text type in when the driver names none. MSSQL
-    // does not, so such a column reaches the transform stage still nameless.
-    @Test
-    @DisplayName("a column with no type name is left nameless, unlike the other dialects")
-    void untypedColumn_isLeftNameless() throws SQLException {
-        Table table = FETCHER.buildSQLTable(oneColumn("", Types.OTHER, 10));
-
-        assertThat(table.getColumns().get(0).getDataType()).isEmpty();
-    }
-
-    // hierarchyid has no JDBC type of its own, so the name's hash stands in as the identifier.
-    // Nothing else in CMT derives that number, which is why it is pinned here.
-    @Test
-    @DisplayName("hierarchyid is registered under an id derived from its own name")
-    void hierarchyId_isRegisteredUnderItsNameHash() throws Exception {
-        Map<String, List<DataType>> supportedTypes = new HashMap<String, List<DataType>>();
-        Method method =
-                MSSQLSchemaFetcher.class.getDeclaredMethod(
-                        "addHierarchyIDTypeToSupportedTypes", Map.class);
-        method.setAccessible(true);
-
-        method.invoke(FETCHER, supportedTypes);
-
-        assertThat(supportedTypes).containsOnlyKeys("hierarchyid");
-        assertThat(supportedTypes.get("hierarchyid")).hasSize(1);
-        assertThat(supportedTypes.get("hierarchyid").get(0).getTypeName()).isEqualTo("hierarchyid");
-        assertThat(supportedTypes.get("hierarchyid").get(0).getJdbcDataTypeID())
-                .isEqualTo("hierarchyid".hashCode());
     }
 }
