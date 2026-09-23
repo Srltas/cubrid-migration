@@ -59,11 +59,20 @@ class TimestampTypeHandlerTest {
         column.setName("C1");
     }
 
+    // The substitute lives in a static map the whole JVM shares, so whatever it held before this
+    // class ran is what has to go back.
+    private String originalSubstitute;
+
+    @BeforeEach
+    void rememberMigrationParameter() {
+        originalSubstitute =
+                MySQL2CUBRIDMigParas.getMigrationParamter(MySQL2CUBRIDMigParas.UNPARSED_TIMESTAMP);
+    }
+
     @AfterEach
-    void restoreMigrationParameters() {
+    void restoreMigrationParameter() {
         MySQL2CUBRIDMigParas.putMigrationParamter(
-                MySQL2CUBRIDMigParas.UNPARSED_TIMESTAMP,
-                MySQL2CUBRIDMigParas.DEFAULT_UNPARSED_TIMESTAMP_VALUE);
+                MySQL2CUBRIDMigParas.UNPARSED_TIMESTAMP, originalSubstitute);
     }
 
     @Test

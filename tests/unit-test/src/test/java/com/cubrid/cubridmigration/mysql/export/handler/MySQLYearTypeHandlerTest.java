@@ -58,16 +58,22 @@ class MySQLYearTypeHandlerTest {
     private ResultSet rs;
     private Column column;
 
+    // The Date branch renders through the default locale, so the tests below need a known one -
+    // and the machine's own has to come back afterwards, or whatever runs next in this JVM
+    // inherits ours.
+    private static final Locale ORIGINAL_LOCALE = Locale.getDefault();
+
     @BeforeEach
     void setUp() {
         rs = mock(ResultSet.class);
         column = new Column();
         column.setName("C1");
+        Locale.setDefault(Locale.US);
     }
 
     @AfterEach
     void restoreLocale() {
-        Locale.setDefault(Locale.US);
+        Locale.setDefault(ORIGINAL_LOCALE);
     }
 
     @ParameterizedTest(name = "[{index}] {0} -> {1}")

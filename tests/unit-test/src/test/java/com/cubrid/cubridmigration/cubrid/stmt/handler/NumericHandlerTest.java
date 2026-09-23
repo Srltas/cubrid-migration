@@ -35,8 +35,7 @@ import static org.mockito.Mockito.verify;
 import com.cubrid.cubridmigration.core.dbobject.Column;
 import com.cubrid.cubridmigration.core.dbobject.Record.ColumnValue;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,17 +68,19 @@ class NumericHandlerTest {
         return new ColumnValue(column, value);
     }
 
-    private static Locale defaultLocale;
+    // The rendering runs through the default locale, so the tests below need a known one - and
+    // the machine's own has to come back afterwards, or whatever runs next in this JVM inherits
+    // ours.
+    private static final Locale ORIGINAL_LOCALE = Locale.getDefault();
 
-    @BeforeAll
-    static void pinLocale() {
-        defaultLocale = Locale.getDefault();
+    @BeforeEach
+    void pinLocale() {
         Locale.setDefault(Locale.US);
     }
 
-    @AfterAll
-    static void restoreLocale() {
-        Locale.setDefault(defaultLocale);
+    @AfterEach
+    void restoreLocale() {
+        Locale.setDefault(ORIGINAL_LOCALE);
     }
 
     @Test
@@ -122,11 +123,8 @@ class NumericHandlerTest {
     @DisplayName("a comma-decimal locale renders \"12,5\" into the statement")
     void commaDecimalLocale_rendersCommaSeparator() throws SQLException {
         Locale.setDefault(Locale.GERMANY);
-        try {
-            HANDLER.handle(stmt, 0, valueOf("12.5"));
-        } finally {
-            Locale.setDefault(Locale.US);
-        }
+
+        HANDLER.handle(stmt, 0, valueOf("12.5"));
 
         verify(stmt).setString(1, "12,5");
     }
