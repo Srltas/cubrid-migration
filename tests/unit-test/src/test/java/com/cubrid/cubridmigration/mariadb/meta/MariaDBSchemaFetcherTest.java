@@ -47,6 +47,8 @@ import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -54,7 +56,6 @@ import java.sql.ResultSet;
 
 @DisplayName("MariaDBSchemaFetcher")
 class MariaDBSchemaFetcherTest {
-
     private static final MariaDBSchemaFetcher FETCHER = new MariaDBSchemaFetcher();
 
     // Intentionally use different catalog/schema names so a regression (falling back to
@@ -149,6 +150,107 @@ class MariaDBSchemaFetcherTest {
         String result = FETCHER.getSourcePartitionDDL(table);
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("buildSQLTable() renames INTEGER to MySQL's own spelling")
+    void buildSQLTable_renamesIntegerToInt() throws Exception {
+        Table table =
+                FETCHER.buildSQLTable(oneColumnMetaData("INTEGER", java.sql.Types.INTEGER, 10));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("int");
+    }
+
+    @Test
+    @DisplayName("buildSQLTable() renames INTEGER UNSIGNED the same way")
+    void buildSQLTable_renamesIntegerUnsigned() throws Exception {
+        Table table =
+                FETCHER.buildSQLTable(
+                        oneColumnMetaData("integer unsigned", java.sql.Types.INTEGER, 10));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("int unsigned");
+    }
+
+    @Test
+    @DisplayName("buildSQLTable() gives a column with no type name varchar")
+    void buildSQLTable_namesUntypedColumnsVarchar() throws Exception {
+        Table table = FETCHER.buildSQLTable(oneColumnMetaData("", java.sql.Types.OTHER, 10));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("varchar");
+        assertThat(table.getColumns().get(0).getJdbcIDOfDataType())
+                .isEqualTo(java.sql.Types.VARCHAR);
+    }
+
+    // An enum carries its members in the shown type, and the parsed instance is what the
+    // transform stage reads them from.
+    @Test
+    @DisplayName("buildSQLTable() parses an enum's members into a type instance")
+    void buildSQLTable_parsesEnumMembers() throws Exception {
+        Table table =
+                FETCHER.buildSQLTable(oneColumnMetaData("enum('a','b')", java.sql.Types.CHAR, 1));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("enum");
+        assertThat(table.getColumns().get(0).getDataTypeInstance()).isNotNull();
+        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("enum('a','b')");
+    }
+
+    @ParameterizedTest(name = "[{index}] {0}.{1} -> {2}")
+    @DisplayName("partitions arrived in 5.1, so anything older is not offered them")
+    @CsvSource({
+        // Below 5.1 the server has no partition catalog to read.
+        "4, 9, false",
+        "5, 0, false",
+        // From 5.1 on it does.
+        "5, 1, true",
+        "5, 7, true",
+        "6, 0, true",
+        "8, 0, true",
+    })
+    void isSupportPartitionVersion_startsAtFiveOne(int major, int minor, boolean expected) {
+        Version version = new Version();
+        version.setDbMajorVersion(major);
+        version.setDbMinorVersion(minor);
+
+        assertThat(FETCHER.isSupportPartitionVersion(version)).isEqualTo(expected);
+    }
+
+    // DEFECT: the clause is cut two characters short of the end of the DDL, so the closing
+    // parentheses are lost. AbstractJDBCSchemaFetcher takes the same clause to the end of the
+    // string, and this override is the only place the two differ
+    // - see MariaDBSchemaFetcher.getSourcePartitionDDL()
+    @Test
+    @DisplayName("getSourcePartitionDDL() drops the last two characters of the clause")
+    void getSourcePartitionDDL_dropsTheLastTwoCharacters() {
+        Table table = createTable("orders", "a", "int");
+        table.setDDL(
+                "CREATE TABLE orders (a INT) PARTITION BY RANGE (a) (PARTITION p0 VALUES LESS"
+                        + " THAN (10))");
+
+        assertThat(FETCHER.getSourcePartitionDDL(table))
+                .isEqualTo("PARTITION BY RANGE (a) (PARTITION p0 VALUES LESS THAN (10");
+    }
+
+    @Test
+    @DisplayName("getSourcePartitionDDL() returns empty when the DDL has no partition clause")
+    void getSourcePartitionDDL_returnsEmpty_whenThereIsNoPartitionClause() {
+        Table table = createTable("orders", "a", "int");
+        table.setDDL("CREATE TABLE orders (a INT)");
+
+        assertThat(FETCHER.getSourcePartitionDDL(table)).isEmpty();
+    }
+
+    /** A one-column result set description, which is all buildSQLTable() reads. */
+    private static java.sql.ResultSetMetaData oneColumnMetaData(
+            String typeName, int jdbcType, int precision) throws java.sql.SQLException {
+        java.sql.ResultSetMetaData rsm = mock(java.sql.ResultSetMetaData.class);
+        when(rsm.getColumnCount()).thenReturn(1);
+        when(rsm.getColumnLabel(1)).thenReturn("C1");
+        when(rsm.getColumnName(1)).thenReturn("C1");
+        when(rsm.getColumnType(1)).thenReturn(jdbcType);
+        when(rsm.getColumnTypeName(1)).thenReturn(typeName);
+        when(rsm.getPrecision(1)).thenReturn(precision);
+        when(rsm.getScale(1)).thenReturn(0);
+        return rsm;
     }
 
     private static Catalog createCatalog(String catalogName) {

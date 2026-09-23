@@ -31,6 +31,7 @@
 package com.cubrid.cubridmigration.cubrid.meta;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -48,6 +49,8 @@ import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 
 import java.sql.Connection;
@@ -57,7 +60,6 @@ import java.sql.ResultSet;
 
 @DisplayName("CUBRIDSchemaFetcher")
 class CUBRIDSchemaFetcherTest {
-
     private static final CUBRIDSchemaFetcher FETCHER = new CUBRIDSchemaFetcher();
 
     private static final String SCHEMA_NAME = "TEST_SCHEMA";
@@ -202,6 +204,111 @@ class CUBRIDSchemaFetcherTest {
         when(metaData.getDatabaseMinorVersion()).thenReturn(minorVersion);
         when(conn.getMetaData()).thenReturn(metaData);
         return conn;
+    }
+
+    @ParameterizedTest(name = "[{index}] {0} -> {1}")
+    @DisplayName("each source spelling is reduced to the standard CUBRID type name")
+    @CsvSource({
+        // The fetcher keeps a table of its own, whose single entry maps STRING. The type helper
+        // already answers varchar for that name, so the entry changes nothing today.
+        "STRING,           varchar",
+        // Everything else is left to the type helper.
+        "VARCHAR,          varchar",
+        "integer,          int",
+        "SET_OF(INTEGER),  set",
+    })
+    void getStdDataType_reducesToTheStandardName(String sourceType, String expected)
+            throws Exception {
+        java.lang.reflect.Method method =
+                CUBRIDSchemaFetcher.class.getDeclaredMethod("getStdDataType", String.class);
+        method.setAccessible(true);
+
+        assertThat(method.invoke(FETCHER, sourceType)).isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("buildSQLTable() gives a column with no type name varchar")
+    void buildSQLTable_namesUntypedColumnsVarchar() throws Exception {
+        Table table = FETCHER.buildSQLTable(oneColumnMetaData("", java.sql.Types.OTHER, 10));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("varchar");
+        assertThat(table.getColumns().get(0).getJdbcIDOfDataType())
+                .isEqualTo(java.sql.Types.VARCHAR);
+    }
+
+    // The JDBC type the driver reported is replaced by the one CUBRID uses for that type name,
+    // so a query's column is described the way a CUBRID column would be.
+    @Test
+    @DisplayName("buildSQLTable() restates the type with CUBRID's own id and spelling")
+    void buildSQLTable_restatesTheTypeTheCubridWay() throws Exception {
+        Table table =
+                FETCHER.buildSQLTable(oneColumnMetaData("INTEGER", java.sql.Types.INTEGER, 10));
+
+        assertThat(table.getColumns().get(0).getDataType()).isEqualTo("INTEGER");
+        assertThat(table.getColumns().get(0).getShownDataType()).isEqualTo("int");
+    }
+
+    // A query returning a type CUBRID has no answer for stops the build rather than migrating a
+    // column the target could never hold.
+    @Test
+    @DisplayName("buildSQLTable() refuses a type CUBRID does not have")
+    void buildSQLTable_refusesAnUnsupportedType() {
+        assertThatThrownBy(
+                        () ->
+                                FETCHER.buildSQLTable(
+                                        oneColumnMetaData(
+                                                "integer unsigned", java.sql.Types.INTEGER, 10)))
+                .isInstanceOf(
+                        com.cubrid.cubridmigration.cubrid.exception.UnSupportCUBRIDDataTypeException
+                                .class);
+    }
+
+    // DEFECT: the RETURN clause is written only when the routine returns void, which is exactly
+    // when it is meaningless, and is left out for a function that does return something. The
+    // generated DDL for a real function therefore names no return type
+    // - see CUBRIDSchemaFetcher.creatSPDDL()
+    @Test
+    @DisplayName("creatSPDDL() writes RETURN for a void routine and omits it for a real one")
+    void creatSPDDL_writesReturnOnlyForVoid() throws Exception {
+        assertThat(storedProcedureDDL("void")).contains("RETURN void");
+        assertThat(storedProcedureDDL("int")).doesNotContain("RETURN");
+    }
+
+    @Test
+    @DisplayName("creatSPDDL() quotes the routine name and carries the language and target")
+    void creatSPDDL_quotesTheNameAndCarriesTheBinding() throws Exception {
+        assertThat(storedProcedureDDL("int"))
+                .startsWith("CREATE FUNCTION \"f1\" (a int)")
+                .contains("AS LANGUAGE JAVA")
+                .contains("NAME 'Cls.m'");
+    }
+
+    private static String storedProcedureDDL(String returnType) throws Exception {
+        java.util.Map<String, Object> row = new java.util.HashMap<String, Object>();
+        row.put("SP_TYPE", "FUNCTION");
+        row.put("SP_NAME", "f1");
+        row.put("PARAMS", "a int");
+        row.put("RETURN_TYPE", returnType);
+        row.put("LANG", "JAVA");
+        row.put("TARGET", "Cls.m");
+        java.lang.reflect.Method method =
+                CUBRIDSchemaFetcher.class.getDeclaredMethod("creatSPDDL", java.util.Map.class);
+        method.setAccessible(true);
+        return (String) method.invoke(FETCHER, row);
+    }
+
+    /** A one-column result set description, which is all buildSQLTable() reads. */
+    private static java.sql.ResultSetMetaData oneColumnMetaData(
+            String typeName, int jdbcType, int precision) throws java.sql.SQLException {
+        java.sql.ResultSetMetaData rsm = mock(java.sql.ResultSetMetaData.class);
+        when(rsm.getColumnCount()).thenReturn(1);
+        when(rsm.getColumnLabel(1)).thenReturn("C1");
+        when(rsm.getColumnName(1)).thenReturn("C1");
+        when(rsm.getColumnType(1)).thenReturn(jdbcType);
+        when(rsm.getColumnTypeName(1)).thenReturn(typeName);
+        when(rsm.getPrecision(1)).thenReturn(precision);
+        when(rsm.getScale(1)).thenReturn(0);
+        return rsm;
     }
 
     private static Catalog createCatalog() {
