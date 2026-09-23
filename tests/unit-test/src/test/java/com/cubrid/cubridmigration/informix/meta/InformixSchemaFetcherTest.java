@@ -29,12 +29,18 @@
  */
 package com.cubrid.cubridmigration.informix.meta;
 
+import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachPreparedQuery;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.cubrid.cubridmigration.core.dbobject.Function;
+import com.cubrid.cubridmigration.core.dbobject.Procedure;
+import com.cubrid.cubridmigration.core.dbobject.Sequence;
 import com.cubrid.cubridmigration.core.dbobject.Table;
+import com.cubrid.cubridmigration.core.dbobject.Trigger;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,15 +49,155 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.List;
 import java.util.MissingFormatArgumentException;
 
 @DisplayName("InformixSchemaFetcher")
 class InformixSchemaFetcherTest {
 
     private static final InformixSchemaFetcher FETCHER = new InformixSchemaFetcher();
+
+    @SuppressWarnings("unchecked")
+    private static <T> List<T> invokeRowReader(String method, Connection conn) throws Exception {
+        Method m =
+                InformixSchemaFetcher.class.getDeclaredMethod(
+                        method, Connection.class, String.class);
+        m.setAccessible(true);
+        try {
+            return (List<T>) m.invoke(FETCHER, conn, "hr");
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            throw (Exception) e.getCause();
+        }
+    }
+
+    // DEFECT: the Sequence is built once, before the loop, and every row overwrites that same
+    // object before adding it again. A schema with N sequences migrates as N copies of the last
+    // one - the same shape applies to getProcedures() and getFunctions()
+    // - see InformixSchemaFetcher.getSequences()
+    @Test
+    @DisplayName("two sequence rows -> two references to one object holding the last row")
+    void twoSequenceRows_collapseIntoOne() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 2);
+        when(rs.getString("tabname")).thenReturn("seq_a", "seq_b");
+        when(rs.getString("max_val")).thenReturn("100", "200");
+        when(rs.getString("min_val")).thenReturn("1", "2");
+        when(rs.getString("inc_val")).thenReturn("1", "5");
+        when(rs.getString("start_val")).thenReturn("1", "10");
+        when(rs.getString("cycle")).thenReturn("1", "0");
+        when(rs.getInt("cache")).thenReturn(20, 30);
+
+        List<Sequence> sequences = invokeRowReader("getSequences", conn);
+
+        assertThat(sequences).hasSize(2);
+        assertThat(sequences.get(0)).isSameAs(sequences.get(1));
+        assertThat(sequences.get(0).getName()).isEqualTo("seq_b");
+        assertThat(sequences.get(0).getMaxValue()).isEqualTo(new java.math.BigInteger("200"));
+    }
+
+    // DEFECT: the same shape as getSequences() above
+    // - see InformixSchemaFetcher.getFunctions()
+    @Test
+    @DisplayName("two function rows -> two references to one object holding the last row")
+    void twoFunctionRows_collapseIntoOne() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 2);
+        when(rs.getString("name")).thenReturn("f1", "f2");
+        when(rs.getString("data")).thenReturn("body1", "body2");
+
+        List<Function> functions = invokeRowReader("getFunctions", conn);
+
+        assertThat(functions).hasSize(2);
+        assertThat(functions.get(0)).isSameAs(functions.get(1));
+        assertThat(functions.get(0).getName()).isEqualTo("f2");
+    }
+
+    // DEFECT: the same shape again
+    // - see InformixSchemaFetcher.getProcedures()
+    @Test
+    @DisplayName("two procedure rows -> two references to one object holding the last row")
+    void twoProcedureRows_collapseIntoOne() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 2);
+        when(rs.getString("name")).thenReturn("p1", "p2");
+        when(rs.getString("data")).thenReturn("body1", "body2");
+
+        List<Procedure> procedures = invokeRowReader("getProcedures", conn);
+
+        assertThat(procedures).hasSize(2);
+        assertThat(procedures.get(0)).isSameAs(procedures.get(1));
+        assertThat(procedures.get(0).getName()).isEqualTo("p2");
+    }
+
+    // The format failure pinned above surfaces here: one trigger with a known event is enough to
+    // abort the whole trigger catalog for the schema.
+    @Test
+    @DisplayName("one trigger with a known event aborts the whole trigger read")
+    void triggerWithKnownEvent_abortsTheRead() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 1);
+        when(rs.getString("trigname")).thenReturn("trg1");
+        when(rs.getString("event")).thenReturn("U");
+        when(rs.getString("data")).thenReturn("trigger body");
+
+        assertThatThrownBy(() -> invokeRowReader("getTriggers", conn))
+                .isInstanceOf(MissingFormatArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("a trigger whose event has no mapping is read with its body as the DDL")
+    void triggerWithUnknownEvent_keepsItsBody() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 1);
+        when(rs.getString("trigname")).thenReturn("trg1");
+        when(rs.getString("event")).thenReturn("X");
+        when(rs.getString("data")).thenReturn("trigger body");
+
+        List<Trigger> triggers = invokeRowReader("getTriggers", conn);
+
+        assertThat(triggers).hasSize(1);
+        assertThat(triggers.get(0).getDDL()).isEqualTo("trigger body");
+    }
+
+    @Test
+    @DisplayName("buildViewDDL() keeps what follows \" as\" and strips the quoted owner prefixes")
+    void buildViewDDL_keepsWhatFollowsAs() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 1);
+        when(rs.getString("viewtext")).thenReturn("create view \"hr\".v as select a from \"hr\".t");
+
+        assertThat(FETCHER.buildViewDDL(conn, "hr", "v")).isEqualTo(" select a from t");
+    }
+
+    // DEFECT: the text is split on " as" and the second piece taken without checking that the
+    // split produced one, so a view whose text carries no such word aborts the schema build
+    // - see InformixSchemaFetcher.buildViewDDL()
+    @Test
+    @DisplayName("view text without \" as\" -> ArrayIndexOutOfBoundsException")
+    void viewTextWithoutAs_throwsArrayIndexOutOfBounds() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachPreparedQuery(conn, 1);
+        when(rs.getString("viewtext")).thenReturn("create view v (select a from t)");
+
+        assertThatThrownBy(() -> FETCHER.buildViewDDL(conn, "hr", "v"))
+                .isInstanceOf(ArrayIndexOutOfBoundsException.class);
+    }
+
+    // The emptiness check compares references rather than contents. It happens to hold here only
+    // because nothing was appended, so the field still points at the same literal.
+    @Test
+    @DisplayName("no view row -> null")
+    void noViewRow_returnsNull() throws Exception {
+        Connection conn = mock(Connection.class);
+        attachPreparedQuery(conn, 0);
+
+        assertThat(FETCHER.buildViewDDL(conn, "hr", "v")).isNull();
+    }
 
     private static ResultSetMetaData oneColumn(String typeName, int jdbcType, int precision)
             throws SQLException {

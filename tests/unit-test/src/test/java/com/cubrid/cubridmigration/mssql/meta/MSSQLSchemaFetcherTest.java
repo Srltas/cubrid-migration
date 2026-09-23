@@ -29,20 +29,33 @@
  */
 package com.cubrid.cubridmigration.mssql.meta;
 
+import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachMetaData;
+import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachPreparedQuery;
+import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.resultSetOf;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.cubrid.cubridmigration.core.datatype.DataType;
+import com.cubrid.cubridmigration.core.dbobject.Catalog;
+import com.cubrid.cubridmigration.core.dbobject.Column;
+import com.cubrid.cubridmigration.core.dbobject.Schema;
 import com.cubrid.cubridmigration.core.dbobject.Table;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +64,88 @@ import java.util.Map;
 class MSSQLSchemaFetcherTest {
 
     private static final MSSQLSchemaFetcher FETCHER = new MSSQLSchemaFetcher();
+
+    /** A catalog that knows varchar and int, and nothing else. */
+    private static Catalog catalogKnowing(String... typeNames) {
+        Catalog catalog = new Catalog();
+        catalog.setName("db");
+        Map<String, List<DataType>> supported = new HashMap<String, List<DataType>>();
+        for (String typeName : typeNames) {
+            DataType type = new DataType();
+            type.setTypeName(typeName);
+            type.setJdbcDataTypeID(Types.VARCHAR);
+            supported.put(typeName, Collections.singletonList(type));
+        }
+        catalog.setSupportedDataType(supported);
+        return catalog;
+    }
+
+    private static ResultSet oneColumnRow(
+            Connection conn, String columnName, String typeName, String defaultValue)
+            throws SQLException {
+        DatabaseMetaData metaData = attachMetaData(conn);
+        ResultSet rs = resultSetOf(1);
+        when(metaData.getColumns(any(), any(), anyString(), any())).thenReturn(rs);
+        when(rs.getString("COLUMN_NAME")).thenReturn(columnName);
+        when(rs.getString("TYPE_NAME")).thenReturn(typeName);
+        when(rs.getInt("COLUMN_SIZE")).thenReturn(20);
+        when(rs.getInt("DATA_TYPE")).thenReturn(Types.VARCHAR);
+        when(rs.getInt("NULLABLE")).thenReturn(DatabaseMetaData.columnNullable);
+        when(rs.getString("COLUMN_DEF")).thenReturn(defaultValue);
+        attachPreparedQuery(conn, 0);
+        return rs;
+    }
+
+    private static Table buildOneColumn(String typeName, String defaultValue, Catalog catalog)
+            throws SQLException {
+        Connection conn = mock(Connection.class);
+        oneColumnRow(conn, "A", typeName, defaultValue);
+        Schema schema = new Schema(catalog);
+        schema.setName("dbo");
+        catalog.addSchema(schema);
+        Table table = new Table();
+        table.setName("T1");
+        FETCHER.buildTableColumns(conn, catalog, schema, table);
+        return table;
+    }
+
+    // MSSQL reports an identity column's type with the keyword attached, and the type lookup
+    // only matches the bare name.
+    @Test
+    @DisplayName("an identity column's type is matched on its bare name")
+    void identityColumn_isMatchedOnItsBareName() throws SQLException {
+        Table table = buildOneColumn("varchar identity", null, catalogKnowing("varchar"));
+
+        assertThat(table.getColumns()).extracting(Column::getDataType).containsExactly("varchar");
+    }
+
+    @Test
+    @DisplayName("a default value is unwrapped from the parentheses MSSQL adds")
+    void defaultValue_isUnwrapped() throws SQLException {
+        Table table = buildOneColumn("varchar", "((5))", catalogKnowing("varchar"));
+
+        assertThat(table.getColumns().get(0).getDefaultValue()).isEqualTo("5");
+    }
+
+    @Test
+    @DisplayName("MSSQL's own spelling of a null default -> no default at all")
+    void nullDefault_becomesNoDefault() throws SQLException {
+        Table table = buildOneColumn("varchar", "(NULL)", catalogKnowing("varchar"));
+
+        assertThat(table.getColumns().get(0).getDefaultValue()).isNull();
+    }
+
+    // DEFECT: a column whose type is not in the catalog's supported list is stepped over without
+    // a word, so a table using a spatial or other unmapped type migrates with that column simply
+    // missing rather than with an error naming it
+    // - see MSSQLSchemaFetcher.buildTableColumns()
+    @Test
+    @DisplayName("a type the catalog does not list -> the column is dropped silently")
+    void unlistedType_dropsTheColumnSilently() throws SQLException {
+        Table table = buildOneColumn("geography", null, catalogKnowing("varchar"));
+
+        assertThat(table.getColumns()).isEmpty();
+    }
 
     private static ResultSetMetaData oneColumn(String typeName, int jdbcType, int precision)
             throws SQLException {

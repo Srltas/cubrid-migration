@@ -29,12 +29,17 @@
  */
 package com.cubrid.cubridmigration.oracle.meta;
 
+import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.resultSetOf;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.cubrid.cubridmigration.core.dbobject.Catalog;
 import com.cubrid.cubridmigration.core.dbobject.Column;
+import com.cubrid.cubridmigration.core.dbobject.Grant;
+import com.cubrid.cubridmigration.core.dbobject.Schema;
 import com.cubrid.cubridmigration.core.dbobject.Table;
 
 import org.junit.jupiter.api.AfterAll;
@@ -48,6 +53,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -74,6 +82,79 @@ class OracleSchemaFetcherTest {
     /**
      * These rules live in private helpers, reached the way TiberoSchemaFetcherTest reaches its own.
      */
+
+    /** buildGrant() runs two queries in turn: table grants first, then view grants. */
+    private static Schema buildGrantsFrom(String tablePrivilege, String viewPrivilege)
+            throws Exception {
+        Connection conn = mock(Connection.class);
+        PreparedStatement tableStmt = mock(PreparedStatement.class);
+        PreparedStatement viewStmt = mock(PreparedStatement.class);
+        ResultSet tableRows = resultSetOf(1);
+        ResultSet viewRows = resultSetOf(1);
+        when(conn.prepareStatement(anyString())).thenReturn(tableStmt, viewStmt);
+        when(tableStmt.executeQuery()).thenReturn(tableRows);
+        when(viewStmt.executeQuery()).thenReturn(viewRows);
+        stubGrantRow(tableRows, "T1", tablePrivilege);
+        stubGrantRow(viewRows, "V1", viewPrivilege);
+
+        Catalog catalog = new Catalog();
+        catalog.setName("ORCL");
+        Schema schema = new Schema(catalog);
+        schema.setName("HR");
+        catalog.addSchema(schema);
+        FETCHER.buildGrant(conn, catalog, schema, null);
+        return schema;
+    }
+
+    private static void stubGrantRow(ResultSet rs, String objectName, String privilege)
+            throws Exception {
+        when(rs.getString("GRANTEE")).thenReturn("HR");
+        when(rs.getString("OWNER")).thenReturn("SCOTT");
+        when(rs.getString("TABLE_NAME")).thenReturn(objectName);
+        when(rs.getString("GRANTOR")).thenReturn("SYS");
+        when(rs.getString("GRANTABLE")).thenReturn("YES");
+        when(rs.getString("PRIVILEGE")).thenReturn(privilege);
+    }
+
+    @Test
+    @DisplayName("a table grant is filtered and its name rewritten for CUBRID")
+    void tableGrant_isFilteredAndRewritten() throws Exception {
+        Schema schema = buildGrantsFrom("ALL", "SELECT");
+
+        assertThat(schema.getGrantList())
+                .filteredOn(grant -> "T1".equals(grant.getClassName()))
+                .extracting(Grant::getAuthType)
+                .containsExactly("ALL PRIVILEGES");
+    }
+
+    @Test
+    @DisplayName("a table grant CUBRID cannot express is dropped")
+    void unsupportedTableGrant_isDropped() throws Exception {
+        Schema schema = buildGrantsFrom("REFERENCES", "SELECT");
+
+        assertThat(schema.getGrantList()).extracting(Grant::getClassName).containsExactly("V1");
+    }
+
+    // DEFECT: the view half of the method runs neither the privilege filter nor the name
+    // rewrite that the table half runs, so a view grant CUBRID has no word for is migrated
+    // verbatim and ALL is never turned into ALL PRIVILEGES
+    // - see OracleSchemaFetcher.buildGrant()
+    @Test
+    @DisplayName("a view grant skips both the filter and the rewrite the table half applies")
+    void viewGrant_skipsFilterAndRewrite() throws Exception {
+        Schema unsupported = buildGrantsFrom("SELECT", "REFERENCES");
+        Schema notRewritten = buildGrantsFrom("SELECT", "ALL");
+
+        assertThat(unsupported.getGrantList())
+                .filteredOn(grant -> "V1".equals(grant.getClassName()))
+                .extracting(Grant::getAuthType)
+                .containsExactly("REFERENCES");
+        assertThat(notRewritten.getGrantList())
+                .filteredOn(grant -> "V1".equals(grant.getClassName()))
+                .extracting(Grant::getAuthType)
+                .containsExactly("ALL");
+    }
+
     private static Object invokePrivate(String name, Class<?>[] types, Object... args)
             throws Exception {
         Method method = OracleSchemaFetcher.class.getDeclaredMethod(name, types);

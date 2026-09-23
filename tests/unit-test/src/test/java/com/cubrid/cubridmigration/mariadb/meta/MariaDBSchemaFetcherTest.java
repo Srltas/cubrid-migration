@@ -30,6 +30,8 @@
  */
 package com.cubrid.cubridmigration.mariadb.meta;
 
+import static com.cubrid.cubridmigration.testutil.TestJdbcFactory.attachStatementQuery;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -45,17 +47,25 @@ import com.cubrid.cubridmigration.core.dbobject.Table;
 import com.cubrid.cubridmigration.core.dbobject.Version;
 import com.cubrid.cubridmigration.core.dbtype.DatabaseType;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.TimeZone;
 
 @DisplayName("MariaDBSchemaFetcher")
+@ResourceLock(Resources.TIME_ZONE)
 class MariaDBSchemaFetcherTest {
+    private static final TimeZone ORIGINAL_ZONE = TimeZone.getDefault();
+
     private static final MariaDBSchemaFetcher FETCHER = new MariaDBSchemaFetcher();
 
     // Intentionally use different catalog/schema names so a regression (falling back to
@@ -237,6 +247,47 @@ class MariaDBSchemaFetcherTest {
         table.setDDL("CREATE TABLE orders (a INT)");
 
         assertThat(FETCHER.getSourcePartitionDDL(table)).isEmpty();
+    }
+
+    @AfterEach
+    void restoreTimeZone() {
+        TimeZone.setDefault(ORIGINAL_ZONE);
+    }
+
+    @Test
+    @DisplayName("getTimezone() turns the server's hour offset into a GMT label")
+    void getTimezone_labelsTheServerOffset() throws Exception {
+        Connection conn = mock(Connection.class);
+        ResultSet rs = attachStatementQuery(conn, 1);
+        when(rs.getInt("TIMEZONE")).thenReturn(9);
+
+        assertThat(FETCHER.getTimezone(conn)).isEqualTo("GMT+09:00");
+    }
+
+    // DEFECT: the query path hands getTZFromOffset() a number of hours, but the fallback hands it
+    // the local raw offset in milliseconds, which the same method then formats as if it were
+    // hours. A server whose timezone cannot be read is labelled GMT+32400000:00 in Seoul
+    // - see MariaDBSchemaFetcher.getTimezone()
+    @Test
+    @DisplayName("a server whose timezone cannot be read -> the local offset in milliseconds")
+    void unreadableServerTimezone_fallsBackToMilliseconds() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+        Connection conn = mock(Connection.class);
+        when(conn.createStatement()).thenThrow(new SQLException("no statement"));
+
+        assertThat(FETCHER.getTimezone(conn)).isEqualTo("GMT+32400000:00");
+    }
+
+    // The fallback only looks right where the offset is zero, because zero milliseconds and zero
+    // hours render the same.
+    @Test
+    @DisplayName("the fallback happens to look right only at UTC")
+    void fallbackAtUtc_looksCorrectByCoincidence() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        Connection conn = mock(Connection.class);
+        when(conn.createStatement()).thenThrow(new SQLException("no statement"));
+
+        assertThat(FETCHER.getTimezone(conn)).isEqualTo("GMT+00:00");
     }
 
     /** A one-column result set description, which is all buildSQLTable() reads. */
