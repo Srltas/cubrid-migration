@@ -172,9 +172,9 @@ class MySQLXMLSchemaParserTest {
             Table table =
                     firstTable(
                             "  <field Field=\"a\" Type=\"int(11)\" Null=\"NO\""
-                                + " Extra=\"auto_increment\" />\n"
-                                + "  <field Field=\"b\" Type=\"int(11)\" Null=\"NO\" Extra=\"\""
-                                + " />\n");
+                                    + " Extra=\"auto_increment\" />\n"
+                                    + "  <field Field=\"b\" Type=\"int(11)\" Null=\"NO\" Extra=\"\""
+                                    + " />\n");
 
             assertThat(column(table, "a").isAutoIncrement()).isTrue();
             assertThat(column(table, "b").isAutoIncrement()).isFalse();
@@ -186,7 +186,7 @@ class MySQLXMLSchemaParserTest {
             Table table =
                     firstTable(
                             "  <field Field=\"a\" Type=\"int(11)\" Null=\"YES\" Default=\"7\""
-                                + " />\n");
+                                    + " />\n");
 
             assertThat(column(table, "a").getDefaultValue()).isEqualTo("7");
         }
